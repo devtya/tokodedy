@@ -29,15 +29,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePropertiesFile = rootProject.file("key.properties")
-            if (keystorePropertiesFile.exists()) {
-                val keystoreProperties = java.util.Properties()
-                keystoreProperties.load(keystorePropertiesFile.inputStream())
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            }
+            storeFile = file("keystore/release.keystore")
+            storePassword = "HendKasir2024"
+            keyAlias = "release"
+            keyPassword = "HendKasir2024"
         }
     }
 
