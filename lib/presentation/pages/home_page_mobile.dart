@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/theme/app_theme.dart';
@@ -19,6 +20,9 @@ import '../blocs/pembelian/pembelian_bloc.dart';
 import '../blocs/produk/produk_bloc.dart';
 import '../blocs/supplier/supplier_bloc.dart';
 import '../blocs/transaksi/transaksi_bloc.dart';
+import '../blocs/dashboard/dashboard_bloc.dart';
+import '../blocs/dashboard/dashboard_event.dart';
+import '../blocs/dashboard/dashboard_state.dart';
 import 'cashier_page.dart';
 import 'hutang_page.dart';
 import 'laporan_page.dart';
@@ -34,8 +38,15 @@ class HomeMobilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<NotifikasiBloc>()..add(LoadNotifikasi()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => sl<NotifikasiBloc>()..add(LoadNotifikasi()),
+        ),
+        BlocProvider(
+          create: (context) => sl<DashboardBloc>()..add(LoadDashboardMetrics()),
+        ),
+      ],
       child: const _HomeMobileView(),
     );
   }
@@ -51,9 +62,10 @@ class _HomeMobileView extends StatefulWidget {
 class _HomeMobileViewState extends State<_HomeMobileView> {
   bool _emailPromptShown = false;
 
-  void _reloadNotifikasi() {
+  void _reloadDashboardAndNotif() {
     if (mounted) {
       context.read<NotifikasiBloc>().add(LoadNotifikasi());
+      context.read<DashboardBloc>().add(LoadDashboardMetrics());
     }
   }
 
@@ -61,7 +73,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),
-    ).then((_) => _reloadNotifikasi());
+    ).then((_) => _reloadDashboardAndNotif());
   }
 
   void _showEmailDialog(BuildContext context, User user) {
@@ -134,6 +146,118 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     );
   }
 
+  void _showLainnyaBottomSheet(BuildContext context, bool isAdmin) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Menu Lainnya',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              children: [
+                _LainnyaGridItem(
+                  icon: Icons.shopping_bag,
+                  label: 'Pembelian',
+                  color: Colors.teal,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateAndReload(
+                      BlocProvider.value(
+                        value: sl<PembelianBloc>(),
+                        child: const PembelianPage(),
+                      ),
+                    );
+                  },
+                ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.business,
+                    label: 'Supplier',
+                    color: Colors.brown,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(
+                        BlocProvider.value(
+                          value: sl<SupplierBloc>(),
+                          child: const SupplierPage(),
+                        ),
+                      );
+                    },
+                  ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.people,
+                    label: 'Hutang',
+                    color: AppTheme.warningOrange,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(
+                        BlocProvider.value(
+                          value: sl<HutangBloc>(),
+                          child: const HutangPage(),
+                        ),
+                      );
+                    },
+                  ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.bar_chart,
+                    label: 'Laporan',
+                    color: Colors.purple,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(
+                        BlocProvider.value(
+                          value: sl<LaporanBloc>(),
+                          child: const LaporanPage(),
+                        ),
+                      );
+                    },
+                  ),
+                _LainnyaGridItem(
+                  icon: Icons.settings,
+                  label: 'Pengaturan',
+                  color: Colors.indigo,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateAndReload(const SettingsPage());
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -148,186 +272,429 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-        String username = '';
-        String role = 'kasir';
-        if (authState is Authenticated) {
-          username = authState.user.nama ?? authState.user.email ?? '';
-          role = authState.user.role;
-        } else if (authState is StoreRegistered) {
-          username = authState.user.nama ?? authState.user.email ?? '';
-          role = authState.user.role;
-        }
-        final isAdmin = role == 'owner';
+          String username = '';
+          String role = 'kasir';
+          if (authState is Authenticated) {
+            username = authState.user.nama ?? authState.user.email ?? '';
+            role = authState.user.role;
+          } else if (authState is StoreRegistered) {
+            username = authState.user.nama ?? authState.user.email ?? '';
+            role = authState.user.role;
+          }
+          final isAdmin = role == 'owner';
 
-        // Prompt email jika login via username (email null)
-        final currentUser = authState is Authenticated
-            ? authState.user
-            : authState is StoreRegistered
-                ? authState.user
-                : null;
-        if (currentUser != null &&
-            currentUser.email == null &&
-            !_emailPromptShown) {
-          _emailPromptShown = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _showEmailDialog(context, currentUser);
-          });
-        }
+          final currentUser = authState is Authenticated
+              ? authState.user
+              : authState is StoreRegistered
+                  ? authState.user
+                  : null;
+          if (currentUser != null &&
+              currentUser.email == null &&
+              !_emailPromptShown) {
+            _emailPromptShown = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showEmailDialog(context, currentUser);
+            });
+          }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Halo, $username! 👋'),
-            centerTitle: false,
-            actions: [
-              BlocBuilder<NotifikasiBloc, NotifikasiState>(
-                builder: (context, state) {
-                  int unreadCount = 0;
-                  if (state is NotifikasiLoaded) {
-                    unreadCount = state.unreadNotifikasi.length;
-                  }
-
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider.value(
-                                value: context.read<NotifikasiBloc>(),
-                                child: const NotifikasiPage(),
-                              ),
-                            ),
-                          ).then((_) {
-                            if (context.mounted) {
-                              context.read<NotifikasiBloc>().add(
-                                LoadNotifikasi(),
-                              );
-                            }
-                          });
-                        },
-                      ),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.warningRed,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '$unreadCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: BlocBuilder<NotifikasiBloc, NotifikasiState>(
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('POS Terminal', style: TextStyle(fontWeight: FontWeight.bold)),
+              centerTitle: false,
+              actions: [
+                BlocBuilder<NotifikasiBloc, NotifikasiState>(
                   builder: (context, state) {
-                    if (state is NotifikasiLoaded &&
-                        state.unreadNotifikasi.isNotEmpty) {
-                      final latestNotif = state.unreadNotifikasi.first;
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                        child: Card(
-                          color: AppTheme.warningOrange.withValues(alpha: 0.15),
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: AppTheme.warningOrange.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.campaign,
-                              color: AppTheme.warningOrange,
-                              size: 32,
-                            ),
-                            title: Text(
-                              latestNotif.judul,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.warningOrange,
-                              ),
-                            ),
-                            subtitle: Text(
-                              latestNotif.pesan,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => BlocProvider.value(
-                                    value: context.read<NotifikasiBloc>(),
-                                    child: const NotifikasiPage(),
-                                  ),
-                                ),
-                              ).then((_) {
-                                if (context.mounted) {
-                                  context.read<NotifikasiBloc>().add(
-                                    LoadNotifikasi(),
-                                  );
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                      );
+                    int unreadCount = 0;
+                    if (state is NotifikasiLoaded) {
+                      unreadCount = state.unreadNotifikasi.length;
                     }
-                    return const SizedBox();
+
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider.value(
+                                  value: context.read<NotifikasiBloc>(),
+                                  child: const NotifikasiPage(),
+                                ),
+                              ),
+                            ).then((_) {
+                              if (context.mounted) {
+                                context.read<NotifikasiBloc>().add(LoadNotifikasi());
+                              }
+                            });
+                          },
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.warningRed,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
                   },
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverGrid.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio:
-                      1.1,
-                  children: [
-                    _MenuGridCard(
-                      icon: Icons.shopping_cart,
-                      label: 'Kasir',
-                      color: AppTheme.primaryGreen,
-                      onTap: () {
-                        _navigateAndReload(
-                          BlocProvider.value(
-                            value: sl<CashierBloc>(),
-                            child: const CashierPage(),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+                  child: CircleAvatar(
+                    backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                    child: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                  ),
+                ),
+              ],
+            ),
+            body: RefreshIndicator(
+              onRefresh: () async {
+                _reloadDashboardAndNotif();
+              },
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Greeting
+                        Text(
+                          'Halo, $username!',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Selamat datang kembali di dashboard utama.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Dashboard Summary Card
+                        BlocBuilder<DashboardBloc, DashboardState>(
+                          builder: (context, state) {
+                            if (state is DashboardLoading) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (state is DashboardLoaded) {
+                              final formatCurrency = NumberFormat.currency(
+                                locale: 'id_ID',
+                                symbol: 'Rp ',
+                                decimalDigits: 0,
+                              );
+                              return Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.primaryGreen.withValues(alpha: 0.9),
+                                      AppTheme.darkGreen,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.trending_up, color: Colors.white70, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'OMZET HARI INI',
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(alpha: 0.9),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      formatCurrency.format(state.metrics.omzet),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Transaksi',
+                                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${state.metrics.transaksi}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Terjual',
+                                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${state.metrics.terjual}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // System Alerts
+                        BlocBuilder<NotifikasiBloc, NotifikasiState>(
+                          builder: (context, state) {
+                            if (state is NotifikasiLoaded && state.unreadNotifikasi.isNotEmpty) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: const [
+                                      Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Peringatan Sistem',
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ...state.unreadNotifikasi.take(2).map((notif) {
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      color: AppTheme.warningOrange.withValues(alpha: 0.1),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(color: AppTheme.warningOrange.withValues(alpha: 0.3)),
+                                      ),
+                                      child: ListTile(
+                                        leading: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.warningOrange.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(Icons.inventory_2, color: AppTheme.warningOrange),
+                                        ),
+                                        title: Text(
+                                          notif.judul,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                        ),
+                                        subtitle: Text(
+                                          notif.pesan,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        trailing: const Icon(Icons.chevron_right),
+                                        onTap: () {
+                                          _navigateAndReload(
+                                            BlocProvider.value(
+                                              value: context.read<NotifikasiBloc>(),
+                                              child: const NotifikasiPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  }),
+                                  const SizedBox(height: 16),
+                                ],
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+
+                        // Quick Actions
+                        const Text(
+                          'Aksi Cepat',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _QuickActionCard(
+                                icon: Icons.point_of_sale,
+                                label: 'BUKA KASIR',
+                                color: AppTheme.primaryGreen,
+                                onTap: () {
+                                  _navigateAndReload(
+                                    BlocProvider.value(
+                                      value: sl<CashierBloc>(),
+                                      child: const CashierPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _QuickActionCard(
+                                icon: Icons.print,
+                                label: 'LAPORAN',
+                                color: Colors.purple,
+                                onTap: isAdmin ? () {
+                                  _navigateAndReload(
+                                    BlocProvider.value(
+                                      value: sl<LaporanBloc>(),
+                                      child: const LaporanPage(),
+                                    ),
+                                  );
+                                } : () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Hanya owner yang bisa akses Laporan')),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _QuickActionCard(
+                                icon: Icons.add_box,
+                                label: 'INPUT STOK',
+                                color: Colors.blue,
+                                onTap: () {
+                                  _navigateAndReload(
+                                    BlocProvider.value(
+                                      value: sl<ProdukBloc>(),
+                                      child: const ProdukPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 80), // padding for bottom nav
+                      ]),
                     ),
-                    _MenuGridCard(
+                  ),
+                ],
+              ),
+            ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: Container(
+              height: 64,
+              width: 64,
+              margin: const EdgeInsets.only(top: 24),
+              child: FloatingActionButton(
+                onPressed: () {
+                  _navigateAndReload(
+                    BlocProvider.value(
+                      value: sl<CashierBloc>(),
+                      child: const CashierPage(),
+                    ),
+                  );
+                },
+                backgroundColor: AppTheme.primaryGreen,
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.shopping_cart, color: Colors.white, size: 32),
+              ),
+            ),
+            bottomNavigationBar: BottomAppBar(
+              shape: const CircularNotchedRectangle(),
+              notchMargin: 8,
+              clipBehavior: Clip.antiAlias,
+              child: SizedBox(
+                height: kBottomNavigationBarHeight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _BottomNavItem(
+                      icon: Icons.home,
+                      label: 'Beranda',
+                      isActive: true,
+                      onTap: () {}, // Already here
+                    ),
+                    _BottomNavItem(
                       icon: Icons.inventory_2,
                       label: 'Produk',
-                      color: AppTheme.darkGreen,
+                      isActive: false,
                       onTap: () {
                         _navigateAndReload(
                           BlocProvider.value(
@@ -337,37 +704,11 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         );
                       },
                     ),
-                    _MenuGridCard(
-                      icon: Icons.shopping_bag,
-                      label: 'Pembelian',
-                      color: Colors.teal,
-                      onTap: () {
-                        _navigateAndReload(
-                          BlocProvider.value(
-                            value: sl<PembelianBloc>(),
-                            child: const PembelianPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    if (isAdmin)
-                      _MenuGridCard(
-                        icon: Icons.business,
-                        label: 'Supplier',
-                        color: Colors.brown,
-                        onTap: () {
-                          _navigateAndReload(
-                            BlocProvider.value(
-                              value: sl<SupplierBloc>(),
-                              child: const SupplierPage(),
-                            ),
-                          );
-                        },
-                      ),
-                    _MenuGridCard(
+                    const SizedBox(width: 48), // Space for FAB
+                    _BottomNavItem(
                       icon: Icons.receipt_long,
-                      label: 'Riwayat Transaksi',
-                      color: Colors.blue,
+                      label: 'Riwayat',
+                      isActive: false,
                       onTap: () {
                         _navigateAndReload(
                           BlocProvider(
@@ -377,98 +718,148 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         );
                       },
                     ),
-                    if (isAdmin)
-                      _MenuGridCard(
-                        icon: Icons.people,
-                        label: 'Hutang Piutang',
-                        color: AppTheme.warningOrange,
-                        onTap: () {
-                          _navigateAndReload(
-                            BlocProvider.value(
-                              value: sl<HutangBloc>(),
-                              child: const HutangPage(),
-                            ),
-                          );
-                        },
-                      ),
-                    if (isAdmin)
-                      _MenuGridCard(
-                        icon: Icons.bar_chart,
-                        label: 'Laporan',
-                        color: Colors.purple,
-                        onTap: () {
-                          _navigateAndReload(
-                            BlocProvider.value(
-                              value: sl<LaporanBloc>(),
-                              child: const LaporanPage(),
-                            ),
-                          );
-                        },
-                      ),
-                    _MenuGridCard(
-                      icon: Icons.settings,
-                      label: 'Pengaturan',
-                      color: Colors.indigo,
-                      onTap: () {
-                        _navigateAndReload(const SettingsPage());
-                      },
+                    _BottomNavItem(
+                      icon: Icons.menu,
+                      label: 'Lainnya',
+                      isActive: false,
+                      onTap: () => _showLainnyaBottomSheet(context, isAdmin),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
-class _MenuGridCard extends StatelessWidget {
+class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
-  const _MenuGridCard({
+  const _QuickActionCard({
     required this.icon,
     required this.label,
     required this.color,
-    this.onTap,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppTheme.surface,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       borderRadius: BorderRadius.circular(16),
-      elevation: 2,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: color.withValues(alpha: 0.15),
-                child: Icon(icon, color: color, size: 32),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 label,
-                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _BottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppTheme.primaryGreen : Colors.grey;
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LainnyaGridItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _LainnyaGridItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+               color: color.withValues(alpha: 0.1),
+               shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

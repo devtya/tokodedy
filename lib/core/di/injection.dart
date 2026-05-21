@@ -30,6 +30,8 @@ import '../../domain/repositories/transaksi_repository.dart';
 import '../../domain/repositories/backup_repository.dart';
 import '../../domain/repositories/notifikasi_repository.dart';
 import '../../data/repositories/notifikasi_repository_impl.dart';
+import '../../domain/repositories/dashboard_repository.dart';
+import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../core/services/toko_service.dart';
 import '../../core/services/update_service.dart';
 import '../../domain/usecases/produk/add_produk.dart';
@@ -75,6 +77,7 @@ import '../../presentation/blocs/supplier/supplier_bloc.dart';
 import '../../presentation/blocs/transaksi/transaksi_bloc.dart';
 import '../../presentation/blocs/notifikasi/notifikasi_bloc.dart';
 import '../../presentation/blocs/sync/sync_bloc.dart';
+import '../../presentation/blocs/dashboard/dashboard_bloc.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';
 import '../../data/services/network_printer_service.dart';
@@ -169,6 +172,9 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<NotifikasiRepository>(
     () => NotifikasiRepositoryImpl(database, sl(), sl()),
+  );
+  sl.registerLazySingleton<DashboardRepository>(
+    () => DashboardRepositoryImpl(database, sl()),
   );
 
   sl.registerLazySingleton<BackupRepository>(() => BackupRepositoryImpl(sl()));
@@ -282,6 +288,7 @@ Future<void> initDependencies() async {
       markAsRead: sl(),
     ),
   );
+  sl.registerFactory(() => DashboardBloc(sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl(), tokoService: sl()));
 
   sl.registerFactory(() => BackupBloc(repository: sl()));
