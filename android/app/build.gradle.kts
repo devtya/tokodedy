@@ -41,6 +41,15 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this
+            if (output is com.android.build.gradle.internal.api.ApkVariantOutputImpl) {
+                output.outputFileName = "hendkasir-v${defaultConfig.versionName}.apk"
+            }
+        }
+    }
 }
 
 flutter {

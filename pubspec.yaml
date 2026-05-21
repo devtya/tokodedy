@@ -1,7 +1,7 @@
 name: hend_kasir
 description: "Aplikasi Kasir Toko Sembako"
 publish_to: 'none'
-version: 1.1.1+5
+version: 1.1.2+6
 
 environment:
   sdk: ^3.11.5

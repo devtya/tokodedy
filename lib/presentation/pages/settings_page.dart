@@ -125,6 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
         try {
           final path = await _updateService.downloadApk(
             update.url,
+            assetName: update.assetName,
             onProgress: (progress) {
               progressController.add(progress);
             },

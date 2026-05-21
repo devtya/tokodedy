@@ -624,9 +624,12 @@ final Map<String, _TableInserter> _tableInserters = {
   },
   'user': (db, json) async {
     return db.into(db.userTable).insert(UserTableCompanion(
-      username: Value(json['username'] as String),
+      username: Value(json['username'] as String?),
       password: Value(json['password'] as String),
       role: Value(json['role'] as String),
+      nama: Value(json['nama'] as String?),
+      email: Value(json['email'] as String?),
+      tokoId: Value(json['tokoId'] as int? ?? json['_toko_id'] as int? ?? 1),
     ));
   },
 };
@@ -677,9 +680,12 @@ final Map<String, _TableUpdater> _tableUpdaters = {
   'user': (db, id, json) async {
     await (db.update(db.userTable)..where((t) => t.id.equals(id)))
         .write(UserTableCompanion(
-      username: Value(json['username'] as String),
+      username: Value(json['username'] as String?),
       password: Value(json['password'] as String),
       role: Value(json['role'] as String),
+      nama: Value(json['nama'] as String?),
+      email: Value(json['email'] as String?),
+      tokoId: Value(json['tokoId'] as int? ?? json['_toko_id'] as int? ?? 1),
     ));
   },
   'notifikasi': (db, id, json) async {

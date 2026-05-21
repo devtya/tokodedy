@@ -11,8 +11,9 @@ class UpdateInfo {
   final String version;
   final String url;
   final String? notes;
+  final String? assetName;
 
-  UpdateInfo({required this.version, required this.url, this.notes});
+  UpdateInfo({required this.version, required this.url, this.notes, this.assetName});
 }
 
 class UpdateService {
@@ -43,10 +44,27 @@ class UpdateService {
 
       final assets = json['assets'] as List<dynamic>? ?? [];
       String? downloadUrl;
+      String? foundAssetName;
+
+      // Cari aset dengan nama hendkasir*.apk
       for (final asset in assets) {
-        if ((asset['name'] as String?) == _assetName) {
+        final name = asset['name'] as String? ?? '';
+        if (name.toLowerCase().startsWith('hendkasir') && name.toLowerCase().endsWith('.apk')) {
           downloadUrl = asset['browser_download_url'] as String?;
+          foundAssetName = name;
           break;
+        }
+      }
+
+      // Fallback ke app-release.apk
+      if (downloadUrl == null) {
+        for (final asset in assets) {
+          final name = asset['name'] as String? ?? '';
+          if (name == _assetName) {
+            downloadUrl = asset['browser_download_url'] as String?;
+            foundAssetName = name;
+            break;
+          }
         }
       }
 
@@ -56,6 +74,7 @@ class UpdateService {
         version: latestVersion,
         url: downloadUrl,
         notes: body,
+        assetName: foundAssetName,
       );
     } catch (_) {
       return null;
@@ -64,10 +83,12 @@ class UpdateService {
 
   Future<String> downloadApk(
     String url, {
+    String? assetName,
     void Function(double progress)? onProgress,
   }) async {
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$_assetName');
+    final fileName = assetName ?? _assetName;
+    final file = File('${dir.path}/$fileName');
 
     final response = await http.Client().send(http.Request('GET', Uri.parse(url)));
     final total = response.contentLength ?? 0;
