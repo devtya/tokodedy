@@ -227,3 +227,16 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Cara pakai**: (1) Daftarkan toko baru, seluruh data login dan barang otomatis sinkron ke Supabase remote di bawah `toko_id` milik toko tersebut. (2) Di perangkat baru/setelah install ulang, login dengan kredensial toko baru tersebut. Kredensial & info toko akan ditarik dari Supabase, database Drift di-seeding secara otomatis, dan dipicu initial sync untuk mengunduh seluruh data toko.
 - **Files**: `lib/data/services/sync_helper.dart`, `lib/data/services/supabase_sync_service.dart`, `lib/core/di/injection.dart`, `lib/data/repositories/auth_repository_impl.dart`
 - **Date**: 2026-05-21
+
+### Bug: User Management — Kebocoran Manajemen Pengguna Lintas Toko
+- **Root cause**: `_tableInserters['user']` dan `_tableUpdaters['user']` di `SupabaseSyncService` tidak menyertakan pemetaan kolom `tokoId`, `nama`, dan `email` secara lokal saat sinkronisasi cloud. Akibatnya, Drift secara otomatis mengisinya dengan nilai default `1` (sesuai spesifikasi skema), sehingga semua user dari toko lain bocor ke halaman manajemen pengguna toko ID 1 secara lokal.
+- **Fix**: Perbarui parser sinkronisasi `_tableInserters` dan `_tableUpdaters` untuk tabel `user` agar secara eksplisit memetakan kolom `username` (nullable), `password`, `role`, `nama` (nullable), `email` (nullable), dan `tokoId` (`json['tokoId'] ?? json['_toko_id'] ?? 1`).
+- **Files**: `lib/data/services/supabase_sync_service.dart`
+- **Date**: 2026-05-21
+
+### Fitur: Penamaan APK Rilis Dinamis 'hendkasir-v<version>.apk'
+- **Deskripsi**: Mengotomatiskan dan mendinamiskan penamaan file APK saat dirilis dan diunduh. Gradle lokal dikonfigurasi untuk otomatis memberi nama `hendkasir-v<versionName>.apk` saat proses kompilasi rilis, dan `UpdateService` disempurnakan agar secara dinamis menyaring aset rilis di GitHub yang berawalan `hendkasir` dan berakhiran `.apk` (serta fallback `app-release.apk`).
+- **Cara pakai**: Jalankan `flutter build apk --release` untuk otomatis menghasilkan file APK dengan nama khusus di folder lokal. Unggah berkas APK tersebut ke dashboard rilis GitHub Anda, dan aplikasi akan secara otomatis mendeteksi, mengunduh, serta memperbaruinya dengan andal.
+- **Files**: `android/app/build.gradle.kts`, `lib/core/services/update_service.dart`, `lib/presentation/pages/settings_page.dart`
+- **Date**: 2026-05-21
+
