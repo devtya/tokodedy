@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -77,13 +78,75 @@ class _SettingsPageState extends State<SettingsPage> {
       );
 
       if (install == true) {
-        final path = await _updateService.downloadApk(update.url);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Download selesai, membuka installer...')),
+        final progressController = StreamController<double>();
+
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => WillPopScope(
+            onWillPop: () async => false,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Mengunduh Pembaruan'),
+              content: StreamBuilder<double>(
+                stream: progressController.stream,
+                initialData: 0.0,
+                builder: (context, snapshot) {
+                  final pct = ((snapshot.data ?? 0.0) * 100).toInt();
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      LinearProgressIndicator(
+                        value: snapshot.data,
+                        backgroundColor: Colors.grey[200],
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
+                        minHeight: 8,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '$pct% selesai',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Harap jangan tutup aplikasi selama proses unduh berlangsung.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        try {
+          final path = await _updateService.downloadApk(
+            update.url,
+            onProgress: (progress) {
+              progressController.add(progress);
+            },
           );
+
+          progressController.close();
+          if (mounted) {
+            Navigator.pop(context); // Tutup dialog progress
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Download selesai, membuka installer...')),
+            );
+          }
+          await _updateService.installApk(path);
+        } catch (err) {
+          progressController.close();
+          if (mounted) {
+            Navigator.pop(context); // Tutup dialog progress
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal mengunduh pembaruan: $err')),
+            );
+          }
         }
-        await _updateService.installApk(path);
       }
     } catch (e) {
       if (mounted) {

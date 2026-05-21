@@ -2,26 +2,29 @@ import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
+import '../../core/services/toko_service.dart';
 
 class SyncHelper {
   final AppDatabase _db;
+  final TokoService _tokoService;
   final Uuid _uuid;
 
-  SyncHelper(this._db) : _uuid = const Uuid();
+  SyncHelper(this._db, this._tokoService) : _uuid = const Uuid();
 
   Future<String> onInsert({
     required String tableEntity,
     required int localId,
-    int tokoId = 1,
+    int? tokoId,
   }) async {
     final uuid = _uuid.v4();
+    final activeTokoId = tokoId ?? _tokoService.tokoId ?? 1;
     await _db.into(_db.syncRecordTable).insert(
           SyncRecordTableCompanion(
             uuid: Value(uuid),
             tableEntity: Value(tableEntity),
             localId: Value(localId),
             updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-            tokoId: Value(tokoId),
+            tokoId: Value(activeTokoId),
           ),
         );
     return uuid;

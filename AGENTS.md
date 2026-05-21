@@ -221,3 +221,9 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Cara pakai**: Buka Pembelian Barang → tap item → detail bottom sheet → "Cetak" → cetak ke printer yang sudah dikonfigurasi.
 - **Files**: `lib/presentation/pages/pembelian_page.dart`
 - **Date**: 2026-05-20
+
+### Fitur: Sinkronisasi Multi-Toko Supabase & Pemulihan Cloud
+- **Deskripsi**: Penyelarasan tokoId secara dinamis di level SQLite (Drift), sinkronisasi (Supabase), dan layer Dependency Injection (GetIt). Serta sistem login pemulihan cloud (*cloud recovery login*) otomatis untuk mengunduh seluruh data toko pasca install ulang aplikasi.
+- **Cara pakai**: (1) Daftarkan toko baru, seluruh data login dan barang otomatis sinkron ke Supabase remote di bawah `toko_id` milik toko tersebut. (2) Di perangkat baru/setelah install ulang, login dengan kredensial toko baru tersebut. Kredensial & info toko akan ditarik dari Supabase, database Drift di-seeding secara otomatis, dan dipicu initial sync untuk mengunduh seluruh data toko.
+- **Files**: `lib/data/services/sync_helper.dart`, `lib/data/services/supabase_sync_service.dart`, `lib/core/di/injection.dart`, `lib/data/repositories/auth_repository_impl.dart`
+- **Date**: 2026-05-21

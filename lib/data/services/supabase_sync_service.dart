@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../database/app_database.dart';
 import 'sync_helper.dart';
+import '../../core/services/toko_service.dart';
 
 /// FK field mapping: table → list of FK field names (camelCase)
 const Map<String, List<String>> _tableFkFields = {
@@ -55,20 +56,22 @@ class SupabaseSyncService {
   final SupabaseClient _supabase;
   final SharedPreferences _prefs;
   final Uuid _uuid;
-  final int _tokoId;
+  final TokoService _tokoService;
 
   SupabaseSyncService({
     required AppDatabase db,
     required SyncHelper syncHelper,
     required SupabaseClient supabase,
     required SharedPreferences prefs,
-    required int tokoId,
+    required TokoService tokoService,
   })  : _db = db,
         _syncHelper = syncHelper,
         _supabase = supabase,
         _prefs = prefs,
-        _tokoId = tokoId,
+        _tokoService = tokoService,
         _uuid = const Uuid();
+
+  int get _tokoId => _tokoService.tokoId ?? 1;
 
   // ───────────── PUSH ─────────────
 

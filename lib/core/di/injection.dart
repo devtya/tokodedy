@@ -120,7 +120,7 @@ Future<void> initDependencies() async {
     () => SupplierProductsDao(database),
   );
 
-  sl.registerLazySingleton<SyncHelper>(() => SyncHelper(database));
+  sl.registerLazySingleton<SyncHelper>(() => SyncHelper(sl(), sl()));
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
 
   sl.registerLazySingleton<TokoService>(() => TokoService(prefs));
@@ -180,7 +180,7 @@ Future<void> initDependencies() async {
         syncHelper: sl(),
         supabase: Supabase.instance.client,
         prefs: sl(),
-        tokoId: sl<TokoService>().tokoId ?? 1,
+        tokoService: sl(),
       ));
 
   sl.registerLazySingleton(() => GetAllProduk(sl()));

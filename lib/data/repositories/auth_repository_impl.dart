@@ -54,6 +54,112 @@ class AuthRepositoryImpl implements AuthRepository {
           .getSingleOrNull();
     }
 
+    if (data == null) {
+      try {
+        // Look for user record in Supabase records table
+        final query = await _supabase
+            .from('records')
+            .select('data')
+            .eq('data->>_table', 'user')
+            .eq('data->>password', password);
+
+        Map<String, dynamic>? matchedUserJson;
+        for (final row in query as List<dynamic>) {
+          final userJson = jsonDecode(row['data'] as String) as Map<String, dynamic>;
+          final username = userJson['username'] as String?;
+          final email = userJson['email'] as String?;
+          if (username == usernameOrEmail || email == usernameOrEmail) {
+            matchedUserJson = userJson;
+            break;
+          }
+        }
+
+        if (matchedUserJson != null) {
+          final uId = matchedUserJson['id'] as int;
+          final uTokoId = matchedUserJson['tokoId'] as int;
+          final uUsername = matchedUserJson['username'] as String?;
+          final uPassword = matchedUserJson['password'] as String;
+          final uRole = matchedUserJson['role'] as String;
+          final uNama = matchedUserJson['nama'] as String?;
+          final uEmail = matchedUserJson['email'] as String?;
+
+          // Fetch store details from Supabase stores table
+          String storeName = 'Toko Baru';
+          String? storeAlamat;
+          try {
+            final storeRes = await _supabase
+                .from('stores')
+                .select('name, address')
+                .eq('id', uTokoId)
+                .maybeSingle();
+            if (storeRes != null) {
+              storeName = storeRes['name'] as String;
+              storeAlamat = storeRes['address'] as String?;
+            }
+          } catch (e) {
+            print('Failed to fetch store details from Supabase: $e');
+          }
+
+          // Save store locally
+          await _db.into(_db.tokoTable).insert(
+            TokoTableCompanion(
+              id: Value(uTokoId),
+              nama: Value(storeName),
+              alamat: Value(storeAlamat),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+
+          // Save user locally
+          await _db.into(_db.userTable).insert(
+            UserTableCompanion(
+              id: Value(uId),
+              username: Value(uUsername),
+              password: Value(uPassword),
+              role: Value(uRole),
+              nama: Value(uNama),
+              email: Value(uEmail),
+              tokoId: Value(uTokoId),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+
+          // Insert sync record to prevent duplicate push
+          final userUuid = matchedUserJson['_uuid'] as String?;
+          if (userUuid != null) {
+            await _db.into(_db.syncRecordTable).insert(
+              SyncRecordTableCompanion(
+                uuid: Value(userUuid),
+                tableEntity: const Value('user'),
+                localId: Value(uId),
+                tokoId: Value(uTokoId),
+                syncStatus: const Value('synced'),
+                updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+              ),
+              mode: InsertMode.insertOrReplace,
+            );
+          }
+
+          // Trigger initial sync on login success
+          await _prefs.setBool('initial_sync_done', false);
+          await _prefs.setInt('last_sync_timestamp', 0);
+
+          data = UserTableData(
+            id: uId,
+            username: uUsername,
+            password: uPassword,
+            role: uRole,
+            nama: uNama,
+            email: uEmail,
+            tokoId: uTokoId,
+            createdAt: DateTime.now(),
+          );
+        }
+      } catch (e) {
+        print('Supabase cloud recovery login failed: $e');
+      }
+    }
+
     if (data != null) {
       final loggedInUser = data;
       final user = _mapUser(loggedInUser);
@@ -68,7 +174,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _prefs.setString(_sessionKey, jsonEncode(userMap));
 
       // Pastikan toko_id tersimpan di TokoService
-      if (_tokoService.tokoId == null) {
+      if (_tokoService.tokoId == null || _tokoService.tokoId != loggedInUser.tokoId) {
         final tokoData = await (_db.select(_db.tokoTable)
           ..where((t) => t.id.equals(loggedInUser.tokoId)))
           .getSingleOrNull();
@@ -209,9 +315,11 @@ class AuthRepositoryImpl implements AuthRepository {
     // 2. Simpan ke local Drift
     await _db.into(_db.tokoTable).insert(
       TokoTableCompanion(
+        id: Value(tokoId),
         nama: Value(namaToko),
         alamat: Value(alamat),
       ),
+      mode: InsertMode.insertOrReplace,
     );
 
     // 3. Simpan ke TokoService
@@ -240,7 +348,7 @@ class AuthRepositoryImpl implements AuthRepository {
         tokoId: Value(tokoId),
       ),
     );
-    await _syncHelper.onInsert(tableEntity: 'user', localId: newId);
+    await _syncHelper.onInsert(tableEntity: 'user', localId: newId, tokoId: tokoId);
 
     // 6. Simpan session
     final userMap = {
