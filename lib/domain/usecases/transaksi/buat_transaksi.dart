@@ -18,6 +18,8 @@ class CartItem {
   final int jumlah;
   final int diskonTipe;
   final double diskonValue;
+  final String? satuan;
+  final double konversi;
 
   const CartItem({
     required this.produkId,
@@ -27,6 +29,8 @@ class CartItem {
     required this.jumlah,
     this.diskonTipe = 0,
     this.diskonValue = 0,
+    this.satuan,
+    this.konversi = 1.0,
   });
 
   double get subtotal => (hargaJual * jumlah).roundToDouble();
@@ -37,7 +41,13 @@ class CartItem {
       : 0;
   double get totalSetelahDiskon => subtotal - totalDiskon;
 
-  CartItem copyWith({int? jumlah, int? diskonTipe, double? diskonValue}) {
+  CartItem copyWith({
+    int? jumlah,
+    int? diskonTipe,
+    double? diskonValue,
+    String? satuan,
+    double? konversi,
+  }) {
     return CartItem(
       produkId: produkId,
       namaProduk: namaProduk,
@@ -46,6 +56,8 @@ class CartItem {
       jumlah: jumlah ?? this.jumlah,
       diskonTipe: diskonTipe ?? this.diskonTipe,
       diskonValue: diskonValue ?? this.diskonValue,
+      satuan: satuan ?? this.satuan,
+      konversi: konversi ?? this.konversi,
     );
   }
 }

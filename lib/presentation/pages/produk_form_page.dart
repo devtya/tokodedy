@@ -7,6 +7,7 @@ import '../../core/di/injection.dart';
 import '../../core/services/toko_service.dart';
 import '../../domain/entities/produk.dart';
 import '../../domain/entities/satuan_produk.dart';
+import '../../domain/repositories/produk_repository.dart';
 import '../blocs/produk/produk_bloc.dart';
 import '../blocs/produk/produk_event.dart';
 import '../blocs/produk/produk_state.dart';
@@ -59,6 +60,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   // ── Unit list (multi-satuan) ──
   final List<_UnitItem> _units = [];
   int _nextUnitId = 1;
+
+
 
   @override
   void initState() {
@@ -237,6 +240,25 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
     final barcode = await showBarcodeScannerDialog(context);
     if (barcode != null) {
       _barcodeCtrl.text = barcode;
+    }
+  }
+
+  Future<void> _showSearchPickerDialog({
+    required String title,
+    required List<String> items,
+    required TextEditingController controller,
+  }) async {
+    final result = await showDialog<String>(
+      context: context,
+      useSafeArea: false,
+      builder: (_) => _SearchPickerDialog(
+        title: title,
+        items: items,
+        initialValue: controller.text,
+      ),
+    );
+    if (result != null) {
+      controller.text = result;
     }
   }
 
@@ -552,23 +574,34 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _kategoriCtrl,
-                textCapitalization: TextCapitalization.characters,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
-                decoration: const InputDecoration(
-                  labelText: 'KATEGORI',
-                  labelStyle: TextStyle(
-                    color: AppTheme.grey,
-                    fontSize: 9,
-                    letterSpacing: 1.5,
+              Expanded(
+                child: TextField(
+                  controller: _kategoriCtrl,
+                  readOnly: true,
+                  textCapitalization: TextCapitalization.characters,
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                  decoration: const InputDecoration(
+                    labelText: 'KATEGORI',
+                    labelStyle: TextStyle(
+                      color: AppTheme.grey,
+                      fontSize: 9,
+                      letterSpacing: 1.5,
+                    ),
+                    hintText: 'Tap untuk pilih / ketik baru',
+                    hintStyle: TextStyle(color: AppTheme.grey, fontSize: 13),
                   ),
-                  hintText: 'Opsional',
-                  hintStyle: TextStyle(color: AppTheme.grey, fontSize: 13),
+                  onTap: () {
+                    final repo = sl<ProdukRepository>();
+                    repo.getAllKategori().then((items) {
+                      _showSearchPickerDialog(
+                        title: 'Kategori',
+                        items: items,
+                        controller: _kategoriCtrl,
+                      );
+                    });
+                  },
                 ),
               ),
-            ),
           ],
         ),
       ],
@@ -589,28 +622,38 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppTheme.border, width: 1.5),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _satuanDasarCtrl,
-                  readOnly: false,
-                  textCapitalization: TextCapitalization.characters,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _satuanDasarCtrl,
+                    readOnly: true,
+                    textCapitalization: TextCapitalization.characters,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onTap: () {
+                      final repo = sl<ProdukRepository>();
+                      repo.getAllSatuan().then((items) {
+                        _showSearchPickerDialog(
+                          title: 'Satuan',
+                          items: items,
+                          controller: _satuanDasarCtrl,
+                        );
+                      });
+                    },
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ),
       ],
     );
@@ -1453,6 +1496,136 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── SEARCH PICKER DIALOG ──────────────────────────────────────────────────────
+
+class _SearchPickerDialog extends StatefulWidget {
+  final String title;
+  final List<String> items;
+  final String initialValue;
+
+  const _SearchPickerDialog({
+    required this.title,
+    required this.items,
+    required this.initialValue,
+  });
+
+  @override
+  State<_SearchPickerDialog> createState() => _SearchPickerDialogState();
+}
+
+class _SearchPickerDialogState extends State<_SearchPickerDialog> {
+  late final TextEditingController _ctrl;
+  late List<String> _filtered;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[SearchPicker] initState title=${widget.title} items=${widget.items.length}');
+    _ctrl = TextEditingController(text: widget.initialValue);
+    final q = widget.initialValue.toUpperCase();
+    _filtered = q.isEmpty
+        ? widget.items
+        : widget.items.where((s) => s.toUpperCase().contains(q)).toList();
+  }
+
+  @override
+  void dispose() {
+    debugPrint('[SearchPicker] dispose');
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _filter(String v) {
+    debugPrint('[SearchPicker] filter input="$v"');
+    final q = v.toUpperCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? widget.items
+          : widget.items.where((s) => s.toUpperCase().contains(q)).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint('[SearchPicker] build filtered=${_filtered.length}');
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      child: SizedBox(
+        height: 400,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ctrl,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: const InputDecoration(
+                        hintText: 'Cari...',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: _filter,
+                    ),
+                  ),
+                  if (_ctrl.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _ctrl.clear();
+                        _filter('');
+                      },
+                    ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _filtered.length + 1,
+                itemBuilder: (ctx, i) {
+                  if (i < _filtered.length) {
+                    final item = _filtered[i];
+                    return ListTile(
+                      title: Text(item),
+                      onTap: () {
+                        debugPrint('[SearchPicker] select existing="$item"');
+                        Navigator.pop(context, item);
+                      },
+                    );
+                  }
+                  final typed = _ctrl.text.trim().toUpperCase();
+                  if (typed.isEmpty) return const SizedBox();
+                  return ListTile(
+                    leading: const Icon(Icons.add_circle,
+                        color: AppTheme.primary),
+                    title: Text("Gunakan '$typed'"),
+                    onTap: () {
+                      debugPrint('[SearchPicker] select new="$typed"');
+                      Navigator.pop(context, typed);
+                    },
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextButton(
+                onPressed: () {
+                  debugPrint('[SearchPicker] tap Tutup');
+                  Navigator.pop(context);
+                },
+                child: const Text('Tutup'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

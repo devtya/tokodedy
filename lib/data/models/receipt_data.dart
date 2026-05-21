@@ -5,12 +5,16 @@ class ReceiptItem {
   final int jumlah;
   final double harga;
   final double diskon;
+  final String? satuan;
+  final double konversi;
 
   const ReceiptItem({
     required this.nama,
     required this.jumlah,
     required this.harga,
     this.diskon = 0.0,
+    this.satuan,
+    this.konversi = 1.0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -18,6 +22,8 @@ class ReceiptItem {
         'jumlah': jumlah,
         'harga': harga,
         'diskon': diskon,
+        'satuan': satuan,
+        'konversi': konversi,
       };
 }
 

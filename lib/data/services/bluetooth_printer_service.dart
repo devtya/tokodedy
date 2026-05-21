@@ -1,15 +1,31 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/di/injection.dart';
 import '../models/receipt_data.dart';
 import 'printer_service.dart';
+import 'printer_settings.dart';
 
 class BluetoothPrinterService implements PrinterService {
   static const _channel = MethodChannel('hend_kasir/bluetooth');
 
   BluetoothDevice? _device;
   BluetoothCharacteristic? _characteristic;
+  bool _isManuallyDisconnected = false;
+
+  BluetoothPrinterService() {
+    _initAdapterStateListener();
+  }
+
+  void _initAdapterStateListener() {
+    FlutterBluePlus.adapterState.listen((state) {
+      if (state == BluetoothAdapterState.on) {
+        autoConnect();
+      }
+    });
+  }
 
   @override
   String get printerType => 'bluetooth';
@@ -46,8 +62,34 @@ class BluetoothPrinterService implements PrinterService {
     return devices;
   }
 
+  Future<bool> autoConnect() async {
+    try {
+      if (_isManuallyDisconnected) return false;
+
+      final settings = sl<PrinterSettings>();
+      if (settings.type != 'bluetooth' || !settings.enabled) {
+        return false;
+      }
+      final address = settings.url;
+      if (address.isEmpty || address.startsWith('http')) {
+        return false;
+      }
+
+      if (_device != null && _characteristic != null && _device!.remoteId.toString() == address) {
+        final connected = _device!.isConnected;
+        if (connected) return true;
+      }
+
+      final device = BluetoothDevice(remoteId: DeviceIdentifier(address));
+      return await connect(device);
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<bool> connect(BluetoothDevice device) async {
     try {
+      _isManuallyDisconnected = false;
       _device = device;
       await _device!.connect(timeout: const Duration(seconds: 10));
 
@@ -57,6 +99,26 @@ class BluetoothPrinterService implements PrinterService {
           if (characteristic.properties.write ||
               characteristic.properties.writeWithoutResponse) {
             _characteristic = characteristic;
+
+            // Auto save to settings
+            try {
+              final settings = sl<PrinterSettings>();
+              if (settings.url != device.remoteId.toString()) {
+                settings.url = device.remoteId.toString();
+              }
+            } catch (_) {}
+
+            // Listen for disconnection to auto-reconnect
+            _device!.connectionState.listen((state) {
+              if (state == BluetoothConnectionState.disconnected) {
+                _characteristic = null;
+                // Try to reconnect after a short delay
+                Future.delayed(const Duration(seconds: 5), () {
+                  autoConnect();
+                });
+              }
+            });
+
             return true;
           }
         }
@@ -68,6 +130,7 @@ class BluetoothPrinterService implements PrinterService {
   }
 
   Future<void> disconnect() async {
+    _isManuallyDisconnected = true;
     await _device?.disconnect();
     _device = null;
     _characteristic = null;
@@ -75,8 +138,18 @@ class BluetoothPrinterService implements PrinterService {
 
   @override
   Future<bool> isConnected() async {
-    if (_device == null) return false;
-    return _device!.isConnected;
+    if (_device == null) {
+      final settings = sl<PrinterSettings>();
+      if (settings.type == 'bluetooth' && settings.enabled && settings.url.isNotEmpty && !settings.url.startsWith('http')) {
+        return await autoConnect();
+      }
+      return false;
+    }
+    final connected = _device!.isConnected;
+    if (!connected) {
+      return await autoConnect();
+    }
+    return _characteristic != null;
   }
 
   Future<void> _writeBytes(List<int> bytes) async {
@@ -127,6 +200,45 @@ class BluetoothPrinterService implements PrinterService {
     void add(List<int> bytes) => buffer.addAll(bytes);
     void addText(String text) => buffer.addAll(utf8.encode(text));
 
+    String formatReceiptItemLine(ReceiptItem item, int lebar) {
+      final formatter = NumberFormat('#,##0.00', 'en_US');
+      final priceStr = item.harga.toStringAsFixed(0);
+      final qtyStr = 'x ${item.jumlah}';
+
+      final String unitName;
+      final parts = item.nama.split(' - ');
+      if (parts.length > 1) {
+        unitName = parts.sublist(1).join(' - ');
+      } else {
+        unitName = item.satuan ?? '';
+      }
+
+      final String unitPart;
+      if (item.konversi > 1 && unitName.isNotEmpty) {
+        unitPart = '${item.konversi.toInt()} $unitName';
+      } else {
+        unitPart = unitName;
+      }
+
+      final totalStr = formatter.format(item.harga * item.jumlah);
+
+      if (lebar == 48) {
+        // 80mm: widths: price=14 (L), qty=6 (L), unit=8 (R), sep=3 (" = "), total=17 (R)
+        final p = priceStr.padRight(14);
+        final q = qtyStr.padRight(6);
+        final u = unitPart.padLeft(8);
+        final t = totalStr.padLeft(17);
+        return '$p$q$u = $t';
+      } else {
+        // 58mm: widths: price=8 (L), qty=4 (L), unit=6 (R), sep=3 (" = "), total=11 (R)
+        final p = priceStr.padRight(8);
+        final q = qtyStr.padRight(4);
+        final u = unitPart.padLeft(6);
+        final t = totalStr.padLeft(11);
+        return '$p$q$u = $t';
+      }
+    }
+
     final lebar = data.lebarKertas == 58 ? 32 : 48;
 
     // Map fontSize ke ESC/POS mode byte (print mode 0x1B, 0x21)
@@ -173,20 +285,21 @@ class BluetoothPrinterService implements PrinterService {
 
     // Items
     for (final item in data.items) {
-      final nama = item.nama.length > lebar - 12
-          ? item.nama.substring(0, lebar - 12)
-          : item.nama;
+      final parts = item.nama.split(' - ');
+      final namaProduk = parts.isNotEmpty ? parts[0] : item.nama;
+      final nama = namaProduk.length > lebar
+          ? namaProduk.substring(0, lebar)
+          : namaProduk;
+      add([0x1B, 0x61, 0x00]); // left align
       addText(nama);
       add([0x0A]);
-      add([0x1B, 0x61, 0x02]); // right
-      addText('${item.jumlah}x ${item.harga.toStringAsFixed(0)}');
+      addText(formatReceiptItemLine(item, lebar));
       add([0x0A]);
-      add([0x1B, 0x61, 0x00]); // left
       if (item.diskon > 0) {
-        add([0x1B, 0x61, 0x02]);
+        add([0x1B, 0x61, 0x02]); // right align for diskon
         addText('  Diskon: -${item.diskon.toStringAsFixed(0)}');
         add([0x0A]);
-        add([0x1B, 0x61, 0x00]);
+        add([0x1B, 0x61, 0x00]); // restore left
       }
     }
 

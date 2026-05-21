@@ -52,9 +52,11 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
       add(
         AddToCart(
           produkId: produk.id!,
-          namaProduk: produk.nama,
+          namaProduk: '${produk.nama} - ${produk.satuan}',
           hargaJual: produk.hargaJual,
           hargaPokok: produk.hargaBeli,
+          satuan: produk.satuan,
+          konversi: 1.0,
         ),
       );
     }
@@ -80,6 +82,8 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           hargaJual: event.hargaJual,
           hargaPokok: event.hargaPokok,
           jumlah: event.jumlah,
+          satuan: event.satuan,
+          konversi: event.konversi,
         ),
       );
     }
@@ -134,6 +138,8 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           namaProduk: item.namaProduk,
           hargaJual: item.hargaJual,
           jumlah: item.jumlah,
+          satuan: item.satuan,
+          konversi: item.konversi,
         ),
       );
     }

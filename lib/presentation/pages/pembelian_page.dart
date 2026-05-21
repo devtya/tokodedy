@@ -231,11 +231,18 @@ class _PembelianPageState extends State<PembelianPage> {
     try {
       final receiptItems = items
           .map(
-            (item) => ReceiptItem(
-              nama: item.namaProduk ?? 'Produk #${item.produkId}',
-              jumlah: item.jumlah,
-              harga: item.hargaBeliSatuan,
-            ),
+            (item) {
+              final nama = item.namaProduk ?? 'Produk #${item.produkId}';
+              final parts = nama.split(' - ');
+              final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
+              return ReceiptItem(
+                nama: nama,
+                jumlah: item.jumlah,
+                harga: item.hargaBeliSatuan,
+                satuan: unitName,
+                konversi: item.konversi,
+              );
+            },
           )
           .toList();
       final now = DateTime.now();

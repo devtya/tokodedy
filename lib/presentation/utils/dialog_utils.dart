@@ -28,7 +28,7 @@ class DialogUtils {
         .toList();
 
     if (satuans.isEmpty) {
-      onSelected(produk.id!, produk.nama, hargaDasar, null, 1.0);
+      onSelected(produk.id!, '${produk.nama} - ${produk.satuan}', hargaDasar, null, 1.0);
       return;
     }
 
@@ -45,7 +45,7 @@ class DialogUtils {
               trailing: const Icon(Icons.add_circle, color: AppTheme.accentGreen),
               onTap: () {
                 final id = produk.id!;
-                final nama = produk.nama;
+                final nama = '${produk.nama} - ${produk.satuan}';
                 final harga = hargaDasar;
                 Navigator.pop(ctx);
                 onSelected(id, nama, harga, null, 1.0);

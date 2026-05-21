@@ -8,6 +8,8 @@ import 'core/config.dart';
 import 'core/di/injection.dart';
 import 'core/services/update_service.dart';
 import 'core/theme/app_theme.dart';
+import 'data/services/bluetooth_printer_service.dart';
+import 'data/services/printer_settings.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/auth/auth_state.dart';
@@ -38,6 +40,7 @@ void main() async {
   );
 
   await initDependencies();
+
   _checkUpdate();
   runApp(const HendKasirApp());
 }
@@ -49,12 +52,17 @@ class HendKasirApp extends StatefulWidget {
   State<HendKasirApp> createState() => _HendKasirAppState();
 }
 
-class _HendKasirAppState extends State<HendKasirApp> {
+class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Auto-connect Bluetooth printer setelah widget tree siap
+    Future.delayed(const Duration(seconds: 2), _tryAutoConnectBluetooth);
+
     // Listen untuk Supabase auth events — handle password recovery deep link
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (data.event == AuthChangeEvent.passwordRecovery) {
@@ -67,6 +75,28 @@ class _HendKasirAppState extends State<HendKasirApp> {
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _tryAutoConnectBluetooth();
+    }
+  }
+
+  void _tryAutoConnectBluetooth() {
+    try {
+      final settings = sl<PrinterSettings>();
+      if (settings.type == 'bluetooth' && settings.enabled) {
+        sl<BluetoothPrinterService>().autoConnect();
+      }
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<ThemeCubit>(),
@@ -74,7 +104,9 @@ class _HendKasirAppState extends State<HendKasirApp> {
         builder: (context, themeMode) {
           return MultiBlocProvider(
             providers: [
-              BlocProvider(create: (context) => sl<AuthBloc>()..add(CheckAuthStatus())),
+              BlocProvider(
+                create: (context) => sl<AuthBloc>()..add(CheckAuthStatus()),
+              ),
               BlocProvider(create: (context) => sl<SyncBloc>()),
             ],
             child: MaterialApp(
@@ -84,35 +116,36 @@ class _HendKasirAppState extends State<HendKasirApp> {
               themeMode: themeMode,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-        home: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if (state is AuthInitial ||
-                state is AuthLoading &&
-                    state is! Authenticated &&
-                    state is! Unauthenticated) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-            if (state is Authenticated) {
-              return FutureBuilder<bool>(
-                future: context.read<SyncBloc>().isInitialSyncDone,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+              home: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is AuthInitial ||
+                      state is AuthLoading &&
+                          state is! Authenticated &&
+                          state is! Unauthenticated) {
                     return const Scaffold(
                       body: Center(child: CircularProgressIndicator()),
                     );
                   }
-                  if (snapshot.data == true) {
-                    return const HomePage();
+                  if (state is Authenticated) {
+                    return FutureBuilder<bool>(
+                      future: context.read<SyncBloc>().isInitialSyncDone,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (snapshot.data == true) {
+                          return const HomePage();
+                        }
+                        return const InitialSyncPage(destination: HomePage());
+                      },
+                    );
                   }
-                  return const InitialSyncPage(destination: HomePage());
+                  return const LoginPage();
                 },
-              );
-            }
-            return const LoginPage();
-          },
-        ),
+              ),
             ),
           );
         },

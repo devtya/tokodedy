@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/di/injection.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/models/receipt_data.dart';
+import '../../data/services/printer_service.dart';
+import '../../data/services/printer_settings.dart';
 import '../blocs/transaksi/transaksi_bloc.dart';
 import '../blocs/transaksi/transaksi_event.dart';
 import '../blocs/transaksi/transaksi_state.dart';
@@ -22,6 +26,7 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
     decimalDigits: 0,
   );
   final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+  bool _isPrinting = false;
 
   @override
   void initState() {
@@ -29,10 +34,103 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
     context.read<TransaksiBloc>().add(LoadTransaksiDetail(widget.transaksiId));
   }
 
+  Future<void> _printReceipt() async {
+    final state = context.read<TransaksiBloc>().state;
+    if (state is! TransaksiDetailLoaded) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final settings = sl<PrinterSettings>();
+    if (!settings.enabled) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Printer tidak aktif. Aktifkan di Pengaturan Printer.'),
+          backgroundColor: AppTheme.warningRed,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isPrinting = true);
+
+    try {
+      final t = state.transaksi;
+      final items = t.items ?? [];
+
+      final receiptItems = items
+          .map((item) => ReceiptItem(
+                nama: item.namaProduk ?? 'Produk #${item.produkId}',
+                jumlah: item.jumlah,
+                harga: item.hargaSatuan,
+              ))
+          .toList();
+
+      final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt ?? DateTime.now());
+      final receipt = ReceiptData(
+        namaToko: settings.namaToko,
+        alamatToko: settings.alamatToko,
+        transaksiId: t.id ?? widget.transaksiId,
+        tanggal: tanggal,
+        items: receiptItems,
+        subtotal: t.totalHarga,
+        totalBayar: t.jumlahBayar,
+        kembalian: t.kembalian,
+        lebarKertas: settings.lebarKertas,
+        fontSize: settings.fontSize,
+      );
+
+      final printer = sl<PrinterService>();
+      final success = await printer.printReceipt(receipt);
+
+      if (mounted) {
+        if (success) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Nota berhasil dicetak'),
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+          );
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Gagal mencetak nota'),
+              backgroundColor: AppTheme.warningRed,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Error print: $e'),
+            backgroundColor: AppTheme.warningRed,
+          ),
+        );
+      }
+    }
+
+    if (mounted) setState(() => _isPrinting = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Transaksi #${widget.transaksiId}')),
+      appBar: AppBar(
+        title: Text('Transaksi #${widget.transaksiId}'),
+        actions: [
+          IconButton(
+            icon: _isPrinting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.print),
+            tooltip: 'Cetak Nota',
+            onPressed: _isPrinting ? null : _printReceipt,
+          ),
+        ],
+      ),
       body: BlocBuilder<TransaksiBloc, TransaksiState>(
         builder: (context, state) {
           if (state is TransaksiLoading) {

@@ -357,4 +357,45 @@ class ProdukRepositoryImpl implements ProdukRepository {
 
     return (imported: imported, skipped: skipped);
   }
+
+  @override
+  Future<List<String>> getAllSatuan() async {
+    final result = <String>{};
+
+    final produkRows = await (_db.selectOnly(_db.produkTable)
+      ..addColumns([_db.produkTable.satuan])
+      ..where(_db.produkTable.tokoId.equals(_tokoId))
+    ).get();
+    for (final row in produkRows) {
+      final s = row.read(_db.produkTable.satuan);
+      if (s != null && s.isNotEmpty) result.add(s);
+    }
+
+    final satuanRows = await (_db.selectOnly(_db.satuanProdukTable)
+      ..addColumns([_db.satuanProdukTable.nama])
+      ..where(_db.satuanProdukTable.tokoId.equals(_tokoId))
+    ).get();
+    for (final row in satuanRows) {
+      final s = row.read(_db.satuanProdukTable.nama);
+      if (s != null && s.isNotEmpty) result.add(s);
+    }
+
+    return result.toList()..sort();
+  }
+
+  @override
+  Future<List<String>> getAllKategori() async {
+    final rows = await (_db.selectOnly(_db.produkTable)
+      ..addColumns([_db.produkTable.kategori])
+      ..where(_db.produkTable.tokoId.equals(_tokoId))
+      ..where(_db.produkTable.kategori.isNotNull())
+    ).get();
+
+    final result = <String>{};
+    for (final row in rows) {
+      final k = row.read(_db.produkTable.kategori);
+      if (k != null && k.isNotEmpty) result.add(k);
+    }
+    return result.toList()..sort();
+  }
 }

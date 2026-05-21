@@ -35,6 +35,8 @@ class ReceiptGenerator {
             jumlah: item.jumlah,
             harga: item.hargaJual,
             diskon: item.totalDiskon,
+            satuan: item.satuan,
+            konversi: item.konversi,
           ),
         )
         .toList();

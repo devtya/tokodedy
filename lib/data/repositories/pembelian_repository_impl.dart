@@ -122,27 +122,27 @@ class PembelianRepositoryImpl implements PembelianRepository {
     final item = result.readTable(_db.itemPembelianTable);
     final pembelian = result.readTable(_db.pembelianTable);
     final produk = result.readTable(_db.produkTable);
-    return domain.Pembelian(
-      id: pembelian.id,
-      tokoId: pembelian.tokoId,
-      supplierId: pembelian.supplierId,
-      namaSupplier: pembelian.namaSupplier,
-      totalHarga: pembelian.totalHarga,
-      createdAt: pembelian.createdAt,
-      updatedAt: pembelian.updatedAt,
-      items: [
-        domain.ItemPembelian(
-          id: item.id,
-          tokoId: item.tokoId,
-          pembelianId: item.pembelianId,
-          produkId: item.produkId,
-          namaProduk: produk.nama,
-          jumlah: item.jumlah,
-          hargaBeliSatuan: item.hargaBeliSatuan,
-          subtotal: item.subtotal,
-        ),
-      ],
-    );
+      return domain.Pembelian(
+        id: pembelian.id,
+        tokoId: pembelian.tokoId,
+        supplierId: pembelian.supplierId,
+        namaSupplier: pembelian.namaSupplier,
+        totalHarga: pembelian.totalHarga,
+        createdAt: pembelian.createdAt,
+        updatedAt: pembelian.updatedAt,
+        items: [
+          domain.ItemPembelian(
+            id: item.id,
+            tokoId: item.tokoId,
+            pembelianId: item.pembelianId,
+            produkId: item.produkId,
+            namaProduk: '${produk.nama} - ${produk.satuan}',
+            jumlah: item.jumlah,
+            hargaBeliSatuan: item.hargaBeliSatuan,
+            subtotal: item.subtotal,
+          ),
+        ],
+      );
   }
 
   @override
@@ -165,7 +165,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         tokoId: item.tokoId,
         pembelianId: item.pembelianId,
         produkId: item.produkId,
-        namaProduk: produk.nama,
+        namaProduk: '${produk.nama} - ${produk.satuan}',
         jumlah: item.jumlah,
         hargaBeliSatuan: item.hargaBeliSatuan,
         subtotal: item.subtotal,

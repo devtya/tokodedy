@@ -23,15 +23,19 @@ class AddToCart extends CashierEvent {
   final double hargaJual;
   final double hargaPokok;
   final int jumlah;
+  final String? satuan;
+  final double konversi;
   const AddToCart({
     required this.produkId,
     required this.namaProduk,
     required this.hargaJual,
     this.hargaPokok = 0,
     this.jumlah = 1,
+    this.satuan,
+    this.konversi = 1.0,
   });
   @override
-  List<Object?> get props => [produkId, namaProduk, hargaJual, hargaPokok, jumlah];
+  List<Object?> get props => [produkId, namaProduk, hargaJual, hargaPokok, jumlah, satuan, konversi];
 }
 
 class RemoveFromCart extends CashierEvent {

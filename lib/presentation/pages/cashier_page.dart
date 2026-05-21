@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../widgets/barcode_scanner_widget.dart';
 
 import '../../core/di/injection.dart';
@@ -10,6 +15,7 @@ import '../../domain/entities/pending_order.dart';
 import '../../domain/repositories/pending_order_repository.dart';
 import '../../domain/usecases/produk/get_produk_by_barcode.dart';
 import '../../domain/usecases/transaksi/buat_transaksi.dart';
+import '../../data/services/bluetooth_printer_service.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';
 import '../../data/services/receipt_generator.dart';
@@ -18,9 +24,11 @@ import '../blocs/auth/auth_state.dart';
 import '../blocs/cashier/cashier_bloc.dart';
 import '../blocs/cashier/cashier_event.dart';
 import '../blocs/cashier/cashier_state.dart';
+import '../blocs/transaksi/transaksi_bloc.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/cari_produk_dialog.dart';
 import '../widgets/pending_dialog.dart';
+import 'transaksi_page.dart';
 
 class CashierPage extends StatefulWidget {
   const CashierPage({super.key});
@@ -43,6 +51,10 @@ class _CashierPageState extends State<CashierPage> {
   double _lastKembalian = 0;
   bool _isPrinting = false;
 
+  // Printer connection state
+  bool _printerConnected = false;
+  bool _checkingPrinter = false;
+
   bool get _isKasir {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) return authState.user.isKasir;
@@ -53,6 +65,7 @@ class _CashierPageState extends State<CashierPage> {
   void initState() {
     super.initState();
     context.read<CashierBloc>().add(InitCashier());
+    _checkPrinterConnection();
   }
 
   Future<void> _showBayarConfirmation(CashierReady data) async {
@@ -177,6 +190,244 @@ class _CashierPageState extends State<CashierPage> {
     if (mounted) {
       setState(() => _isPrinting = false);
     }
+  }
+
+  Future<void> _checkPrinterConnection() async {
+    setState(() => _checkingPrinter = true);
+    try {
+      final settings = sl<PrinterSettings>();
+      if (settings.type == 'bluetooth' && settings.enabled) {
+        final bt = sl<BluetoothPrinterService>();
+        _printerConnected = await bt.isConnected();
+      } else if (settings.enabled) {
+        final printer = sl<PrinterService>();
+        _printerConnected = await printer.isConnected();
+      } else {
+        _printerConnected = false;
+      }
+    } catch (_) {
+      _printerConnected = false;
+    }
+    if (mounted) setState(() => _checkingPrinter = false);
+  }
+
+  Future<bool> _requestBluetoothPermissions() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 31) {
+        final statuses = await [
+          Permission.bluetoothScan,
+          Permission.bluetoothConnect,
+        ].request();
+        return statuses.values.every((s) => s.isGranted);
+      } else {
+        final status = await Permission.location.request();
+        return status.isGranted;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _showPrinterBottomSheet() {
+    _checkPrinterConnection();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        var localScanning = false;
+        var localDevices = <_PrinterDevice>[];
+
+        Future<void> doScan() async {
+          localScanning = true;
+          localDevices = [];
+          final granted = await _requestBluetoothPermissions();
+          if (!granted) return;
+          try {
+            final bt = sl<BluetoothPrinterService>();
+            final results = await Future.wait([
+              bt.scanPrinters(),
+              BluetoothPrinterService.getBondedDevices(),
+            ]);
+            final scanned = (results[0] as List<BluetoothDevice>)
+                .map((d) => _PrinterDevice(
+                      name: d.platformName.isNotEmpty
+                          ? d.platformName
+                          : d.remoteId.toString(),
+                      address: d.remoteId.toString(),
+                      device: d,
+                    ));
+            final bonded = (results[1] as List<Map<String, String>>)
+                .map((d) => _PrinterDevice(
+                      name: (d['name']?.isNotEmpty == true)
+                          ? d['name']!
+                          : d['address']!,
+                      address: d['address'] ?? '',
+                    ));
+            localDevices = [...scanned, ...bonded];
+          } catch (_) {}
+        }
+
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (localScanning)
+                    const LinearProgressIndicator(),
+                  if (localScanning) const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Printer Bluetooth',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Icon(
+                        Icons.bluetooth,
+                        color: _printerConnected
+                            ? AppTheme.primaryGreen
+                            : AppTheme.warningRed,
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.circle,
+                        size: 10,
+                        color: _printerConnected
+                            ? AppTheme.primaryGreen
+                            : AppTheme.warningRed,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _printerConnected ? 'Terhubung' : 'Tidak terhubung',
+                        style: TextStyle(
+                          color: _printerConnected
+                              ? AppTheme.primaryGreen
+                              : AppTheme.warningRed,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: localScanning
+                          ? null
+                          : () async {
+                              localScanning = true;
+                              setSheetState(() {});
+                              await doScan();
+                              setSheetState(() {});
+                            },
+                      icon: localScanning
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh),
+                      label: Text(
+                          localScanning ? 'Memindai...' : 'Cari Printer'),
+                    ),
+                  ),
+                  if (localDevices.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 320),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final d in localDevices)
+                              ListTile(
+                                dense: true,
+                                leading: const Icon(Icons.bluetooth),
+                                title: Text(
+                                  d.name,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                subtitle: Text(
+                                  d.address,
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                trailing:
+                                    const Icon(Icons.link, size: 18),
+                                onTap: () async {
+                                  final bt = sl<BluetoothPrinterService>();
+                                  final success = d.device != null
+                                      ? await bt.connect(d.device!)
+                                      : await bt.connect(BluetoothDevice(
+                                          remoteId:
+                                              DeviceIdentifier(d.address),
+                                        ));
+                                  if (success) {
+                                    final settings =
+                                        sl<PrinterSettings>();
+                                    settings.enabled = true;
+                                    updatePrinterService();
+                                    _printerConnected = true;
+                                    if (ctx.mounted) {
+                                      Navigator.pop(ctx);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Terhubung ke ${d.name}'),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Gagal connect ke ${d.name}'),
+                                          backgroundColor:
+                                              AppTheme.warningRed,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                  if (mounted) setState(() {});
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Tutup'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildReceiptPreview({
@@ -600,6 +851,7 @@ class _CashierPageState extends State<CashierPage> {
       listener: (context, state) async {
         if (state is CashierSuccess) {
           _bayarController.clear();
+          await _checkPrinterConnection();
 
           final shouldPrint = await showDialog<bool>(
             context: context,
@@ -617,11 +869,34 @@ class _CashierPageState extends State<CashierPage> {
                       ),
                     ),
               actions: [
-                if (!state.isHutang)
+                if (!state.isHutang) ...[
                   ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: _printerConnected
+                        ? () => Navigator.pop(ctx, true)
+                        : null,
                     child: const Text('Cetak Nota'),
                   ),
+                  if (!_printerConnected)
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx, false);
+                        _showPrinterBottomSheet();
+                      },
+                      child: const Text(
+                        'Printer disconnect — tap untuk konek',
+                        style: TextStyle(
+                          color: AppTheme.warningRed,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
                   child: Text(state.isHutang ? 'Tutup' : 'Tidak'),
@@ -678,6 +953,30 @@ class _CashierPageState extends State<CashierPage> {
             appBar: AppBar(
               title: const Text('Kasir'),
               actions: [
+                _checkingPrinter
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    : IconButton(
+                        icon: Icon(
+                          Icons.print,
+                          color: _printerConnected
+                              ? AppTheme.primaryGreen
+                              : AppTheme.warningRed,
+                        ),
+                        tooltip: _printerConnected
+                            ? 'Printer terhubung'
+                            : 'Printer tidak terhubung',
+                        onPressed: _showPrinterBottomSheet,
+                      ),
                 IconButton(
                   icon: const Icon(Icons.pending_actions),
                   tooltip: 'Pending Orders',
@@ -699,9 +998,11 @@ class _CashierPageState extends State<CashierPage> {
                 children: [
                   _buildSearchSection(),
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: _buildCartList(data),
-                    ),
+                    child: data.cart.isEmpty
+                        ? _buildCartList(data)
+                        : SingleChildScrollView(
+                            child: _buildCartList(data),
+                          ),
                   ),
                   _buildBottomPanel(data),
                 ],
@@ -978,28 +1279,42 @@ class _CashierPageState extends State<CashierPage> {
                   _bayarController.text = amount.toStringAsFixed(0);
                   context.read<CashierBloc>().add(UpdateJumlahBayar(amount));
                 },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
                 child: const Text('Uang Pas'),
               ),
             ],
           ),
-          if (data.jumlahBayar >= data.totalSetelahDiskon &&
-              data.totalSetelahDiskon > 0) ...[
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Kembali:', style: TextStyle(fontSize: 16)),
-                Text(
-                  _currency.format(data.kembalian),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.darkGreen,
-                  ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                data.jumlahBayar < data.totalSetelahDiskon
+                    ? 'Kurang:'
+                    : 'Kembali:',
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                _currency.format(
+                  data.jumlahBayar < data.totalSetelahDiskon
+                      ? data.totalSetelahDiskon - data.jumlahBayar
+                      : data.kembalian,
                 ),
-              ],
-            ),
-          ],
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: data.jumlahBayar < data.totalSetelahDiskon
+                      ? AppTheme.warningRed
+                      : AppTheme.primaryGreen,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -1048,23 +1363,61 @@ class _CashierPageState extends State<CashierPage> {
                 onPressed: data.cart.isEmpty ? null : _showHutangDialog,
                 icon: const Icon(Icons.book),
                 label: const Text('Hutang'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed: data.cart.isEmpty ? null : _savePending,
-              icon: const Icon(Icons.pause_circle_outline, size: 18),
-              label: const Text('Pending'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppTheme.warningOrange,
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (_) => sl<TransaksiBloc>(),
+                        child: const TransaksiPage(),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.receipt_long, size: 18),
+                label: const Text('Riwayat'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.neutralGrey,
+                ),
               ),
-            ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: data.cart.isEmpty ? null : _savePending,
+                icon: const Icon(Icons.pause_circle_outline, size: 18),
+                label: const Text('Pending'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.warningOrange,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+}
+
+class _PrinterDevice {
+  final String name;
+  final String address;
+  final BluetoothDevice? device;
+
+  _PrinterDevice({
+    required this.name,
+    required this.address,
+    this.device,
+  });
 }

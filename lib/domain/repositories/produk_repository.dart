@@ -23,4 +23,7 @@ abstract class ProdukRepository {
     required Map<String, List<SatuanProduk>> satuanByNama,
     required Set<String> existingBarcodes,
   });
+
+  Future<List<String>> getAllSatuan();
+  Future<List<String>> getAllKategori();
 }
