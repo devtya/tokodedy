@@ -1,20 +1,22 @@
 import 'package:equatable/equatable.dart';
 
 class ItemPembelian extends Equatable {
-  final int? id;
-  final int pembelianId;
-  final int produkId;
+  final String? id; // UUID
+  final String tokoId; // UUID FK ke toko
+  final String pembelianId; // UUID FK ke pembelian
+  final String produkId; // UUID FK ke produk
   final String? namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
   final double subtotal;
-  // null = satuan dasar, non-null = SatuanProduk.id
-  final int? satuanId;
+  // null = satuan dasar, non-null = SatuanProduk.id (UUID)
+  final String? satuanId;
   // 1.0 = satuan dasar, >1.0 = satuan konversi (misal karton=10 pcs)
   final double konversi;
 
   const ItemPembelian({
     this.id,
+    required this.tokoId,
     required this.pembelianId,
     required this.produkId,
     this.namaProduk,
@@ -26,18 +28,20 @@ class ItemPembelian extends Equatable {
   });
 
   ItemPembelian copyWith({
-    int? id,
-    int? pembelianId,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? pembelianId,
+    String? produkId,
     String? namaProduk,
     int? jumlah,
     double? hargaBeliSatuan,
     double? subtotal,
-    int? satuanId,
+    String? satuanId,
     double? konversi,
   }) {
     return ItemPembelian(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       pembelianId: pembelianId ?? this.pembelianId,
       produkId: produkId ?? this.produkId,
       namaProduk: namaProduk ?? this.namaProduk,
@@ -51,14 +55,7 @@ class ItemPembelian extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    pembelianId,
-    produkId,
-    namaProduk,
-    jumlah,
-    hargaBeliSatuan,
-    subtotal,
-    satuanId,
-    konversi,
+    id, tokoId, pembelianId, produkId, namaProduk, jumlah,
+    hargaBeliSatuan, subtotal, satuanId, konversi,
   ];
 }

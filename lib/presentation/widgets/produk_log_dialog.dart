@@ -215,7 +215,7 @@ class _ProdukLogDialogState extends State<ProdukLogDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoRow('Supplier', p.namaSupplier),
+          _infoRow('Supplier', p.namaSupplier ?? 'Tidak diketahui'),
           _infoRow('Tanggal', _formatDate(p.createdAt)),
           if (item != null) ...[
             _infoRow('Jumlah', '${item.jumlah} ${widget.produk.satuan ?? "pcs"}'),

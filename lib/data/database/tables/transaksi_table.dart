@@ -1,11 +1,16 @@
 import 'package:drift/drift.dart';
 
 class TransaksiTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  RealColumn get totalHarga => real()();
-  RealColumn get jumlahBayar => real()();
-  RealColumn get kembalian => real()();
-  TextColumn get status => text().withDefault(const Constant('lunas'))();
-  IntColumn? get pelangganId => integer().nullable()();
+  TextColumn get id         => text()(); // UUID
+  TextColumn get tokoId     => text()(); // UUID FK ke toko
+  TextColumn? get kasirId   => text().nullable()(); // UUID FK ke profiles (user)
+  RealColumn get totalHarga  => real().withDefault(const Constant(0))();
+  RealColumn get jumlahBayar => real().withDefault(const Constant(0))();
+  RealColumn get kembalian   => real().withDefault(const Constant(0))();
+  TextColumn get status => text().withDefault(const Constant('lunas'))(); // 'lunas'|'hutang'
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }

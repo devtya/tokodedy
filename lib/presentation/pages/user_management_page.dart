@@ -6,6 +6,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
+import 'invite_kasir_page.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -43,46 +44,18 @@ class _UserManagementPageState extends State<UserManagementPage> {
     }
   }
 
-  void _showUserDialog({User? user}) {
-    final isEditing = user != null;
-    final passwordCtrl = TextEditingController(text: user?.password ?? '');
-    final namaCtrl = TextEditingController(text: user?.nama ?? '');
-    final emailCtrl = TextEditingController(text: user?.email ?? '');
+  void _showEditDialog(User user) {
+    final namaCtrl = TextEditingController(text: user.nama ?? '');
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          isEditing
-              ? (user.role == 'admin' ? 'Ubah Password Admin' : 'Edit Kasir')
-              : 'Tambah Kasir',
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: namaCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nama',
-                  prefixIcon: Icon(Icons.badge),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordCtrl,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-            ],
+        title: Text(user.isOwner ? 'Edit Owner' : 'Edit Kasir'),
+        content: TextField(
+          controller: namaCtrl,
+          decoration: const InputDecoration(
+            labelText: 'Nama',
+            prefixIcon: Icon(Icons.badge),
           ),
         ),
         actions: [
@@ -92,43 +65,27 @@ class _UserManagementPageState extends State<UserManagementPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final password = passwordCtrl.text.trim();
               final nama = namaCtrl.text.trim();
-              final email = emailCtrl.text.trim();
-              if (password.isEmpty) {
+              if (nama.isEmpty) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Isi semua field wajib')),
+                  const SnackBar(content: Text('Nama tidak boleh kosong')),
                 );
                 return;
               }
 
-              final newUser = User(
-                id: user?.id,
-                username: '', // akan auto-generate dari email di repo
-                password: password,
-                role: user?.role ?? 'kasir',
-                nama: nama.isEmpty ? null : nama,
-                email: email.isEmpty ? null : email,
-              );
-
               try {
-                if (isEditing) {
-                  await _authRepo.updateUser(newUser);
-                } else {
-                  await _authRepo.addUser(newUser);
-                }
+                await _authRepo.updateUser(user.copyWith(nama: nama));
                 if (mounted) {
                   Navigator.pop(ctx);
                   _loadUsers();
                 }
-                // Refresh auth state jika user yang diupdate adalah user saat ini
                 if (mounted) {
                   context.read<AuthBloc>().add(CheckAuthStatus());
                 }
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(content: Text('Gagal menyimpan: $e')),
+                    SnackBar(content: Text('Gagal: $e')),
                   );
                 }
               }
@@ -140,87 +97,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  void _showResetPasswordDialog(User user) {
-    final passwordCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reset Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Reset password untuk ${user.nama ?? user.username}'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordCtrl,
-              decoration: const InputDecoration(labelText: 'Password Baru'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: confirmCtrl,
-              decoration: const InputDecoration(labelText: 'Konfirmasi Password'),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final password = passwordCtrl.text.trim();
-              final confirm = confirmCtrl.text.trim();
-              if (password.isEmpty || confirm.isEmpty) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Isi semua field')),
-                );
-                return;
-              }
-              if (password != confirm) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Password tidak cocok')),
-                );
-                return;
-              }
-
-              try {
-                await _authRepo.updateUser(user.copyWith(password: password));
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Password ${user.nama ?? user.username} berhasil direset'),
-                      backgroundColor: AppTheme.primaryGreen,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal: $e'),
-                      backgroundColor: AppTheme.warningRed,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _confirmDelete(User user) {
-    if (user.role == 'admin') {
+    if (user.isOwner) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Akun admin tidak dapat dihapus')),
+        const SnackBar(content: Text('Akun owner tidak dapat dihapus')),
       );
       return;
     }
@@ -229,7 +109,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Akun'),
         content: Text(
-            'Yakin ingin menghapus akun ${user.nama ?? user.username}?'),
+            'Yakin ingin menghapus akun ${user.nama ?? user.email}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -269,31 +149,26 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 final user = _users[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: user.role == 'admin'
+                    backgroundColor: user.isOwner
                         ? AppTheme.primaryGreen
                         : AppTheme.neutralGrey,
                     child: Icon(
-                      user.role == 'admin'
+                      user.isOwner
                           ? Icons.admin_panel_settings
                           : Icons.person,
                       color: Colors.white,
                     ),
                   ),
-                  title: Text(user.nama ?? user.username),
-                  subtitle: Text('${user.role.toUpperCase()}${user.nama != null ? ' • ${user.username}' : ''}'),
+                  title: Text(user.nama ?? user.email ?? 'Kasir'),
+                  subtitle: Text(user.role.toUpperCase() + (user.email != null ? ' • ${user.email}' : '')),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.lock_reset, color: Colors.orange),
-                        tooltip: 'Reset Password',
-                        onPressed: () => _showResetPasswordDialog(user),
-                      ),
-                      IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showUserDialog(user: user),
+                        onPressed: () => _showEditDialog(user),
                       ),
-                      if (user.role != 'admin')
+                      if (!user.isOwner)
                         IconButton(
                           icon: const Icon(
                             Icons.delete,
@@ -307,7 +182,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showUserDialog(),
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const InviteKasirPage()),
+          );
+          if (result == true) _loadUsers();
+        },
         child: const Icon(Icons.person_add),
       ),
     );

@@ -2,15 +2,16 @@ import '../entities/pending_pembelian.dart';
 
 abstract class PendingPembelianRepository {
   Future<List<PendingPembelian>> getAllPending();
-  Future<PendingPembelian?> getPendingById(int id);
-  Future<int> addPending(PendingPembelian pending);
-  Future<void> deletePending(int id);
-  Future<List<PendingPembelianItemData>> getItemsByPendingId(int pendingId);
-  Future<void> addItem(int pendingId, PendingPembelianItemData item);
+  Future<PendingPembelian?> getPendingById(String id);
+  Future<String> addPending(PendingPembelian pending);
+  Future<void> deletePending(String id);
+  Future<List<PendingPembelianItemData>> getItemsByPendingId(String pendingId);
+  Future<void> addItem(String pendingId, PendingPembelianItemData item);
 }
 
 class PendingPembelianItemData {
-  final int produkId;
+  final String? id; // UUID
+  final String produkId; // UUID
   final String namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
@@ -19,6 +20,7 @@ class PendingPembelianItemData {
   final double diskonValue;
 
   const PendingPembelianItemData({
+    this.id,
     required this.produkId,
     required this.namaProduk,
     required this.jumlah,

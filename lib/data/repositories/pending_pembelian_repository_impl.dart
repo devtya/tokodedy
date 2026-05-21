@@ -1,19 +1,24 @@
 import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/sync_helper.dart';
+import '../../data/services/supabase_sync_service.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/pending_pembelian.dart';
 import '../../domain/repositories/pending_pembelian_repository.dart';
 
 class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
   final AppDatabase _db;
-  final SyncHelper _syncHelper;
+  final SupabaseSyncService _syncService;
+  final TokoService _tokoService;
 
-  PendingPembelianRepositoryImpl(this._db, this._syncHelper);
+  PendingPembelianRepositoryImpl(this._db, this._syncService, this._tokoService);
+
+  String get _tokoId => _tokoService.tokoId ?? '';
 
   PendingPembelian _map(PendingPembelianTableData data) {
     return PendingPembelian(
       id: data.id,
+      tokoId: data.tokoId,
       supplierId: data.supplierId,
       namaSupplier: data.namaSupplier,
       createdAt: data.createdAt,
@@ -24,57 +29,80 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
 
   @override
   Future<List<PendingPembelian>> getAllPending() async {
-    final data = await _db.select(_db.pendingPembelianTable).get();
+    final data = await (_db.select(_db.pendingPembelianTable)..where((t) => t.tokoId.equals(_tokoId))).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_map).toList();
   }
 
   @override
-  Future<PendingPembelian?> getPendingById(int id) async {
-    final data = await (_db.select(
-      _db.pendingPembelianTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<PendingPembelian?> getPendingById(String id) async {
+    final data = await (_db.select(_db.pendingPembelianTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .getSingleOrNull();
     return data != null ? _map(data) : null;
   }
 
   @override
-  Future<int> addPending(PendingPembelian pending) async {
-    final newId = await _db
-        .into(_db.pendingPembelianTable)
-        .insert(
+  Future<String> addPending(PendingPembelian pending) async {
+    final id = pending.id ?? _syncService.generateId();
+    await _db.into(_db.pendingPembelianTable).insert(
           PendingPembelianTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             supplierId: Value(pending.supplierId),
             namaSupplier: Value(pending.namaSupplier),
             isPpnEnabled: Value(pending.isPpnEnabled),
             ppnPercent: Value(pending.ppnPercent),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'pending_pembelian', localId: newId);
-    return newId;
+
+    // Sync to Supabase
+    await _syncService.upsert('pending_pembelian', {
+      'id': id,
+      'toko_id': _tokoId,
+      'supplier_id': pending.supplierId,
+      'nama_supplier': pending.namaSupplier,
+      'is_ppn_enabled': pending.isPpnEnabled,
+      'ppn_percent': pending.ppnPercent,
+    });
+
+    return id;
   }
 
   @override
-  Future<void> deletePending(int id) async {
-    await (_db.delete(
-      _db.pendingPembelianItemTable,
-    )..where((t) => t.pendingPembelianId.equals(id))).go();
-    await (_db.delete(
-      _db.pendingPembelianTable,
-    )..where((t) => t.id.equals(id))).go();
-    await _syncHelper.onDelete(tableEntity: 'pending_pembelian', localId: id);
+  Future<void> deletePending(String id) async {
+    // Delete items first locally and in Supabase
+    final items = await getItemsByPendingId(id);
+    for (final item in items) {
+      if (item.id != null) {
+        await _syncService.delete('pending_pembelian_item', item.id!);
+      }
+    }
+    await (_db.delete(_db.pendingPembelianItemTable)
+      ..where((t) => t.pendingPembelianId.equals(id) & t.tokoId.equals(_tokoId)))
+        .go();
+
+    // Delete parent
+    await (_db.delete(_db.pendingPembelianTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .go();
+
+    // Sync to Supabase
+    await _syncService.delete('pending_pembelian', id);
   }
 
   @override
   Future<List<PendingPembelianItemData>> getItemsByPendingId(
-    int pendingId,
+    String pendingId,
   ) async {
-    final data = await (_db.select(
-      _db.pendingPembelianItemTable,
-    )..where((t) => t.pendingPembelianId.equals(pendingId))).get();
+    final data = await (_db.select(_db.pendingPembelianItemTable)
+      ..where((t) => t.pendingPembelianId.equals(pendingId) & t.tokoId.equals(_tokoId)))
+        .get();
 
     return data
         .map(
           (item) => PendingPembelianItemData(
+            id: item.id,
             produkId: item.produkId,
             namaProduk: item.namaProduk,
             jumlah: item.jumlah,
@@ -88,22 +116,35 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
   }
 
   @override
-  Future<void> addItem(int pendingId, PendingPembelianItemData item) async {
-    final newId = await _db
-        .into(_db.pendingPembelianItemTable)
-        .insert(
+  Future<void> addItem(String pendingId, PendingPembelianItemData item) async {
+    final id = item.id ?? _syncService.generateId();
+    await _db.into(_db.pendingPembelianItemTable).insert(
           PendingPembelianItemTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             pendingPembelianId: pendingId,
             produkId: item.produkId,
             namaProduk: item.namaProduk,
-            jumlah: item.jumlah,
-            hargaBeliSatuan: item.hargaBeliSatuan,
-            hargaBeliLama: item.hargaBeliLama,
+            jumlah: Value(item.jumlah),
+            hargaBeliSatuan: Value(item.hargaBeliSatuan),
+            hargaBeliLama: Value(item.hargaBeliLama),
             diskonTipe: Value(item.diskonTipe),
             diskonValue: Value(item.diskonValue),
           ),
         );
-    await _syncHelper.onInsert(
-        tableEntity: 'pending_pembelian_item', localId: newId);
+
+    // Sync to Supabase
+    await _syncService.upsert('pending_pembelian_item', {
+      'id': id,
+      'toko_id': _tokoId,
+      'pending_pembelian_id': pendingId,
+      'produk_id': item.produkId,
+      'nama_produk': item.namaProduk,
+      'jumlah': item.jumlah,
+      'harga_beli_satuan': item.hargaBeliSatuan,
+      'harga_beli_lama': item.hargaBeliLama,
+      'diskon_tipe': item.diskonTipe,
+      'diskon_value': item.diskonValue,
+    });
   }
 }

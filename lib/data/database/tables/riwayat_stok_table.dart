@@ -1,10 +1,14 @@
 import 'package:drift/drift.dart';
 
 class RiwayatStokTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get produkId => integer()();
-  TextColumn get tipe => text()();
-  IntColumn get jumlah => integer()();
+  TextColumn get id        => text()(); // UUID
+  TextColumn get tokoId    => text()(); // UUID FK ke toko
+  TextColumn get produkId  => text()(); // UUID FK ke produk
+  TextColumn get tipe      => text()(); // 'masuk'|'keluar'|'koreksi'
+  IntColumn get jumlah     => integer().withDefault(const Constant(0))();
   TextColumn? get keterangan => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }

@@ -36,7 +36,7 @@ class _PendingPembelianPageState extends State<PendingPembelianPage> {
     }
   }
 
-  Future<void> _delete(int id) async {
+  Future<void> _delete(String id) async {
     await _repository.deletePending(id);
     _loadData();
   }

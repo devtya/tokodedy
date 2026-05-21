@@ -13,16 +13,17 @@ class CariProdukDialog extends StatefulWidget {
   final GetAllProduk getAllProduk;
   final SearchProduk searchProduk;
   final void Function(
-    int produkId,
+    String produkId,
     String namaProduk,
     double harga,
+    double hargaBeli,
     int qty, {
-    int? satuanId,
+    String? satuanId,
     double konversi,
   }) onAddToCart;
   final bool isPembelian;
   final Future<void> Function(String query)? onAddNewProduct;
-  final int? supplierId;
+  final String? supplierId;
 
   const CariProdukDialog({
     super.key,
@@ -41,7 +42,7 @@ class CariProdukDialog extends StatefulWidget {
 class _CariProdukDialogState extends State<CariProdukDialog> {
   final _searchController = TextEditingController();
   List<Produk> _products = [];
-  Set<int> _supplierProductIds = {};
+  Set<String> _supplierProductIds = {};
   bool _loading = true;
   final _currency = NumberFormat.currency(
     locale: 'id',
@@ -55,7 +56,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
     _loadProducts();
   }
 
-  Future<Set<int>> _getSupplierProductIds() async {
+  Future<Set<String>> _getSupplierProductIds() async {
     if (widget.supplierId == null) return {};
     final dao = sl<SupplierProductsDao>();
     final ids = await dao.getProductsBySupplier(widget.supplierId!);
@@ -131,6 +132,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
               id,
               nama,
               harga,
+              produk.hargaBeli, // harga pokok dari entitas produk
               qty,
               satuanId: satuanId,
               konversi: konversi,

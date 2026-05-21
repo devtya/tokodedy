@@ -32,7 +32,7 @@ class UpdateProdukEvent extends ProdukEvent {
 }
 
 class DeleteProdukEvent extends ProdukEvent {
-  final int id;
+  final String id;
   const DeleteProdukEvent(this.id);
   @override
   List<Object?> get props => [id];

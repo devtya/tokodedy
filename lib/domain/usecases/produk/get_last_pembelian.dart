@@ -6,7 +6,7 @@ class GetLastPembelianByProduk {
 
   GetLastPembelianByProduk(this.repository);
 
-  Future<Pembelian?> call(int produkId) {
+  Future<Pembelian?> call(String produkId) {
     return repository.getLastPembelianByProdukId(produkId);
   }
 }

@@ -256,7 +256,7 @@ class _HutangPageState extends State<HutangPage> {
     );
   }
 
-  void _confirmLunas(int id) {
+  void _confirmLunas(String id) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

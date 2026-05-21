@@ -17,70 +17,76 @@ class UpdatePembelian {
   });
 
   Future<void> call({
-    required int pembelianId,
+    required String pembelianId,
     required String namaSupplier,
     required List<ItemPembelian> itemsBaru,
   }) async {
-    final itemsLama = await pembelianRepository.getItemsByPembelianId(
-      pembelianId,
-    );
-
-    final totalHarga = itemsBaru.fold(0.0, (sum, item) => sum + item.subtotal);
-
-    // Rollback stok dari item lama
-    for (final item in itemsLama) {
-      await _rollbackStok(item.produkId, item.jumlah, item.hargaBeliSatuan);
-    }
-
-    // Update header
-    await pembelianRepository.updatePembelian(
-      Pembelian(
-        id: pembelianId,
-        namaSupplier: namaSupplier,
-        totalHarga: totalHarga,
-      ),
-    );
-
-    // Hapus item lama
-    await pembelianRepository.deleteItemsByPembelianId(pembelianId);
-
-    // Insert item baru
-    for (final item in itemsBaru) {
-      await pembelianRepository.addItemPembelian(
-        item.copyWith(pembelianId: pembelianId),
+    await pembelianRepository.runInTransaction(() async {
+      final itemsLama = await pembelianRepository.getItemsByPembelianId(
+        pembelianId,
       );
-    }
 
-    // Apply stok & HPP baru
-    for (final item in itemsBaru) {
-      await _applyStokDanHpp(item.produkId, item.jumlah, item.hargaBeliSatuan);
-    }
+      final tokoId = itemsBaru.isNotEmpty ? itemsBaru.first.tokoId : (itemsLama.isNotEmpty ? itemsLama.first.tokoId : '');
 
-    // Write riwayat stok untuk item baru
-    for (final item in itemsBaru) {
-      await riwayatStokRepository.addRiwayat(
-        RiwayatStok(
-          produkId: item.produkId,
-          tipe: 'masuk',
-          jumlah: item.jumlah,
-          keterangan: 'Edit Pembelian #$pembelianId',
+      final totalHarga = itemsBaru.fold(0.0, (sum, item) => sum + item.subtotal);
+
+      // Rollback stok dari item lama
+      for (final item in itemsLama) {
+        await _rollbackStok(item.produkId, item.jumlah, item.hargaBeliSatuan);
+      }
+
+      // Update header
+      await pembelianRepository.updatePembelian(
+        Pembelian(
+          id: pembelianId,
+          tokoId: tokoId,
+          namaSupplier: namaSupplier,
+          totalHarga: totalHarga,
         ),
       );
-    }
+
+      // Hapus item lama
+      await pembelianRepository.deleteItemsByPembelianId(pembelianId);
+
+      // Insert item baru
+      for (final item in itemsBaru) {
+        await pembelianRepository.addItemPembelian(
+          item.copyWith(pembelianId: pembelianId),
+        );
+      }
+
+      // Apply stok & HPP baru
+      for (final item in itemsBaru) {
+        await _applyStokDanHpp(item.produkId, item.jumlah, item.hargaBeliSatuan);
+      }
+
+      // Write riwayat stok untuk item baru
+      for (final item in itemsBaru) {
+        await riwayatStokRepository.addRiwayat(
+          RiwayatStok(
+            tokoId: tokoId,
+            produkId: item.produkId,
+            tipe: 'masuk',
+            jumlah: item.jumlah,
+            keterangan: 'Edit Pembelian #$pembelianId',
+          ),
+        );
+      }
+    });
   }
 
-  Future<void> _rollbackStok(int produkId, int qtyLama, double hargaLama) async {
+  Future<void> _rollbackStok(String produkId, int qtyLama, double hargaLama) async {
     final produk = await produkRepository.getProdukById(produkId);
     if (produk == null) return;
 
-    final stokBaru = produk.stok - qtyLama;
-    if (stokBaru < 0) return;
+    final stokBaru = (produk.stok - qtyLama).clamp(0, 999999999);
 
     double hppBaru;
     if (stokBaru <= 0) {
       hppBaru = produk.hargaBeli;
     } else {
       hppBaru = ((produk.hargaBeli * produk.stok) - (hargaLama * qtyLama)) / stokBaru;
+      if (hppBaru < 0) hppBaru = 0;
     }
 
     await produkRepository.updateStok(produkId, stokBaru);
@@ -89,12 +95,17 @@ class UpdatePembelian {
     );
   }
 
-  Future<void> _applyStokDanHpp(int produkId, int qtyBaru, double hargaBaru) async {
+  Future<void> _applyStokDanHpp(String produkId, int qtyBaru, double hargaBaru) async {
     final produk = await produkRepository.getProdukById(produkId);
     if (produk == null) return;
 
     final stokAkhir = produk.stok + qtyBaru;
-    final hppAkhir = ((produk.hargaBeli * produk.stok) + (hargaBaru * qtyBaru)) / stokAkhir;
+    double hppAkhir;
+    if (stokAkhir <= 0) {
+      hppAkhir = hargaBaru;
+    } else {
+      hppAkhir = ((produk.hargaBeli * produk.stok) + (hargaBaru * qtyBaru)) / stokAkhir;
+    }
 
     await produkRepository.updateStok(produkId, stokAkhir);
     await produkRepository.updateProduk(

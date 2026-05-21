@@ -9,7 +9,7 @@ abstract class TransaksiEvent extends Equatable {
 class LoadTransaksi extends TransaksiEvent {}
 
 class LoadTransaksiDetail extends TransaksiEvent {
-  final int id;
+  final String id;
   const LoadTransaksiDetail(this.id);
   @override
   List<Object?> get props => [id];

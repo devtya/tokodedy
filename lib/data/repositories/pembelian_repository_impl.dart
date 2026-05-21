@@ -1,73 +1,102 @@
 import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/sync_helper.dart';
+import '../../data/services/supabase_sync_service.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/item_pembelian.dart' as domain;
 import '../../domain/entities/pembelian.dart' as domain;
 import '../../domain/repositories/pembelian_repository.dart';
 
 class PembelianRepositoryImpl implements PembelianRepository {
   final AppDatabase _db;
-  final SyncHelper _syncHelper;
+  final SupabaseSyncService _syncService;
+  final TokoService _tokoService;
 
-  PembelianRepositoryImpl(this._db, this._syncHelper);
+  PembelianRepositoryImpl(this._db, this._syncService, this._tokoService);
+
+  String get _tokoId => _tokoService.tokoId ?? '';
 
   domain.Pembelian _map(PembelianTableData data) {
     return domain.Pembelian(
       id: data.id,
+      tokoId: data.tokoId,
+      supplierId: data.supplierId,
       namaSupplier: data.namaSupplier,
       totalHarga: data.totalHarga,
       createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     );
   }
 
   @override
   Future<List<domain.Pembelian>> getAllPembelian() async {
-    final data = await _db.select(_db.pembelianTable).get();
+    final data = await (_db.select(_db.pembelianTable)..where((t) => t.tokoId.equals(_tokoId))).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_map).toList();
   }
 
   @override
-  Future<domain.Pembelian?> getPembelianById(int id) async {
-    final data = await (_db.select(
-      _db.pembelianTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<domain.Pembelian?> getPembelianById(String id) async {
+    final data = await (_db.select(_db.pembelianTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .getSingleOrNull();
     return data != null ? _map(data) : null;
   }
 
   @override
-  Future<int> addPembelian(domain.Pembelian pembelian) async {
-    final newId = await _db
-        .into(_db.pembelianTable)
-        .insert(
+  Future<String> addPembelian(domain.Pembelian pembelian) async {
+    final id = pembelian.id ?? _syncService.generateId();
+    await _db.into(_db.pembelianTable).insert(
           PembelianTableCompanion.insert(
-            namaSupplier: pembelian.namaSupplier,
-            totalHarga: pembelian.totalHarga,
+            id: id,
+            tokoId: _tokoId,
+            supplierId: Value(pembelian.supplierId),
+            namaSupplier: Value(pembelian.namaSupplier),
+            totalHarga: Value(pembelian.totalHarga),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'pembelian', localId: newId);
-    return newId;
+
+    // Sync to Supabase
+    await _syncService.upsert('pembelian', {
+      'id': id,
+      'toko_id': _tokoId,
+      'supplier_id': pembelian.supplierId,
+      'nama_supplier': pembelian.namaSupplier,
+      'total_harga': pembelian.totalHarga,
+    });
+
+    return id;
   }
 
   @override
   Future<void> addItemPembelian(domain.ItemPembelian item) async {
-    final newId = await _db
-        .into(_db.itemPembelianTable)
-        .insert(
+    final id = item.id ?? _syncService.generateId();
+    await _db.into(_db.itemPembelianTable).insert(
           ItemPembelianTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             pembelianId: item.pembelianId,
             produkId: item.produkId,
-            jumlah: item.jumlah,
-            hargaBeliSatuan: item.hargaBeliSatuan,
-            subtotal: item.subtotal,
+            jumlah: Value(item.jumlah),
+            hargaBeliSatuan: Value(item.hargaBeliSatuan),
+            subtotal: Value(item.subtotal),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'item_pembelian', localId: newId);
+
+    // Sync to Supabase
+    await _syncService.upsert('item_pembelian', {
+      'id': id,
+      'toko_id': _tokoId,
+      'pembelian_id': item.pembelianId,
+      'produk_id': item.produkId,
+      'jumlah': item.jumlah,
+      'harga_beli_satuan': item.hargaBeliSatuan,
+      'subtotal': item.subtotal,
+    });
   }
 
   @override
-  Future<domain.Pembelian?> getLastPembelianByProdukId(int produkId) async {
+  Future<domain.Pembelian?> getLastPembelianByProdukId(String produkId) async {
     final query = _db.select(_db.itemPembelianTable).join([
       innerJoin(
         _db.pembelianTable,
@@ -78,7 +107,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         _db.produkTable.id.equalsExp(_db.itemPembelianTable.produkId),
       ),
     ])
-      ..where(_db.itemPembelianTable.produkId.equals(produkId))
+      ..where(_db.itemPembelianTable.produkId.equals(produkId) & _db.itemPembelianTable.tokoId.equals(_tokoId))
       ..orderBy([
         OrderingTerm(
           expression: _db.pembelianTable.createdAt,
@@ -95,12 +124,16 @@ class PembelianRepositoryImpl implements PembelianRepository {
     final produk = result.readTable(_db.produkTable);
     return domain.Pembelian(
       id: pembelian.id,
+      tokoId: pembelian.tokoId,
+      supplierId: pembelian.supplierId,
       namaSupplier: pembelian.namaSupplier,
       totalHarga: pembelian.totalHarga,
       createdAt: pembelian.createdAt,
+      updatedAt: pembelian.updatedAt,
       items: [
         domain.ItemPembelian(
           id: item.id,
+          tokoId: item.tokoId,
           pembelianId: item.pembelianId,
           produkId: item.produkId,
           namaProduk: produk.nama,
@@ -114,14 +147,14 @@ class PembelianRepositoryImpl implements PembelianRepository {
 
   @override
   Future<List<domain.ItemPembelian>> getItemsByPembelianId(
-    int pembelianId,
+    String pembelianId,
   ) async {
     final query = _db.select(_db.itemPembelianTable).join([
       innerJoin(
         _db.produkTable,
         _db.produkTable.id.equalsExp(_db.itemPembelianTable.produkId),
       ),
-    ])..where(_db.itemPembelianTable.pembelianId.equals(pembelianId));
+    ])..where(_db.itemPembelianTable.pembelianId.equals(pembelianId) & _db.itemPembelianTable.tokoId.equals(_tokoId));
 
     final result = await query.get();
     return result.map((row) {
@@ -129,6 +162,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
       final produk = row.readTable(_db.produkTable);
       return domain.ItemPembelian(
         id: item.id,
+        tokoId: item.tokoId,
         pembelianId: item.pembelianId,
         produkId: item.produkId,
         namaProduk: produk.nama,
@@ -142,29 +176,47 @@ class PembelianRepositoryImpl implements PembelianRepository {
   @override
   Future<void> updatePembelian(domain.Pembelian pembelian) async {
     await (_db.update(_db.pembelianTable)
-      ..where((t) => t.id.equals(pembelian.id!)))
+      ..where((t) => t.id.equals(pembelian.id!) & t.tokoId.equals(_tokoId)))
       .write(PembelianTableCompanion(
         namaSupplier: Value(pembelian.namaSupplier),
         totalHarga: Value(pembelian.totalHarga),
       ));
-    await _syncHelper.onUpdate(
-      tableEntity: 'pembelian',
-      localId: pembelian.id!,
-    );
+
+    // Sync to Supabase
+    await _syncService.upsert('pembelian', {
+      'id': pembelian.id!,
+      'toko_id': _tokoId,
+      'supplier_id': pembelian.supplierId,
+      'nama_supplier': pembelian.namaSupplier,
+      'total_harga': pembelian.totalHarga,
+    });
   }
 
   @override
-  Future<void> deleteItemsByPembelianId(int pembelianId) async {
+  Future<void> deleteItemsByPembelianId(String pembelianId) async {
+    final list = await getItemsByPembelianId(pembelianId);
     await (_db.delete(_db.itemPembelianTable)
-      ..where((t) => t.pembelianId.equals(pembelianId)))
+      ..where((t) => t.pembelianId.equals(pembelianId) & t.tokoId.equals(_tokoId)))
       .go();
+
+    // Sync to Supabase
+    for (final s in list) {
+      await _syncService.delete('item_pembelian', s.id!);
+    }
   }
 
   @override
-  Future<void> deletePembelian(int id) async {
+  Future<void> deletePembelian(String id) async {
     await (_db.delete(_db.pembelianTable)
-      ..where((t) => t.id.equals(id)))
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
       .go();
-    await _syncHelper.onDelete(tableEntity: 'pembelian', localId: id);
+
+    // Sync to Supabase
+    await _syncService.delete('pembelian', id);
+  }
+
+  @override
+  Future<void> runInTransaction(Future<void> Function() action) async {
+    await _db.transaction(action);
   }
 }

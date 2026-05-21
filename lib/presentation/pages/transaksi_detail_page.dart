@@ -8,7 +8,7 @@ import '../blocs/transaksi/transaksi_event.dart';
 import '../blocs/transaksi/transaksi_state.dart';
 
 class TransaksiDetailPage extends StatefulWidget {
-  final int transaksiId;
+  final String transaksiId;
   const TransaksiDetailPage({super.key, required this.transaksiId});
 
   @override

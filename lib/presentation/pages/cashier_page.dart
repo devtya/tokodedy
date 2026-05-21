@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../widgets/barcode_scanner_widget.dart';
 
 import '../../core/di/injection.dart';
+import '../../core/services/toko_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/pending_order.dart';
 import '../../domain/repositories/pending_order_repository.dart';
@@ -12,6 +13,8 @@ import '../../domain/usecases/transaksi/buat_transaksi.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';
 import '../../data/services/receipt_generator.dart';
+import '../blocs/auth/auth_bloc.dart';
+import '../blocs/auth/auth_state.dart';
 import '../blocs/cashier/cashier_bloc.dart';
 import '../blocs/cashier/cashier_event.dart';
 import '../blocs/cashier/cashier_state.dart';
@@ -39,6 +42,12 @@ class _CashierPageState extends State<CashierPage> {
   double _lastTotalBayar = 0;
   double _lastKembalian = 0;
   bool _isPrinting = false;
+
+  bool get _isKasir {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) return authState.user.isKasir;
+    return false;
+  }
 
   @override
   void initState() {
@@ -102,7 +111,7 @@ class _CashierPageState extends State<CashierPage> {
   }
 
   Future<void> _printReceipt({
-    required int transaksiId,
+    required String transaksiId,
     required List<CartItem> cartItems,
     required double totalBayar,
     required double kembalian,
@@ -171,7 +180,7 @@ class _CashierPageState extends State<CashierPage> {
   }
 
   Widget _buildReceiptPreview({
-    required int transaksiId,
+    required String transaksiId,
     required List<CartItem> cartItems,
     required double totalBayar,
     required double kembalian,
@@ -247,17 +256,19 @@ class _CashierPageState extends State<CashierPage> {
   }
 
   void _openCariProduk() {
+    final pokok = _isKasir ? 0.0 : null;
     showDialog(
       context: context,
       builder: (ctx) => CariProdukDialog(
         getAllProduk: sl(),
         searchProduk: sl(),
-        onAddToCart: (id, nama, harga, qty, {int? satuanId, double konversi = 1.0}) {
+        onAddToCart: (id, nama, harga, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
           context.read<CashierBloc>().add(
             AddToCart(
               produkId: id,
               namaProduk: nama,
               hargaJual: harga,
+              hargaPokok: pokok ?? hargaBeli,
               jumlah: qty,
             ),
           );
@@ -278,6 +289,7 @@ class _CashierPageState extends State<CashierPage> {
       }
       return;
     }
+    final pokok = _isKasir ? 0.0 : produk.hargaBeli;
     if (mounted) {
       DialogUtils.showPilihSatuanDialog(
         context: context,
@@ -293,6 +305,7 @@ class _CashierPageState extends State<CashierPage> {
                   produkId: id,
                   namaProduk: nama,
                   hargaJual: harga,
+                  hargaPokok: pokok,
                   jumlah: qty,
                 ),
               );
@@ -541,6 +554,7 @@ class _CashierPageState extends State<CashierPage> {
               final repo = sl<PendingOrderRepository>();
               final pendingId = await repo.addPending(
                 PendingOrder(
+                  tokoId: sl<TokoService>().tokoId ?? '',
                   namaPelanggan: namaController.text.trim(),
                   catatan: catatanController.text.trim().isEmpty
                       ? null

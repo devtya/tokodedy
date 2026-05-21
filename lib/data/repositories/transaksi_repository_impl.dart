@@ -1,40 +1,45 @@
 import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/sync_helper.dart';
+import '../../data/services/supabase_sync_service.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/item_transaksi.dart' as domain;
 import '../../domain/entities/transaksi.dart' as domain;
 import '../../domain/repositories/transaksi_repository.dart';
 
 class TransaksiRepositoryImpl implements TransaksiRepository {
   final AppDatabase _db;
-  final SyncHelper _syncHelper;
+  final SupabaseSyncService _syncService;
+  final TokoService _tokoService;
 
-  TransaksiRepositoryImpl(this._db, this._syncHelper);
+  TransaksiRepositoryImpl(this._db, this._syncService, this._tokoService);
+
+  String get _tokoId => _tokoService.tokoId ?? '';
 
   domain.Transaksi _mapTransaksi(TransaksiTableData data) {
     return domain.Transaksi(
       id: data.id,
+      tokoId: data.tokoId,
+      kasirId: data.kasirId,
       totalHarga: data.totalHarga,
       jumlahBayar: data.jumlahBayar,
       kembalian: data.kembalian,
       status: data.status,
-      pelangganId: data.pelangganId,
       createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     );
   }
 
-
   @override
   Future<List<domain.Transaksi>> getAllTransaksi() async {
-    final data = await _db.select(_db.transaksiTable).get();
+    final data = await (_db.select(_db.transaksiTable)..where((t) => t.tokoId.equals(_tokoId))).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_mapTransaksi).toList();
   }
 
   @override
   Future<List<domain.Transaksi>> getTransaksiByDate(DateTime date) async {
-    final data = await _db.select(_db.transaksiTable).get();
+    final data = await (_db.select(_db.transaksiTable)..where((t) => t.tokoId.equals(_tokoId))).get();
     final filtered = data.where((t) {
       return t.createdAt.year == date.year &&
           t.createdAt.month == date.month &&
@@ -45,58 +50,81 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
   }
 
   @override
-  Future<domain.Transaksi?> getTransaksiById(int id) async {
-    final data = await (_db.select(
-      _db.transaksiTable,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<domain.Transaksi?> getTransaksiById(String id) async {
+    final data = await (_db.select(_db.transaksiTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .getSingleOrNull();
     if (data == null) return null;
     final items = await getItemTransaksiByTransaksiId(id);
     return _mapTransaksi(data).copyWith(items: items);
   }
 
   @override
-  Future<int> addTransaksi(domain.Transaksi transaksi) async {
-    final newId = await _db
-        .into(_db.transaksiTable)
-        .insert(
+  Future<String> addTransaksi(domain.Transaksi transaksi) async {
+    final id = transaksi.id ?? _syncService.generateId();
+    await _db.into(_db.transaksiTable).insert(
           TransaksiTableCompanion.insert(
-            totalHarga: transaksi.totalHarga,
-            jumlahBayar: transaksi.jumlahBayar,
-            kembalian: transaksi.kembalian,
+            id: id,
+            tokoId: _tokoId,
+            kasirId: Value(transaksi.kasirId),
+            totalHarga: Value(transaksi.totalHarga),
+            jumlahBayar: Value(transaksi.jumlahBayar),
+            kembalian: Value(transaksi.kembalian),
             status: Value(transaksi.status),
-            pelangganId: Value(transaksi.pelangganId),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'transaksi', localId: newId);
-    return newId;
+
+    // Sync to Supabase
+    await _syncService.upsert('transaksi', {
+      'id': id,
+      'toko_id': _tokoId,
+      'kasir_id': transaksi.kasirId,
+      'total_harga': transaksi.totalHarga,
+      'jumlah_bayar': transaksi.jumlahBayar,
+      'kembalian': transaksi.kembalian,
+      'status': transaksi.status,
+    });
+
+    return id;
   }
 
   @override
   Future<void> addItemTransaksi(domain.ItemTransaksi item) async {
-    final newId = await _db
-        .into(_db.itemTransaksiTable)
-        .insert(
+    final id = item.id ?? _syncService.generateId();
+    await _db.into(_db.itemTransaksiTable).insert(
           ItemTransaksiTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             transaksiId: item.transaksiId,
             produkId: item.produkId,
-            jumlah: item.jumlah,
-            hargaSatuan: item.hargaSatuan,
-            subtotal: item.subtotal,
+            jumlah: Value(item.jumlah),
+            hargaSatuan: Value(item.hargaSatuan),
+            subtotal: Value(item.subtotal),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'item_transaksi', localId: newId);
+
+    // Sync to Supabase
+    await _syncService.upsert('item_transaksi', {
+      'id': id,
+      'toko_id': _tokoId,
+      'transaksi_id': item.transaksiId,
+      'produk_id': item.produkId,
+      'jumlah': item.jumlah,
+      'harga_satuan': item.hargaSatuan,
+      'subtotal': item.subtotal,
+    });
   }
 
   @override
   Future<List<domain.ItemTransaksi>> getItemTransaksiByTransaksiId(
-    int transaksiId,
+    String transaksiId,
   ) async {
     final query = _db.select(_db.itemTransaksiTable).join([
       leftOuterJoin(
         _db.produkTable,
         _db.produkTable.id.equalsExp(_db.itemTransaksiTable.produkId),
       ),
-    ])..where(_db.itemTransaksiTable.transaksiId.equals(transaksiId));
+    ])..where(_db.itemTransaksiTable.transaksiId.equals(transaksiId) & _db.itemTransaksiTable.tokoId.equals(_tokoId));
 
     final rows = await query.get();
     return rows.map((row) {
@@ -104,6 +132,7 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
       final produk = row.readTableOrNull(_db.produkTable);
       return domain.ItemTransaksi(
         id: item.id,
+        tokoId: item.tokoId,
         transaksiId: item.transaksiId,
         produkId: item.produkId,
         namaProduk: produk?.nama,
@@ -115,7 +144,7 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
   }
 
   @override
-  Future<domain.Transaksi?> getLastTransaksiByProdukId(int produkId) async {
+  Future<domain.Transaksi?> getLastTransaksiByProdukId(String produkId) async {
     final query = _db.select(_db.itemTransaksiTable).join([
       innerJoin(
         _db.transaksiTable,
@@ -126,7 +155,7 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
         _db.produkTable.id.equalsExp(_db.itemTransaksiTable.produkId),
       ),
     ])
-      ..where(_db.itemTransaksiTable.produkId.equals(produkId))
+      ..where(_db.itemTransaksiTable.produkId.equals(produkId) & _db.itemTransaksiTable.tokoId.equals(_tokoId))
       ..orderBy([
         OrderingTerm(
           expression: _db.transaksiTable.createdAt,
@@ -143,15 +172,18 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
     final produk = result.readTable(_db.produkTable);
     return domain.Transaksi(
       id: transaksi.id,
+      tokoId: transaksi.tokoId,
+      kasirId: transaksi.kasirId,
       totalHarga: transaksi.totalHarga,
       jumlahBayar: transaksi.jumlahBayar,
       kembalian: transaksi.kembalian,
       status: transaksi.status,
-      pelangganId: transaksi.pelangganId,
       createdAt: transaksi.createdAt,
+      updatedAt: transaksi.updatedAt,
       items: [
         domain.ItemTransaksi(
           id: item.id,
+          tokoId: item.tokoId,
           transaksiId: item.transaksiId,
           produkId: item.produkId,
           namaProduk: produk.nama,
@@ -165,7 +197,7 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
 
   @override
   Future<double> getTotalOmsetToday() async {
-    final data = await _db.select(_db.transaksiTable).get();
+    final data = await (_db.select(_db.transaksiTable)..where((t) => t.tokoId.equals(_tokoId))).get();
     final now = DateTime.now();
     final today = data.where((t) {
       return t.createdAt.year == now.year &&

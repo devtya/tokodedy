@@ -25,7 +25,7 @@ class AddHutangManual extends HutangEvent {
 }
 
 class LunasHutang extends HutangEvent {
-  final int id;
+  final String id;
   const LunasHutang(this.id);
   @override
   List<Object?> get props => [id];

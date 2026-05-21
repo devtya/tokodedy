@@ -1,20 +1,25 @@
 import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/sync_helper.dart';
+import '../../data/services/supabase_sync_service.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/satuan_produk.dart' as domain;
 import '../../domain/repositories/produk_repository.dart';
 
 class ProdukRepositoryImpl implements ProdukRepository {
   final AppDatabase _db;
-  final SyncHelper _syncHelper;
+  final SupabaseSyncService _syncService;
+  final TokoService _tokoService;
 
-  ProdukRepositoryImpl(this._db, this._syncHelper);
+  ProdukRepositoryImpl(this._db, this._syncService, this._tokoService);
+
+  String get _tokoId => _tokoService.tokoId ?? '';
 
   domain.Produk _mapToDomain(ProdukTableData data) {
     return domain.Produk(
       id: data.id,
+      tokoId: data.tokoId,
       nama: data.nama,
       barcode: data.barcode,
       hargaBeli: data.hargaBeli,
@@ -23,23 +28,26 @@ class ProdukRepositoryImpl implements ProdukRepository {
       kategori: data.kategori,
       satuan: data.satuan,
       createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     );
   }
 
   domain.SatuanProduk _mapSatuan(SatuanProdukTableData data) {
     return domain.SatuanProduk(
       id: data.id,
+      tokoId: data.tokoId,
       produkId: data.produkId,
       nama: data.nama,
       konversi: data.konversi,
       hargaBeli: data.hargaBeli,
       hargaJual: data.hargaJual,
+      updatedAt: data.updatedAt,
     );
   }
 
   @override
   Future<List<domain.Produk>> getAllProduk() async {
-    final data = await _db.select(_db.produkTable).get();
+    final data = await (_db.select(_db.produkTable)..where((tbl) => tbl.tokoId.equals(_tokoId))).get();
     final result = data.map(_mapToDomain).toList();
     for (final produk in result) {
       final satuanList = await getSatuanByProdukId(produk.id!);
@@ -51,9 +59,9 @@ class ProdukRepositoryImpl implements ProdukRepository {
   @override
   Future<List<domain.Produk>> searchProduk(String query) async {
     final likePattern = '%$query%';
-    final data = await (_db.select(
-      _db.produkTable,
-    )..where((tbl) => tbl.nama.like(likePattern))).get();
+    final data = await (_db.select(_db.produkTable)
+      ..where((tbl) => tbl.tokoId.equals(_tokoId) & tbl.nama.like(likePattern)))
+        .get();
     final result = data.map(_mapToDomain).toList();
     for (final produk in result) {
       final satuanList = await getSatuanByProdukId(produk.id!);
@@ -63,10 +71,10 @@ class ProdukRepositoryImpl implements ProdukRepository {
   }
 
   @override
-  Future<domain.Produk?> getProdukById(int id) async {
-    final data = await (_db.select(
-      _db.produkTable,
-    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  Future<domain.Produk?> getProdukById(String id) async {
+    final data = await (_db.select(_db.produkTable)
+      ..where((tbl) => tbl.tokoId.equals(_tokoId) & tbl.id.equals(id)))
+        .getSingleOrNull();
     if (data == null) return null;
     final satuanList = await getSatuanByProdukId(data.id);
     return _mapToDomain(data).copyWith(satuanList: satuanList);
@@ -74,9 +82,9 @@ class ProdukRepositoryImpl implements ProdukRepository {
 
   @override
   Future<domain.Produk?> getProdukByBarcode(String barcode) async {
-    final data = await (_db.select(
-      _db.produkTable,
-    )..where((tbl) => tbl.barcode.equals(barcode))).getSingleOrNull();
+    final data = await (_db.select(_db.produkTable)
+      ..where((tbl) => tbl.tokoId.equals(_tokoId) & tbl.barcode.equals(barcode)))
+        .getSingleOrNull();
     if (data == null) return null;
     final satuanList = await getSatuanByProdukId(data.id);
     return _mapToDomain(data).copyWith(satuanList: satuanList);
@@ -84,7 +92,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
 
   @override
   Future<Set<String>> getAllBarcodes() async {
-    final rows = await _db.select(_db.produkTable).get();
+    final rows = await (_db.select(_db.produkTable)..where((tbl) => tbl.tokoId.equals(_tokoId))).get();
     return rows
         .map((r) => r.barcode)
         .where((b) => b != null && b.isNotEmpty)
@@ -93,29 +101,42 @@ class ProdukRepositoryImpl implements ProdukRepository {
   }
 
   @override
-  Future<int> addProduk(domain.Produk produk) async {
-    final newId = await _db
-        .into(_db.produkTable)
-        .insert(
-          ProdukTableCompanion.insert(
-            nama: produk.nama,
-            barcode: Value(produk.barcode),
-            hargaBeli: produk.hargaBeli,
-            hargaJual: produk.hargaJual,
-            stok: Value(produk.stok),
-            kategori: Value(produk.kategori),
-            satuan: Value(produk.satuan ?? 'pcs'),
-          ),
-        );
-    await _syncHelper.onInsert(tableEntity: 'produk', localId: newId);
-    return newId;
+  Future<String> addProduk(domain.Produk produk) async {
+    final id = produk.id ?? _syncService.generateId();
+    final row = ProdukTableCompanion.insert(
+      id: id,
+      tokoId: _tokoId,
+      nama: produk.nama,
+      barcode: Value(produk.barcode),
+      hargaBeli: Value(produk.hargaBeli),
+      hargaJual: Value(produk.hargaJual),
+      stok: Value(produk.stok),
+      kategori: Value(produk.kategori),
+      satuan: Value(produk.satuan ?? 'pcs'),
+    );
+    await _db.into(_db.produkTable).insert(row);
+
+    // Sync to Supabase
+    await _syncService.upsert('produk', {
+      'id': id,
+      'toko_id': _tokoId,
+      'nama': produk.nama,
+      'barcode': produk.barcode,
+      'harga_beli': produk.hargaBeli,
+      'harga_jual': produk.hargaJual,
+      'stok': produk.stok,
+      'kategori': produk.kategori,
+      'satuan': produk.satuan ?? 'pcs',
+    });
+
+    return id;
   }
 
   @override
   Future<void> updateProduk(domain.Produk produk) async {
-    await (_db.update(
-      _db.produkTable,
-    )..where((tbl) => tbl.id.equals(produk.id!))).write(
+    await (_db.update(_db.produkTable)
+      ..where((tbl) => tbl.id.equals(produk.id!) & tbl.tokoId.equals(_tokoId)))
+        .write(
       ProdukTableCompanion(
         nama: Value(produk.nama),
         barcode: Value(produk.barcode),
@@ -125,51 +146,94 @@ class ProdukRepositoryImpl implements ProdukRepository {
         satuan: Value(produk.satuan ?? 'pcs'),
       ),
     );
-    await _syncHelper.onUpdate(tableEntity: 'produk', localId: produk.id!);
+
+    // Sync to Supabase
+    await _syncService.upsert('produk', {
+      'id': produk.id!,
+      'toko_id': _tokoId,
+      'nama': produk.nama,
+      'barcode': produk.barcode,
+      'harga_beli': produk.hargaBeli,
+      'harga_jual': produk.hargaJual,
+      'stok': produk.stok,
+      'kategori': produk.kategori,
+      'satuan': produk.satuan ?? 'pcs',
+    });
   }
 
   @override
-  Future<void> deleteProduk(int id) async {
-    await (_db.delete(_db.produkTable)..where((tbl) => tbl.id.equals(id))).go();
-    await _syncHelper.onDelete(tableEntity: 'produk', localId: id);
+  Future<void> deleteProduk(String id) async {
+    await (_db.delete(_db.produkTable)
+      ..where((tbl) => tbl.id.equals(id) & tbl.tokoId.equals(_tokoId)))
+        .go();
+
+    // Sync to Supabase
+    await _syncService.delete('produk', id);
   }
 
   @override
-  Future<void> updateStok(int produkId, int jumlah) async {
-    await (_db.update(_db.produkTable)..where((tbl) => tbl.id.equals(produkId)))
+  Future<void> updateStok(String produkId, int jumlah) async {
+    await (_db.update(_db.produkTable)
+      ..where((tbl) => tbl.id.equals(produkId) & tbl.tokoId.equals(_tokoId)))
         .write(ProdukTableCompanion(stok: Value(jumlah)));
-    await _syncHelper.onUpdate(tableEntity: 'produk', localId: produkId);
+
+    // Sync to Supabase
+    final data = await getProdukById(produkId);
+    if (data != null) {
+      await _syncService.upsert('produk', {
+        'id': produkId,
+        'toko_id': _tokoId,
+        'nama': data.nama,
+        'barcode': data.barcode,
+        'harga_beli': data.hargaBeli,
+        'harga_jual': data.hargaJual,
+        'stok': jumlah,
+        'kategori': data.kategori,
+        'satuan': data.satuan ?? 'pcs',
+      });
+    }
   }
 
   @override
-  Future<List<domain.SatuanProduk>> getSatuanByProdukId(int produkId) async {
-    final data = await (_db.select(
-      _db.satuanProdukTable,
-    )..where((t) => t.produkId.equals(produkId))).get();
+  Future<List<domain.SatuanProduk>> getSatuanByProdukId(String produkId) async {
+    final data = await (_db.select(_db.satuanProdukTable)
+      ..where((t) => t.produkId.equals(produkId) & t.tokoId.equals(_tokoId)))
+        .get();
     return data.map(_mapSatuan).toList();
   }
 
   @override
   Future<void> addSatuan(domain.SatuanProduk satuan) async {
-    final newId = await _db
-        .into(_db.satuanProdukTable)
-        .insert(
+    final id = satuan.id ?? _syncService.generateId();
+    await _db.into(_db.satuanProdukTable).insert(
           SatuanProdukTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             produkId: satuan.produkId,
             nama: satuan.nama,
-            konversi: satuan.konversi,
-            hargaBeli: satuan.hargaBeli,
-            hargaJual: satuan.hargaJual,
+            konversi: Value(satuan.konversi),
+            hargaBeli: Value(satuan.hargaBeli),
+            hargaJual: Value(satuan.hargaJual),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'satuan_produk', localId: newId);
+
+    // Sync to Supabase
+    await _syncService.upsert('satuan_produk', {
+      'id': id,
+      'toko_id': _tokoId,
+      'produk_id': satuan.produkId,
+      'nama': satuan.nama,
+      'konversi': satuan.konversi,
+      'harga_beli': satuan.hargaBeli,
+      'harga_jual': satuan.hargaJual,
+    });
   }
 
   @override
   Future<void> updateSatuan(domain.SatuanProduk satuan) async {
-    await (_db.update(
-      _db.satuanProdukTable,
-    )..where((t) => t.id.equals(satuan.id!))).write(
+    await (_db.update(_db.satuanProdukTable)
+      ..where((t) => t.id.equals(satuan.id!) & t.tokoId.equals(_tokoId)))
+        .write(
       SatuanProdukTableCompanion(
         nama: Value(satuan.nama),
         konversi: Value(satuan.konversi),
@@ -177,22 +241,40 @@ class ProdukRepositoryImpl implements ProdukRepository {
         hargaJual: Value(satuan.hargaJual),
       ),
     );
-    await _syncHelper.onUpdate(tableEntity: 'satuan_produk', localId: satuan.id!);
+
+    // Sync to Supabase
+    await _syncService.upsert('satuan_produk', {
+      'id': satuan.id!,
+      'toko_id': _tokoId,
+      'produk_id': satuan.produkId,
+      'nama': satuan.nama,
+      'konversi': satuan.konversi,
+      'harga_beli': satuan.hargaBeli,
+      'harga_jual': satuan.hargaJual,
+    });
   }
 
   @override
-  Future<void> deleteSatuan(int id) async {
-    await (_db.delete(
-      _db.satuanProdukTable,
-    )..where((t) => t.id.equals(id))).go();
-    await _syncHelper.onDelete(tableEntity: 'satuan_produk', localId: id);
+  Future<void> deleteSatuan(String id) async {
+    await (_db.delete(_db.satuanProdukTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .go();
+
+    // Sync to Supabase
+    await _syncService.delete('satuan_produk', id);
   }
 
   @override
-  Future<void> deleteSatuanByProdukId(int produkId) async {
-    await (_db.delete(
-      _db.satuanProdukTable,
-    )..where((t) => t.produkId.equals(produkId))).go();
+  Future<void> deleteSatuanByProdukId(String produkId) async {
+    final list = await getSatuanByProdukId(produkId);
+    await (_db.delete(_db.satuanProdukTable)
+      ..where((t) => t.produkId.equals(produkId) & t.tokoId.equals(_tokoId)))
+        .go();
+
+    // Sync to Supabase
+    for (final s in list) {
+      await _syncService.delete('satuan_produk', s.id!);
+    }
   }
 
   @override
@@ -212,33 +294,60 @@ class ProdukRepositoryImpl implements ProdukRepository {
           continue;
         }
 
-        final newId = await _db.into(_db.produkTable).insert(
+        final newId = produk.id ?? _syncService.generateId();
+        await _db.into(_db.produkTable).insert(
               ProdukTableCompanion.insert(
+                id: newId,
+                tokoId: _tokoId,
                 nama: produk.nama,
                 barcode: Value(produk.barcode),
-                hargaBeli: produk.hargaBeli,
-                hargaJual: produk.hargaJual,
+                hargaBeli: Value(produk.hargaBeli),
+                hargaJual: Value(produk.hargaJual),
                 stok: Value(produk.stok),
                 kategori: Value(produk.kategori),
                 satuan: Value(produk.satuan ?? 'pcs'),
               ),
             );
-        await _syncHelper.onInsert(tableEntity: 'produk', localId: newId);
+
+        // Sync to Supabase
+        await _syncService.upsert('produk', {
+          'id': newId,
+          'toko_id': _tokoId,
+          'nama': produk.nama,
+          'barcode': produk.barcode,
+          'harga_beli': produk.hargaBeli,
+          'harga_jual': produk.hargaJual,
+          'stok': produk.stok,
+          'kategori': produk.kategori,
+          'satuan': produk.satuan ?? 'pcs',
+        });
 
         final satuanList = satuanByNama[produk.nama];
         if (satuanList != null) {
           for (final satuan in satuanList) {
-            final newSatuanId = await _db.into(_db.satuanProdukTable).insert(
+            final newSatuanId = satuan.id ?? _syncService.generateId();
+            await _db.into(_db.satuanProdukTable).insert(
                   SatuanProdukTableCompanion.insert(
+                    id: newSatuanId,
+                    tokoId: _tokoId,
                     produkId: newId,
                     nama: satuan.nama,
-                    konversi: satuan.konversi,
-                    hargaBeli: satuan.hargaBeli,
-                    hargaJual: satuan.hargaJual,
+                    konversi: Value(satuan.konversi),
+                    hargaBeli: Value(satuan.hargaBeli),
+                    hargaJual: Value(satuan.hargaJual),
                   ),
                 );
-            await _syncHelper.onInsert(
-                tableEntity: 'satuan_produk', localId: newSatuanId);
+
+            // Sync to Supabase
+            await _syncService.upsert('satuan_produk', {
+              'id': newSatuanId,
+              'toko_id': _tokoId,
+              'produk_id': newId,
+              'nama': satuan.nama,
+              'konversi': satuan.konversi,
+              'harga_beli': satuan.hargaBeli,
+              'harga_jual': satuan.hargaJual,
+            });
           }
         }
 

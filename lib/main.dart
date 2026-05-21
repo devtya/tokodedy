@@ -16,6 +16,7 @@ import 'presentation/blocs/theme/theme_cubit.dart';
 import 'presentation/pages/home_page.dart';
 import 'presentation/pages/initial_sync_page.dart';
 import 'presentation/pages/login_page.dart';
+import 'presentation/pages/reset_password_page.dart';
 
 Future<void> _checkUpdate() async {
   try {
@@ -41,8 +42,29 @@ void main() async {
   runApp(const HendKasirApp());
 }
 
-class HendKasirApp extends StatelessWidget {
+class HendKasirApp extends StatefulWidget {
   const HendKasirApp({super.key});
+
+  @override
+  State<HendKasirApp> createState() => _HendKasirAppState();
+}
+
+class _HendKasirAppState extends State<HendKasirApp> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen untuk Supabase auth events — handle password recovery deep link
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        // User klik link reset password dari email → buka halaman isi password baru
+        _navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +78,7 @@ class HendKasirApp extends StatelessWidget {
               BlocProvider(create: (context) => sl<SyncBloc>()),
             ],
             child: MaterialApp(
+              navigatorKey: _navigatorKey,
               title: 'HendKasir',
               debugShowCheckedModeBanner: false,
               themeMode: themeMode,

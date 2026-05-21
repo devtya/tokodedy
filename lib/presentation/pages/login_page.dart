@@ -69,7 +69,10 @@ class _LoginPageState extends State<LoginPage> {
               }
               try {
                 await Supabase.instance.client.auth
-                    .resetPasswordForEmail(email);
+                    .resetPasswordForEmail(
+                  email,
+                  redirectTo: 'io.hendkasir.app://reset-callback',
+                );
                 if (ctx.mounted) {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(

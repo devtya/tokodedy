@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/di/injection.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/supplier.dart';
 import '../blocs/supplier/supplier_bloc.dart';
 import '../blocs/supplier/supplier_event.dart';
@@ -47,6 +49,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
 
     final supplier = Supplier(
       id: widget.supplier?.id,
+      tokoId: widget.supplier?.tokoId ?? sl<TokoService>().tokoId ?? '',
       nama: _namaController.text.trim(),
       telepon: _teleponController.text.trim().isEmpty
           ? null

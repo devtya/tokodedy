@@ -12,18 +12,6 @@ class NetworkPrinterService implements PrinterService {
   @override
   String get printerType => 'network';
 
-  Future<void> _checkConnection() async {
-    try {
-      final response = await http
-          .get(Uri.parse('$baseUrl/health'))
-          .timeout(const Duration(seconds: 3));
-      if (response.statusCode != 200) {
-        throw Exception('Print server tidak merespon');
-      }
-    } catch (e) {
-      throw Exception('Tidak bisa connect ke print server: $e');
-    }
-  }
 
   @override
   Future<bool> isConnected() async {

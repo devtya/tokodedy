@@ -17,7 +17,6 @@ import '../../data/repositories/produk_repository_impl.dart';
 import '../../data/repositories/riwayat_stok_repository_impl.dart';
 import '../../data/repositories/supplier_repository_impl.dart';
 import '../../data/repositories/transaksi_repository_impl.dart';
-import '../../data/services/sync_helper.dart';
 import '../../data/services/supabase_sync_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/hutang_piutang_repository.dart';
@@ -120,7 +119,6 @@ Future<void> initDependencies() async {
     () => SupplierProductsDao(database),
   );
 
-  sl.registerLazySingleton<SyncHelper>(() => SyncHelper(sl(), sl()));
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
 
   sl.registerLazySingleton<TokoService>(() => TokoService(prefs));
@@ -142,42 +140,41 @@ Future<void> initDependencies() async {
   );
 
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl(), sl(), sl(), Supabase.instance.client, sl()),
+    () => AuthRepositoryImpl(sl(), Supabase.instance.client, sl(), sl()),
   );
 
   sl.registerLazySingleton<ProdukRepository>(
-    () => ProdukRepositoryImpl(database, sl()),
+    () => ProdukRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<TransaksiRepository>(
-    () => TransaksiRepositoryImpl(database, sl()),
+    () => TransaksiRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<RiwayatStokRepository>(
-    () => RiwayatStokRepositoryImpl(database, sl()),
+    () => RiwayatStokRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<HutangPiutangRepository>(
-    () => HutangPiutangRepositoryImpl(database, sl()),
+    () => HutangPiutangRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<PembelianRepository>(
-    () => PembelianRepositoryImpl(database, sl()),
+    () => PembelianRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<PendingOrderRepository>(
-    () => PendingOrderRepositoryImpl(database, sl()),
+    () => PendingOrderRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<PendingPembelianRepository>(
-    () => PendingPembelianRepositoryImpl(database, sl()),
+    () => PendingPembelianRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<SupplierRepository>(
-    () => SupplierRepositoryImpl(database, sl()),
+    () => SupplierRepositoryImpl(database, sl(), sl()),
   );
   sl.registerLazySingleton<NotifikasiRepository>(
-    () => NotifikasiRepositoryImpl(database, sl()),
+    () => NotifikasiRepositoryImpl(database, sl(), sl()),
   );
 
   sl.registerLazySingleton<BackupRepository>(() => BackupRepositoryImpl(sl()));
 
   sl.registerLazySingleton<SupabaseSyncService>(() => SupabaseSyncService(
         db: sl(),
-        syncHelper: sl(),
         supabase: Supabase.instance.client,
         prefs: sl(),
         tokoService: sl(),
@@ -208,6 +205,7 @@ Future<void> initDependencies() async {
       riwayatStokRepository: sl(),
       hutangPiutangRepository: sl(),
       notifikasiRepository: sl(),
+      tokoService: sl(),
     ),
   );
   sl.registerLazySingleton(() => GetAllSupplier(sl()));

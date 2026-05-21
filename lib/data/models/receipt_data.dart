@@ -24,7 +24,7 @@ class ReceiptItem {
 class ReceiptData extends Equatable {
   final String namaToko;
   final String alamatToko;
-  final int transaksiId;
+  final String transaksiId;
   final String tanggal;
   final String kasir;
   final List<ReceiptItem> items;

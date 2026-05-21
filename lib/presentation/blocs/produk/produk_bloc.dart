@@ -73,6 +73,7 @@ class ProdukBloc extends Bloc<ProdukEvent, ProdukState> {
         for (final s in satuanList) {
           await addSatuan(
             SatuanProduk(
+              tokoId: event.produk.tokoId,
               produkId: newId,
               nama: s.nama,
               konversi: s.konversi,
@@ -101,6 +102,7 @@ class ProdukBloc extends Bloc<ProdukEvent, ProdukState> {
         for (final s in satuanList) {
           await addSatuan(
             SatuanProduk(
+              tokoId: event.produk.tokoId,
               produkId: event.produk.id!,
               nama: s.nama,
               konversi: s.konversi,

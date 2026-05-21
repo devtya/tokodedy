@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'satuan_produk.dart';
 
 class Produk extends Equatable {
-  final int? id;
+  final String? id; // UUID
+  final String tokoId; // UUID FK ke toko
   final String nama;
   final String? barcode;
   final double hargaBeli;
@@ -11,11 +12,13 @@ class Produk extends Equatable {
   final int stok;
   final String? kategori;
   final String? satuan;
+  final DateTime? updatedAt;
   final DateTime? createdAt;
   final List<SatuanProduk>? satuanList;
 
   const Produk({
     this.id,
+    required this.tokoId,
     required this.nama,
     this.barcode,
     required this.hargaBeli,
@@ -23,12 +26,14 @@ class Produk extends Equatable {
     this.stok = 0,
     this.kategori,
     this.satuan = 'pcs',
+    this.updatedAt,
     this.createdAt,
     this.satuanList,
   });
 
   Produk copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
     String? nama,
     String? barcode,
     double? hargaBeli,
@@ -36,11 +41,13 @@ class Produk extends Equatable {
     int? stok,
     String? kategori,
     String? satuan,
+    DateTime? updatedAt,
     DateTime? createdAt,
     List<SatuanProduk>? satuanList,
   }) {
     return Produk(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       nama: nama ?? this.nama,
       barcode: barcode ?? this.barcode,
       hargaBeli: hargaBeli ?? this.hargaBeli,
@@ -48,6 +55,7 @@ class Produk extends Equatable {
       stok: stok ?? this.stok,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       satuanList: satuanList ?? this.satuanList,
     );
@@ -55,15 +63,7 @@ class Produk extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    nama,
-    barcode,
-    hargaBeli,
-    hargaJual,
-    stok,
-    kategori,
-    satuan,
-    createdAt,
-    satuanList,
+    id, tokoId, nama, barcode, hargaBeli, hargaJual,
+    stok, kategori, satuan, updatedAt, createdAt, satuanList,
   ];
 }

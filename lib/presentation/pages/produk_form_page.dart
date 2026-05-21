@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/barcode_scanner_widget.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/di/injection.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/produk.dart';
 import '../../domain/entities/satuan_produk.dart';
 import '../blocs/produk/produk_bloc.dart';
@@ -52,7 +54,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── State ──
   bool _saved = false;
-  final List<int> _addedIds = [];
+  final List<String> _addedIds = [];
 
   // ── Unit list (multi-satuan) ──
   final List<_UnitItem> _units = [];
@@ -257,12 +259,14 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       );
       return;
     }
+    final currentTokoId = _currentProduk?.tokoId ?? sl<TokoService>().tokoId ?? '';
     satuanList = _units
         .where((u) => u.nama.trim().isNotEmpty)
         .map(
           (u) => SatuanProduk(
             id: u.dbId,
-            produkId: _currentProduk?.id ?? 0,
+            tokoId: currentTokoId,
+            produkId: _currentProduk?.id ?? '',
             nama: u.nama.trim(),
             konversi: u.konversi,
             hargaBeli: u.hargaBeli,
@@ -278,6 +282,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
     final produk = Produk(
       id: _currentProduk?.id,
+      tokoId: currentTokoId,
       nama: _namaCtrl.text.trim().toUpperCase(),
       barcode: _barcodeCtrl.text.trim().isEmpty
           ? null
@@ -826,7 +831,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
 class _UnitItem {
   final int id;
-  final int? dbId;
+  final String? dbId;
   String nama;
   bool isBase;
   double konversi;

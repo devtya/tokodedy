@@ -5,6 +5,6 @@ class GetRiwayatStok {
   final RiwayatStokRepository repository;
   GetRiwayatStok(this.repository);
 
-  Future<List<RiwayatStok>> call(int produkId) =>
+  Future<List<RiwayatStok>> call(String produkId) =>
       repository.getRiwayatByProdukId(produkId);
 }

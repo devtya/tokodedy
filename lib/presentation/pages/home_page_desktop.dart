@@ -225,18 +225,26 @@ class _HomeDesktopViewState extends State<_HomeDesktopView> {
           String username = '';
           String role = 'kasir';
           if (authState is Authenticated) {
-            username = authState.user.nama ?? authState.user.username;
+            username = authState.user.nama ?? authState.user.email ?? '';
+            role = authState.user.role;
+          } else if (authState is StoreRegistered) {
+            username = authState.user.nama ?? authState.user.email ?? '';
             role = authState.user.role;
           }
-          final isAdmin = role == 'admin';
+          final isAdmin = role == 'owner';
 
           // Prompt email jika login via username (email null)
-          if (authState is Authenticated &&
-              authState.user.email == null &&
+          final currentUser = authState is Authenticated
+              ? authState.user
+              : authState is StoreRegistered
+                  ? authState.user
+                  : null;
+          if (currentUser != null &&
+              currentUser.email == null &&
               !_emailPromptShown) {
             _emailPromptShown = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _showEmailDialog(context, authState.user);
+              _showEmailDialog(context, currentUser);
             });
           }
 

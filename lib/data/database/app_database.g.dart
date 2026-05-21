@@ -3,6 +3,758 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $TokoTableTable extends TokoTable
+    with TableInfo<$TokoTableTable, TokoTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TokoTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
+  @override
+  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
+    'nama',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _alamatMeta = const VerificationMeta('alamat');
+  @override
+  late final GeneratedColumn<String> alamat = GeneratedColumn<String>(
+    'alamat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _teleponMeta = const VerificationMeta(
+    'telepon',
+  );
+  @override
+  late final GeneratedColumn<String> telepon = GeneratedColumn<String>(
+    'telepon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ownerIdMeta = const VerificationMeta(
+    'ownerId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerId = GeneratedColumn<String>(
+    'owner_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nama,
+    alamat,
+    telepon,
+    ownerId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'toko_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TokoTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('nama')) {
+      context.handle(
+        _namaMeta,
+        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_namaMeta);
+    }
+    if (data.containsKey('alamat')) {
+      context.handle(
+        _alamatMeta,
+        alamat.isAcceptableOrUnknown(data['alamat']!, _alamatMeta),
+      );
+    }
+    if (data.containsKey('telepon')) {
+      context.handle(
+        _teleponMeta,
+        telepon.isAcceptableOrUnknown(data['telepon']!, _teleponMeta),
+      );
+    }
+    if (data.containsKey('owner_id')) {
+      context.handle(
+        _ownerIdMeta,
+        ownerId.isAcceptableOrUnknown(data['owner_id']!, _ownerIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TokoTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TokoTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nama: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama'],
+      )!,
+      alamat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alamat'],
+      ),
+      telepon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}telepon'],
+      ),
+      ownerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TokoTableTable createAlias(String alias) {
+    return $TokoTableTable(attachedDatabase, alias);
+  }
+}
+
+class TokoTableData extends DataClass implements Insertable<TokoTableData> {
+  final String id;
+  final String nama;
+  final String? alamat;
+  final String? telepon;
+  final String? ownerId;
+  final DateTime createdAt;
+  const TokoTableData({
+    required this.id,
+    required this.nama,
+    this.alamat,
+    this.telepon,
+    this.ownerId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['nama'] = Variable<String>(nama);
+    if (!nullToAbsent || alamat != null) {
+      map['alamat'] = Variable<String>(alamat);
+    }
+    if (!nullToAbsent || telepon != null) {
+      map['telepon'] = Variable<String>(telepon);
+    }
+    if (!nullToAbsent || ownerId != null) {
+      map['owner_id'] = Variable<String>(ownerId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TokoTableCompanion toCompanion(bool nullToAbsent) {
+    return TokoTableCompanion(
+      id: Value(id),
+      nama: Value(nama),
+      alamat: alamat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alamat),
+      telepon: telepon == null && nullToAbsent
+          ? const Value.absent()
+          : Value(telepon),
+      ownerId: ownerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TokoTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TokoTableData(
+      id: serializer.fromJson<String>(json['id']),
+      nama: serializer.fromJson<String>(json['nama']),
+      alamat: serializer.fromJson<String?>(json['alamat']),
+      telepon: serializer.fromJson<String?>(json['telepon']),
+      ownerId: serializer.fromJson<String?>(json['ownerId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nama': serializer.toJson<String>(nama),
+      'alamat': serializer.toJson<String?>(alamat),
+      'telepon': serializer.toJson<String?>(telepon),
+      'ownerId': serializer.toJson<String?>(ownerId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TokoTableData copyWith({
+    String? id,
+    String? nama,
+    Value<String?> alamat = const Value.absent(),
+    Value<String?> telepon = const Value.absent(),
+    Value<String?> ownerId = const Value.absent(),
+    DateTime? createdAt,
+  }) => TokoTableData(
+    id: id ?? this.id,
+    nama: nama ?? this.nama,
+    alamat: alamat.present ? alamat.value : this.alamat,
+    telepon: telepon.present ? telepon.value : this.telepon,
+    ownerId: ownerId.present ? ownerId.value : this.ownerId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TokoTableData copyWithCompanion(TokoTableCompanion data) {
+    return TokoTableData(
+      id: data.id.present ? data.id.value : this.id,
+      nama: data.nama.present ? data.nama.value : this.nama,
+      alamat: data.alamat.present ? data.alamat.value : this.alamat,
+      telepon: data.telepon.present ? data.telepon.value : this.telepon,
+      ownerId: data.ownerId.present ? data.ownerId.value : this.ownerId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TokoTableData(')
+          ..write('id: $id, ')
+          ..write('nama: $nama, ')
+          ..write('alamat: $alamat, ')
+          ..write('telepon: $telepon, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, nama, alamat, telepon, ownerId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TokoTableData &&
+          other.id == this.id &&
+          other.nama == this.nama &&
+          other.alamat == this.alamat &&
+          other.telepon == this.telepon &&
+          other.ownerId == this.ownerId &&
+          other.createdAt == this.createdAt);
+}
+
+class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
+  final Value<String> id;
+  final Value<String> nama;
+  final Value<String?> alamat;
+  final Value<String?> telepon;
+  final Value<String?> ownerId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TokoTableCompanion({
+    this.id = const Value.absent(),
+    this.nama = const Value.absent(),
+    this.alamat = const Value.absent(),
+    this.telepon = const Value.absent(),
+    this.ownerId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TokoTableCompanion.insert({
+    required String id,
+    required String nama,
+    this.alamat = const Value.absent(),
+    this.telepon = const Value.absent(),
+    this.ownerId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nama = Value(nama);
+  static Insertable<TokoTableData> custom({
+    Expression<String>? id,
+    Expression<String>? nama,
+    Expression<String>? alamat,
+    Expression<String>? telepon,
+    Expression<String>? ownerId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nama != null) 'nama': nama,
+      if (alamat != null) 'alamat': alamat,
+      if (telepon != null) 'telepon': telepon,
+      if (ownerId != null) 'owner_id': ownerId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TokoTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nama,
+    Value<String?>? alamat,
+    Value<String?>? telepon,
+    Value<String?>? ownerId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TokoTableCompanion(
+      id: id ?? this.id,
+      nama: nama ?? this.nama,
+      alamat: alamat ?? this.alamat,
+      telepon: telepon ?? this.telepon,
+      ownerId: ownerId ?? this.ownerId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nama.present) {
+      map['nama'] = Variable<String>(nama.value);
+    }
+    if (alamat.present) {
+      map['alamat'] = Variable<String>(alamat.value);
+    }
+    if (telepon.present) {
+      map['telepon'] = Variable<String>(telepon.value);
+    }
+    if (ownerId.present) {
+      map['owner_id'] = Variable<String>(ownerId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TokoTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nama: $nama, ')
+          ..write('alamat: $alamat, ')
+          ..write('telepon: $telepon, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserTableTable extends UserTable
+    with TableInfo<$UserTableTable, UserTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
+  @override
+  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
+    'nama',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('kasir'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, tokoId, nama, role, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('nama')) {
+      context.handle(
+        _namaMeta,
+        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
+      );
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      nama: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama'],
+      ),
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserTableTable createAlias(String alias) {
+    return $UserTableTable(attachedDatabase, alias);
+  }
+}
+
+class UserTableData extends DataClass implements Insertable<UserTableData> {
+  final String id;
+  final String tokoId;
+  final String? nama;
+  final String role;
+  final DateTime createdAt;
+  const UserTableData({
+    required this.id,
+    required this.tokoId,
+    this.nama,
+    required this.role,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    if (!nullToAbsent || nama != null) {
+      map['nama'] = Variable<String>(nama);
+    }
+    map['role'] = Variable<String>(role);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  UserTableCompanion toCompanion(bool nullToAbsent) {
+    return UserTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      nama: nama == null && nullToAbsent ? const Value.absent() : Value(nama),
+      role: Value(role),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory UserTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserTableData(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      nama: serializer.fromJson<String?>(json['nama']),
+      role: serializer.fromJson<String>(json['role']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'nama': serializer.toJson<String?>(nama),
+      'role': serializer.toJson<String>(role),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  UserTableData copyWith({
+    String? id,
+    String? tokoId,
+    Value<String?> nama = const Value.absent(),
+    String? role,
+    DateTime? createdAt,
+  }) => UserTableData(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    nama: nama.present ? nama.value : this.nama,
+    role: role ?? this.role,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  UserTableData copyWithCompanion(UserTableCompanion data) {
+    return UserTableData(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      nama: data.nama.present ? data.nama.value : this.nama,
+      role: data.role.present ? data.role.value : this.role,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTableData(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('nama: $nama, ')
+          ..write('role: $role, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, tokoId, nama, role, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserTableData &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.nama == this.nama &&
+          other.role == this.role &&
+          other.createdAt == this.createdAt);
+}
+
+class UserTableCompanion extends UpdateCompanion<UserTableData> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String?> nama;
+  final Value<String> role;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const UserTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.nama = const Value.absent(),
+    this.role = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    this.nama = const Value.absent(),
+    this.role = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId);
+  static Insertable<UserTableData> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? nama,
+    Expression<String>? role,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (nama != null) 'nama': nama,
+      if (role != null) 'role': role,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String?>? nama,
+    Value<String>? role,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return UserTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      nama: nama ?? this.nama,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (nama.present) {
+      map['nama'] = Variable<String>(nama.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('nama: $nama, ')
+          ..write('role: $role, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ProdukTableTable extends ProdukTable
     with TableInfo<$ProdukTableTable, ProdukTableData> {
   @override
@@ -11,16 +763,21 @@ class $ProdukTableTable extends ProdukTable
   $ProdukTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _namaMeta = const VerificationMeta('nama');
   @override
@@ -51,7 +808,8 @@ class $ProdukTableTable extends ProdukTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _hargaJualMeta = const VerificationMeta(
     'hargaJual',
@@ -62,7 +820,8 @@ class $ProdukTableTable extends ProdukTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _stokMeta = const VerificationMeta('stok');
   @override
@@ -95,6 +854,18 @@ class $ProdukTableTable extends ProdukTable
     requiredDuringInsert: false,
     defaultValue: const Constant('pcs'),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -110,6 +881,7 @@ class $ProdukTableTable extends ProdukTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     nama,
     barcode,
     hargaBeli,
@@ -117,6 +889,7 @@ class $ProdukTableTable extends ProdukTable
     stok,
     kategori,
     satuan,
+    updatedAt,
     createdAt,
   ];
   @override
@@ -133,6 +906,16 @@ class $ProdukTableTable extends ProdukTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('nama')) {
       context.handle(
@@ -153,16 +936,12 @@ class $ProdukTableTable extends ProdukTable
         _hargaBeliMeta,
         hargaBeli.isAcceptableOrUnknown(data['harga_beli']!, _hargaBeliMeta),
       );
-    } else if (isInserting) {
-      context.missing(_hargaBeliMeta);
     }
     if (data.containsKey('harga_jual')) {
       context.handle(
         _hargaJualMeta,
         hargaJual.isAcceptableOrUnknown(data['harga_jual']!, _hargaJualMeta),
       );
-    } else if (isInserting) {
-      context.missing(_hargaJualMeta);
     }
     if (data.containsKey('stok')) {
       context.handle(
@@ -182,6 +961,12 @@ class $ProdukTableTable extends ProdukTable
         satuan.isAcceptableOrUnknown(data['satuan']!, _satuanMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -198,8 +983,12 @@ class $ProdukTableTable extends ProdukTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ProdukTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
       )!,
       nama: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -229,6 +1018,10 @@ class $ProdukTableTable extends ProdukTable
         DriftSqlType.string,
         data['${effectivePrefix}satuan'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -243,7 +1036,8 @@ class $ProdukTableTable extends ProdukTable
 }
 
 class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
-  final int id;
+  final String id;
+  final String tokoId;
   final String nama;
   final String? barcode;
   final double hargaBeli;
@@ -251,9 +1045,11 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   final int stok;
   final String? kategori;
   final String satuan;
+  final DateTime updatedAt;
   final DateTime createdAt;
   const ProdukTableData({
     required this.id,
+    required this.tokoId,
     required this.nama,
     this.barcode,
     required this.hargaBeli,
@@ -261,12 +1057,14 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     required this.stok,
     this.kategori,
     required this.satuan,
+    required this.updatedAt,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
     map['nama'] = Variable<String>(nama);
     if (!nullToAbsent || barcode != null) {
       map['barcode'] = Variable<String>(barcode);
@@ -278,6 +1076,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       map['kategori'] = Variable<String>(kategori);
     }
     map['satuan'] = Variable<String>(satuan);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -285,6 +1084,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   ProdukTableCompanion toCompanion(bool nullToAbsent) {
     return ProdukTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       nama: Value(nama),
       barcode: barcode == null && nullToAbsent
           ? const Value.absent()
@@ -296,6 +1096,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ? const Value.absent()
           : Value(kategori),
       satuan: Value(satuan),
+      updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -306,7 +1107,8 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ProdukTableData(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
       nama: serializer.fromJson<String>(json['nama']),
       barcode: serializer.fromJson<String?>(json['barcode']),
       hargaBeli: serializer.fromJson<double>(json['hargaBeli']),
@@ -314,6 +1116,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       stok: serializer.fromJson<int>(json['stok']),
       kategori: serializer.fromJson<String?>(json['kategori']),
       satuan: serializer.fromJson<String>(json['satuan']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -321,7 +1124,8 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
       'nama': serializer.toJson<String>(nama),
       'barcode': serializer.toJson<String?>(barcode),
       'hargaBeli': serializer.toJson<double>(hargaBeli),
@@ -329,12 +1133,14 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       'stok': serializer.toJson<int>(stok),
       'kategori': serializer.toJson<String?>(kategori),
       'satuan': serializer.toJson<String>(satuan),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   ProdukTableData copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
     String? nama,
     Value<String?> barcode = const Value.absent(),
     double? hargaBeli,
@@ -342,9 +1148,11 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     int? stok,
     Value<String?> kategori = const Value.absent(),
     String? satuan,
+    DateTime? updatedAt,
     DateTime? createdAt,
   }) => ProdukTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     nama: nama ?? this.nama,
     barcode: barcode.present ? barcode.value : this.barcode,
     hargaBeli: hargaBeli ?? this.hargaBeli,
@@ -352,11 +1160,13 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     stok: stok ?? this.stok,
     kategori: kategori.present ? kategori.value : this.kategori,
     satuan: satuan ?? this.satuan,
+    updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   ProdukTableData copyWithCompanion(ProdukTableCompanion data) {
     return ProdukTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       nama: data.nama.present ? data.nama.value : this.nama,
       barcode: data.barcode.present ? data.barcode.value : this.barcode,
       hargaBeli: data.hargaBeli.present ? data.hargaBeli.value : this.hargaBeli,
@@ -364,6 +1174,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       stok: data.stok.present ? data.stok.value : this.stok,
       kategori: data.kategori.present ? data.kategori.value : this.kategori,
       satuan: data.satuan.present ? data.satuan.value : this.satuan,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -372,6 +1183,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   String toString() {
     return (StringBuffer('ProdukTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('nama: $nama, ')
           ..write('barcode: $barcode, ')
           ..write('hargaBeli: $hargaBeli, ')
@@ -379,6 +1191,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ..write('stok: $stok, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -387,6 +1200,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
     nama,
     barcode,
     hargaBeli,
@@ -394,6 +1208,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     stok,
     kategori,
     satuan,
+    updatedAt,
     createdAt,
   );
   @override
@@ -401,6 +1216,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       identical(this, other) ||
       (other is ProdukTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.nama == this.nama &&
           other.barcode == this.barcode &&
           other.hargaBeli == this.hargaBeli &&
@@ -408,11 +1224,13 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           other.stok == this.stok &&
           other.kategori == this.kategori &&
           other.satuan == this.satuan &&
+          other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
 
 class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
-  final Value<int> id;
+  final Value<String> id;
+  final Value<String> tokoId;
   final Value<String> nama;
   final Value<String?> barcode;
   final Value<double> hargaBeli;
@@ -420,9 +1238,12 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   final Value<int> stok;
   final Value<String?> kategori;
   final Value<String> satuan;
+  final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const ProdukTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.nama = const Value.absent(),
     this.barcode = const Value.absent(),
     this.hargaBeli = const Value.absent(),
@@ -430,23 +1251,29 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.stok = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ProdukTableCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
+    required String tokoId,
     required String nama,
     this.barcode = const Value.absent(),
-    required double hargaBeli,
-    required double hargaJual,
+    this.hargaBeli = const Value.absent(),
+    this.hargaJual = const Value.absent(),
     this.stok = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : nama = Value(nama),
-       hargaBeli = Value(hargaBeli),
-       hargaJual = Value(hargaJual);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       nama = Value(nama);
   static Insertable<ProdukTableData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
+    Expression<String>? tokoId,
     Expression<String>? nama,
     Expression<String>? barcode,
     Expression<double>? hargaBeli,
@@ -454,10 +1281,13 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Expression<int>? stok,
     Expression<String>? kategori,
     Expression<String>? satuan,
+    Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (nama != null) 'nama': nama,
       if (barcode != null) 'barcode': barcode,
       if (hargaBeli != null) 'harga_beli': hargaBeli,
@@ -465,12 +1295,15 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       if (stok != null) 'stok': stok,
       if (kategori != null) 'kategori': kategori,
       if (satuan != null) 'satuan': satuan,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ProdukTableCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
+    Value<String>? tokoId,
     Value<String>? nama,
     Value<String?>? barcode,
     Value<double>? hargaBeli,
@@ -478,10 +1311,13 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Value<int>? stok,
     Value<String?>? kategori,
     Value<String>? satuan,
+    Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return ProdukTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       nama: nama ?? this.nama,
       barcode: barcode ?? this.barcode,
       hargaBeli: hargaBeli ?? this.hargaBeli,
@@ -489,7 +1325,9 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       stok: stok ?? this.stok,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -497,7 +1335,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (nama.present) {
       map['nama'] = Variable<String>(nama.value);
@@ -520,8 +1361,14 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     if (satuan.present) {
       map['satuan'] = Variable<String>(satuan.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -530,6 +1377,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   String toString() {
     return (StringBuffer('ProdukTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('nama: $nama, ')
           ..write('barcode: $barcode, ')
           ..write('hargaBeli: $hargaBeli, ')
@@ -537,7 +1385,9 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
           ..write('stok: $stok, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
-          ..write('createdAt: $createdAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -551,26 +1401,31 @@ class $SatuanProdukTableTable extends SatuanProdukTable
   $SatuanProdukTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _namaMeta = const VerificationMeta('nama');
@@ -591,7 +1446,8 @@ class $SatuanProdukTableTable extends SatuanProdukTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _hargaBeliMeta = const VerificationMeta(
     'hargaBeli',
@@ -602,7 +1458,8 @@ class $SatuanProdukTableTable extends SatuanProdukTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _hargaJualMeta = const VerificationMeta(
     'hargaJual',
@@ -613,16 +1470,31 @@ class $SatuanProdukTableTable extends SatuanProdukTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     produkId,
     nama,
     konversi,
     hargaBeli,
     hargaJual,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -638,6 +1510,16 @@ class $SatuanProdukTableTable extends SatuanProdukTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('produk_id')) {
       context.handle(
@@ -660,24 +1542,24 @@ class $SatuanProdukTableTable extends SatuanProdukTable
         _konversiMeta,
         konversi.isAcceptableOrUnknown(data['konversi']!, _konversiMeta),
       );
-    } else if (isInserting) {
-      context.missing(_konversiMeta);
     }
     if (data.containsKey('harga_beli')) {
       context.handle(
         _hargaBeliMeta,
         hargaBeli.isAcceptableOrUnknown(data['harga_beli']!, _hargaBeliMeta),
       );
-    } else if (isInserting) {
-      context.missing(_hargaBeliMeta);
     }
     if (data.containsKey('harga_jual')) {
       context.handle(
         _hargaJualMeta,
         hargaJual.isAcceptableOrUnknown(data['harga_jual']!, _hargaJualMeta),
       );
-    } else if (isInserting) {
-      context.missing(_hargaJualMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     return context;
   }
@@ -689,11 +1571,15 @@ class $SatuanProdukTableTable extends SatuanProdukTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return SatuanProdukTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       nama: attachedDatabase.typeMapping.read(
@@ -712,6 +1598,10 @@ class $SatuanProdukTableTable extends SatuanProdukTable
         DriftSqlType.double,
         data['${effectivePrefix}harga_jual'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -723,40 +1613,48 @@ class $SatuanProdukTableTable extends SatuanProdukTable
 
 class SatuanProdukTableData extends DataClass
     implements Insertable<SatuanProdukTableData> {
-  final int id;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String produkId;
   final String nama;
   final double konversi;
   final double hargaBeli;
   final double hargaJual;
+  final DateTime updatedAt;
   const SatuanProdukTableData({
     required this.id,
+    required this.tokoId,
     required this.produkId,
     required this.nama,
     required this.konversi,
     required this.hargaBeli,
     required this.hargaJual,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['produk_id'] = Variable<String>(produkId);
     map['nama'] = Variable<String>(nama);
     map['konversi'] = Variable<double>(konversi);
     map['harga_beli'] = Variable<double>(hargaBeli);
     map['harga_jual'] = Variable<double>(hargaJual);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   SatuanProdukTableCompanion toCompanion(bool nullToAbsent) {
     return SatuanProdukTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       produkId: Value(produkId),
       nama: Value(nama),
       konversi: Value(konversi),
       hargaBeli: Value(hargaBeli),
       hargaJual: Value(hargaJual),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -766,50 +1664,60 @@ class SatuanProdukTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SatuanProdukTableData(
-      id: serializer.fromJson<int>(json['id']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
       nama: serializer.fromJson<String>(json['nama']),
       konversi: serializer.fromJson<double>(json['konversi']),
       hargaBeli: serializer.fromJson<double>(json['hargaBeli']),
       hargaJual: serializer.fromJson<double>(json['hargaJual']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'produkId': serializer.toJson<String>(produkId),
       'nama': serializer.toJson<String>(nama),
       'konversi': serializer.toJson<double>(konversi),
       'hargaBeli': serializer.toJson<double>(hargaBeli),
       'hargaJual': serializer.toJson<double>(hargaJual),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   SatuanProdukTableData copyWith({
-    int? id,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? produkId,
     String? nama,
     double? konversi,
     double? hargaBeli,
     double? hargaJual,
+    DateTime? updatedAt,
   }) => SatuanProdukTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     produkId: produkId ?? this.produkId,
     nama: nama ?? this.nama,
     konversi: konversi ?? this.konversi,
     hargaBeli: hargaBeli ?? this.hargaBeli,
     hargaJual: hargaJual ?? this.hargaJual,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   SatuanProdukTableData copyWithCompanion(SatuanProdukTableCompanion data) {
     return SatuanProdukTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       produkId: data.produkId.present ? data.produkId.value : this.produkId,
       nama: data.nama.present ? data.nama.value : this.nama,
       konversi: data.konversi.present ? data.konversi.value : this.konversi,
       hargaBeli: data.hargaBeli.present ? data.hargaBeli.value : this.hargaBeli,
       hargaJual: data.hargaJual.present ? data.hargaJual.value : this.hargaJual,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -817,91 +1725,123 @@ class SatuanProdukTableData extends DataClass
   String toString() {
     return (StringBuffer('SatuanProdukTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('produkId: $produkId, ')
           ..write('nama: $nama, ')
           ..write('konversi: $konversi, ')
           ..write('hargaBeli: $hargaBeli, ')
-          ..write('hargaJual: $hargaJual')
+          ..write('hargaJual: $hargaJual, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, produkId, nama, konversi, hargaBeli, hargaJual);
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    produkId,
+    nama,
+    konversi,
+    hargaBeli,
+    hargaJual,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SatuanProdukTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.produkId == this.produkId &&
           other.nama == this.nama &&
           other.konversi == this.konversi &&
           other.hargaBeli == this.hargaBeli &&
-          other.hargaJual == this.hargaJual);
+          other.hargaJual == this.hargaJual &&
+          other.updatedAt == this.updatedAt);
 }
 
 class SatuanProdukTableCompanion
     extends UpdateCompanion<SatuanProdukTableData> {
-  final Value<int> id;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> produkId;
   final Value<String> nama;
   final Value<double> konversi;
   final Value<double> hargaBeli;
   final Value<double> hargaJual;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
   const SatuanProdukTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.nama = const Value.absent(),
     this.konversi = const Value.absent(),
     this.hargaBeli = const Value.absent(),
     this.hargaJual = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   SatuanProdukTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int produkId,
+    required String id,
+    required String tokoId,
+    required String produkId,
     required String nama,
-    required double konversi,
-    required double hargaBeli,
-    required double hargaJual,
-  }) : produkId = Value(produkId),
-       nama = Value(nama),
-       konversi = Value(konversi),
-       hargaBeli = Value(hargaBeli),
-       hargaJual = Value(hargaJual);
+    this.konversi = const Value.absent(),
+    this.hargaBeli = const Value.absent(),
+    this.hargaJual = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       produkId = Value(produkId),
+       nama = Value(nama);
   static Insertable<SatuanProdukTableData> custom({
-    Expression<int>? id,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? produkId,
     Expression<String>? nama,
     Expression<double>? konversi,
     Expression<double>? hargaBeli,
     Expression<double>? hargaJual,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (produkId != null) 'produk_id': produkId,
       if (nama != null) 'nama': nama,
       if (konversi != null) 'konversi': konversi,
       if (hargaBeli != null) 'harga_beli': hargaBeli,
       if (hargaJual != null) 'harga_jual': hargaJual,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   SatuanProdukTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? produkId,
     Value<String>? nama,
     Value<double>? konversi,
     Value<double>? hargaBeli,
     Value<double>? hargaJual,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
   }) {
     return SatuanProdukTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       produkId: produkId ?? this.produkId,
       nama: nama ?? this.nama,
       konversi: konversi ?? this.konversi,
       hargaBeli: hargaBeli ?? this.hargaBeli,
       hargaJual: hargaJual ?? this.hargaJual,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -909,10 +1849,13 @@ class SatuanProdukTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (nama.present) {
       map['nama'] = Variable<String>(nama.value);
@@ -926,6 +1869,12 @@ class SatuanProdukTableCompanion
     if (hargaJual.present) {
       map['harga_jual'] = Variable<double>(hargaJual.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -933,88 +1882,83 @@ class SatuanProdukTableCompanion
   String toString() {
     return (StringBuffer('SatuanProdukTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('produkId: $produkId, ')
           ..write('nama: $nama, ')
           ..write('konversi: $konversi, ')
           ..write('hargaBeli: $hargaBeli, ')
-          ..write('hargaJual: $hargaJual')
+          ..write('hargaJual: $hargaJual, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
 }
 
-class $TransaksiTableTable extends TransaksiTable
-    with TableInfo<$TransaksiTableTable, TransaksiTableData> {
+class $SupplierTableTable extends SupplierTable
+    with TableInfo<$SupplierTableTable, SupplierTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TransaksiTableTable(this.attachedDatabase, [this._alias]);
+  $SupplierTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _totalHargaMeta = const VerificationMeta(
-    'totalHarga',
-  );
-  @override
-  late final GeneratedColumn<double> totalHarga = GeneratedColumn<double>(
-    'total_harga',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _jumlahBayarMeta = const VerificationMeta(
-    'jumlahBayar',
-  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
   @override
-  late final GeneratedColumn<double> jumlahBayar = GeneratedColumn<double>(
-    'jumlah_bayar',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _kembalianMeta = const VerificationMeta(
-    'kembalian',
-  );
-  @override
-  late final GeneratedColumn<double> kembalian = GeneratedColumn<double>(
-    'kembalian',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('lunas'),
+    requiredDuringInsert: true,
   );
-  static const VerificationMeta _pelangganIdMeta = const VerificationMeta(
-    'pelangganId',
+  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
+  @override
+  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
+    'nama',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _teleponMeta = const VerificationMeta(
+    'telepon',
   );
   @override
-  late final GeneratedColumn<int> pelangganId = GeneratedColumn<int>(
-    'pelanggan_id',
+  late final GeneratedColumn<String> telepon = GeneratedColumn<String>(
+    'telepon',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
+  );
+  static const VerificationMeta _alamatMeta = const VerificationMeta('alamat');
+  @override
+  late final GeneratedColumn<String> alamat = GeneratedColumn<String>(
+    'alamat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -1031,11 +1975,902 @@ class $TransaksiTableTable extends TransaksiTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
+    nama,
+    telepon,
+    alamat,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'supplier_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SupplierTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('nama')) {
+      context.handle(
+        _namaMeta,
+        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_namaMeta);
+    }
+    if (data.containsKey('telepon')) {
+      context.handle(
+        _teleponMeta,
+        telepon.isAcceptableOrUnknown(data['telepon']!, _teleponMeta),
+      );
+    }
+    if (data.containsKey('alamat')) {
+      context.handle(
+        _alamatMeta,
+        alamat.isAcceptableOrUnknown(data['alamat']!, _alamatMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SupplierTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SupplierTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      nama: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama'],
+      )!,
+      telepon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}telepon'],
+      ),
+      alamat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alamat'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SupplierTableTable createAlias(String alias) {
+    return $SupplierTableTable(attachedDatabase, alias);
+  }
+}
+
+class SupplierTableData extends DataClass
+    implements Insertable<SupplierTableData> {
+  final String id;
+  final String tokoId;
+  final String nama;
+  final String? telepon;
+  final String? alamat;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const SupplierTableData({
+    required this.id,
+    required this.tokoId,
+    required this.nama,
+    this.telepon,
+    this.alamat,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['nama'] = Variable<String>(nama);
+    if (!nullToAbsent || telepon != null) {
+      map['telepon'] = Variable<String>(telepon);
+    }
+    if (!nullToAbsent || alamat != null) {
+      map['alamat'] = Variable<String>(alamat);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SupplierTableCompanion toCompanion(bool nullToAbsent) {
+    return SupplierTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      nama: Value(nama),
+      telepon: telepon == null && nullToAbsent
+          ? const Value.absent()
+          : Value(telepon),
+      alamat: alamat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alamat),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SupplierTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SupplierTableData(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      nama: serializer.fromJson<String>(json['nama']),
+      telepon: serializer.fromJson<String?>(json['telepon']),
+      alamat: serializer.fromJson<String?>(json['alamat']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'nama': serializer.toJson<String>(nama),
+      'telepon': serializer.toJson<String?>(telepon),
+      'alamat': serializer.toJson<String?>(alamat),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SupplierTableData copyWith({
+    String? id,
+    String? tokoId,
+    String? nama,
+    Value<String?> telepon = const Value.absent(),
+    Value<String?> alamat = const Value.absent(),
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => SupplierTableData(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    nama: nama ?? this.nama,
+    telepon: telepon.present ? telepon.value : this.telepon,
+    alamat: alamat.present ? alamat.value : this.alamat,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SupplierTableData copyWithCompanion(SupplierTableCompanion data) {
+    return SupplierTableData(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      nama: data.nama.present ? data.nama.value : this.nama,
+      telepon: data.telepon.present ? data.telepon.value : this.telepon,
+      alamat: data.alamat.present ? data.alamat.value : this.alamat,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SupplierTableData(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('nama: $nama, ')
+          ..write('telepon: $telepon, ')
+          ..write('alamat: $alamat, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, tokoId, nama, telepon, alamat, updatedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SupplierTableData &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.nama == this.nama &&
+          other.telepon == this.telepon &&
+          other.alamat == this.alamat &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class SupplierTableCompanion extends UpdateCompanion<SupplierTableData> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> nama;
+  final Value<String?> telepon;
+  final Value<String?> alamat;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SupplierTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.nama = const Value.absent(),
+    this.telepon = const Value.absent(),
+    this.alamat = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SupplierTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    required String nama,
+    this.telepon = const Value.absent(),
+    this.alamat = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       nama = Value(nama);
+  static Insertable<SupplierTableData> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? nama,
+    Expression<String>? telepon,
+    Expression<String>? alamat,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (nama != null) 'nama': nama,
+      if (telepon != null) 'telepon': telepon,
+      if (alamat != null) 'alamat': alamat,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SupplierTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? nama,
+    Value<String?>? telepon,
+    Value<String?>? alamat,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SupplierTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      nama: nama ?? this.nama,
+      telepon: telepon ?? this.telepon,
+      alamat: alamat ?? this.alamat,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (nama.present) {
+      map['nama'] = Variable<String>(nama.value);
+    }
+    if (telepon.present) {
+      map['telepon'] = Variable<String>(telepon.value);
+    }
+    if (alamat.present) {
+      map['alamat'] = Variable<String>(alamat.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SupplierTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('nama: $nama, ')
+          ..write('telepon: $telepon, ')
+          ..write('alamat: $alamat, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SupplierProductsTableTable extends SupplierProductsTable
+    with TableInfo<$SupplierProductsTableTable, SupplierProductsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SupplierProductsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
+    'supplierId',
+  );
+  @override
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
+    'supplier_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _produkIdMeta = const VerificationMeta(
+    'produkId',
+  );
+  @override
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
+    'produk_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaMeta = const VerificationMeta('harga');
+  @override
+  late final GeneratedColumn<double> harga = GeneratedColumn<double>(
+    'harga',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    supplierId,
+    produkId,
+    harga,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'supplier_products_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SupplierProductsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+        _supplierIdMeta,
+        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_supplierIdMeta);
+    }
+    if (data.containsKey('produk_id')) {
+      context.handle(
+        _produkIdMeta,
+        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('harga')) {
+      context.handle(
+        _hargaMeta,
+        harga.isAcceptableOrUnknown(data['harga']!, _hargaMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SupplierProductsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SupplierProductsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      supplierId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_id'],
+      )!,
+      produkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}produk_id'],
+      )!,
+      harga: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SupplierProductsTableTable createAlias(String alias) {
+    return $SupplierProductsTableTable(attachedDatabase, alias);
+  }
+}
+
+class SupplierProductsTableData extends DataClass
+    implements Insertable<SupplierProductsTableData> {
+  final String id;
+  final String tokoId;
+  final String supplierId;
+  final String produkId;
+  final double harga;
+  final DateTime updatedAt;
+  const SupplierProductsTableData({
+    required this.id,
+    required this.tokoId,
+    required this.supplierId,
+    required this.produkId,
+    required this.harga,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['supplier_id'] = Variable<String>(supplierId);
+    map['produk_id'] = Variable<String>(produkId);
+    map['harga'] = Variable<double>(harga);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SupplierProductsTableCompanion toCompanion(bool nullToAbsent) {
+    return SupplierProductsTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      supplierId: Value(supplierId),
+      produkId: Value(produkId),
+      harga: Value(harga),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SupplierProductsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SupplierProductsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      supplierId: serializer.fromJson<String>(json['supplierId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
+      harga: serializer.fromJson<double>(json['harga']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'supplierId': serializer.toJson<String>(supplierId),
+      'produkId': serializer.toJson<String>(produkId),
+      'harga': serializer.toJson<double>(harga),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SupplierProductsTableData copyWith({
+    String? id,
+    String? tokoId,
+    String? supplierId,
+    String? produkId,
+    double? harga,
+    DateTime? updatedAt,
+  }) => SupplierProductsTableData(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    supplierId: supplierId ?? this.supplierId,
+    produkId: produkId ?? this.produkId,
+    harga: harga ?? this.harga,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SupplierProductsTableData copyWithCompanion(
+    SupplierProductsTableCompanion data,
+  ) {
+    return SupplierProductsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      supplierId: data.supplierId.present
+          ? data.supplierId.value
+          : this.supplierId,
+      produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      harga: data.harga.present ? data.harga.value : this.harga,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SupplierProductsTableData(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('produkId: $produkId, ')
+          ..write('harga: $harga, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, tokoId, supplierId, produkId, harga, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SupplierProductsTableData &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.supplierId == this.supplierId &&
+          other.produkId == this.produkId &&
+          other.harga == this.harga &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SupplierProductsTableCompanion
+    extends UpdateCompanion<SupplierProductsTableData> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> supplierId;
+  final Value<String> produkId;
+  final Value<double> harga;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const SupplierProductsTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.supplierId = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.harga = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SupplierProductsTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    required String supplierId,
+    required String produkId,
+    this.harga = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       supplierId = Value(supplierId),
+       produkId = Value(produkId);
+  static Insertable<SupplierProductsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? supplierId,
+    Expression<String>? produkId,
+    Expression<double>? harga,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (produkId != null) 'produk_id': produkId,
+      if (harga != null) 'harga': harga,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SupplierProductsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? supplierId,
+    Value<String>? produkId,
+    Value<double>? harga,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SupplierProductsTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      supplierId: supplierId ?? this.supplierId,
+      produkId: produkId ?? this.produkId,
+      harga: harga ?? this.harga,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
+    }
+    if (produkId.present) {
+      map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (harga.present) {
+      map['harga'] = Variable<double>(harga.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SupplierProductsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('produkId: $produkId, ')
+          ..write('harga: $harga, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TransaksiTableTable extends TransaksiTable
+    with TableInfo<$TransaksiTableTable, TransaksiTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransaksiTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kasirIdMeta = const VerificationMeta(
+    'kasirId',
+  );
+  @override
+  late final GeneratedColumn<String> kasirId = GeneratedColumn<String>(
+    'kasir_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _totalHargaMeta = const VerificationMeta(
+    'totalHarga',
+  );
+  @override
+  late final GeneratedColumn<double> totalHarga = GeneratedColumn<double>(
+    'total_harga',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _jumlahBayarMeta = const VerificationMeta(
+    'jumlahBayar',
+  );
+  @override
+  late final GeneratedColumn<double> jumlahBayar = GeneratedColumn<double>(
+    'jumlah_bayar',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _kembalianMeta = const VerificationMeta(
+    'kembalian',
+  );
+  @override
+  late final GeneratedColumn<double> kembalian = GeneratedColumn<double>(
+    'kembalian',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('lunas'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    kasirId,
     totalHarga,
     jumlahBayar,
     kembalian,
     status,
-    pelangganId,
+    updatedAt,
     createdAt,
   ];
   @override
@@ -1052,14 +2887,28 @@ class $TransaksiTableTable extends TransaksiTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('kasir_id')) {
+      context.handle(
+        _kasirIdMeta,
+        kasirId.isAcceptableOrUnknown(data['kasir_id']!, _kasirIdMeta),
+      );
     }
     if (data.containsKey('total_harga')) {
       context.handle(
         _totalHargaMeta,
         totalHarga.isAcceptableOrUnknown(data['total_harga']!, _totalHargaMeta),
       );
-    } else if (isInserting) {
-      context.missing(_totalHargaMeta);
     }
     if (data.containsKey('jumlah_bayar')) {
       context.handle(
@@ -1069,16 +2918,12 @@ class $TransaksiTableTable extends TransaksiTable
           _jumlahBayarMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahBayarMeta);
     }
     if (data.containsKey('kembalian')) {
       context.handle(
         _kembalianMeta,
         kembalian.isAcceptableOrUnknown(data['kembalian']!, _kembalianMeta),
       );
-    } else if (isInserting) {
-      context.missing(_kembalianMeta);
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -1086,13 +2931,10 @@ class $TransaksiTableTable extends TransaksiTable
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
       );
     }
-    if (data.containsKey('pelanggan_id')) {
+    if (data.containsKey('updated_at')) {
       context.handle(
-        _pelangganIdMeta,
-        pelangganId.isAcceptableOrUnknown(
-          data['pelanggan_id']!,
-          _pelangganIdMeta,
-        ),
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -1111,9 +2953,17 @@ class $TransaksiTableTable extends TransaksiTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TransaksiTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      kasirId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kasir_id'],
+      ),
       totalHarga: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}total_harga'],
@@ -1130,10 +2980,10 @@ class $TransaksiTableTable extends TransaksiTable
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
-      pelangganId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}pelanggan_id'],
-      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1149,33 +2999,39 @@ class $TransaksiTableTable extends TransaksiTable
 
 class TransaksiTableData extends DataClass
     implements Insertable<TransaksiTableData> {
-  final int id;
+  final String id;
+  final String tokoId;
+  final String? kasirId;
   final double totalHarga;
   final double jumlahBayar;
   final double kembalian;
   final String status;
-  final int? pelangganId;
+  final DateTime updatedAt;
   final DateTime createdAt;
   const TransaksiTableData({
     required this.id,
+    required this.tokoId,
+    this.kasirId,
     required this.totalHarga,
     required this.jumlahBayar,
     required this.kembalian,
     required this.status,
-    this.pelangganId,
+    required this.updatedAt,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    if (!nullToAbsent || kasirId != null) {
+      map['kasir_id'] = Variable<String>(kasirId);
+    }
     map['total_harga'] = Variable<double>(totalHarga);
     map['jumlah_bayar'] = Variable<double>(jumlahBayar);
     map['kembalian'] = Variable<double>(kembalian);
     map['status'] = Variable<String>(status);
-    if (!nullToAbsent || pelangganId != null) {
-      map['pelanggan_id'] = Variable<int>(pelangganId);
-    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -1183,13 +3039,15 @@ class TransaksiTableData extends DataClass
   TransaksiTableCompanion toCompanion(bool nullToAbsent) {
     return TransaksiTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
+      kasirId: kasirId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(kasirId),
       totalHarga: Value(totalHarga),
       jumlahBayar: Value(jumlahBayar),
       kembalian: Value(kembalian),
       status: Value(status),
-      pelangganId: pelangganId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(pelangganId),
+      updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -1200,12 +3058,14 @@ class TransaksiTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TransaksiTableData(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      kasirId: serializer.fromJson<String?>(json['kasirId']),
       totalHarga: serializer.fromJson<double>(json['totalHarga']),
       jumlahBayar: serializer.fromJson<double>(json['jumlahBayar']),
       kembalian: serializer.fromJson<double>(json['kembalian']),
       status: serializer.fromJson<String>(json['status']),
-      pelangganId: serializer.fromJson<int?>(json['pelangganId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -1213,36 +3073,44 @@ class TransaksiTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'kasirId': serializer.toJson<String?>(kasirId),
       'totalHarga': serializer.toJson<double>(totalHarga),
       'jumlahBayar': serializer.toJson<double>(jumlahBayar),
       'kembalian': serializer.toJson<double>(kembalian),
       'status': serializer.toJson<String>(status),
-      'pelangganId': serializer.toJson<int?>(pelangganId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   TransaksiTableData copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
+    Value<String?> kasirId = const Value.absent(),
     double? totalHarga,
     double? jumlahBayar,
     double? kembalian,
     String? status,
-    Value<int?> pelangganId = const Value.absent(),
+    DateTime? updatedAt,
     DateTime? createdAt,
   }) => TransaksiTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    kasirId: kasirId.present ? kasirId.value : this.kasirId,
     totalHarga: totalHarga ?? this.totalHarga,
     jumlahBayar: jumlahBayar ?? this.jumlahBayar,
     kembalian: kembalian ?? this.kembalian,
     status: status ?? this.status,
-    pelangganId: pelangganId.present ? pelangganId.value : this.pelangganId,
+    updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   TransaksiTableData copyWithCompanion(TransaksiTableCompanion data) {
     return TransaksiTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      kasirId: data.kasirId.present ? data.kasirId.value : this.kasirId,
       totalHarga: data.totalHarga.present
           ? data.totalHarga.value
           : this.totalHarga,
@@ -1251,9 +3119,7 @@ class TransaksiTableData extends DataClass
           : this.jumlahBayar,
       kembalian: data.kembalian.present ? data.kembalian.value : this.kembalian,
       status: data.status.present ? data.status.value : this.status,
-      pelangganId: data.pelangganId.present
-          ? data.pelangganId.value
-          : this.pelangganId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1262,11 +3128,13 @@ class TransaksiTableData extends DataClass
   String toString() {
     return (StringBuffer('TransaksiTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('kasirId: $kasirId, ')
           ..write('totalHarga: $totalHarga, ')
           ..write('jumlahBayar: $jumlahBayar, ')
           ..write('kembalian: $kembalian, ')
           ..write('status: $status, ')
-          ..write('pelangganId: $pelangganId, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1275,11 +3143,13 @@ class TransaksiTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
+    kasirId,
     totalHarga,
     jumlahBayar,
     kembalian,
     status,
-    pelangganId,
+    updatedAt,
     createdAt,
   );
   @override
@@ -1287,79 +3157,101 @@ class TransaksiTableData extends DataClass
       identical(this, other) ||
       (other is TransaksiTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.kasirId == this.kasirId &&
           other.totalHarga == this.totalHarga &&
           other.jumlahBayar == this.jumlahBayar &&
           other.kembalian == this.kembalian &&
           other.status == this.status &&
-          other.pelangganId == this.pelangganId &&
+          other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
 
 class TransaksiTableCompanion extends UpdateCompanion<TransaksiTableData> {
-  final Value<int> id;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String?> kasirId;
   final Value<double> totalHarga;
   final Value<double> jumlahBayar;
   final Value<double> kembalian;
   final Value<String> status;
-  final Value<int?> pelangganId;
+  final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const TransaksiTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.kasirId = const Value.absent(),
     this.totalHarga = const Value.absent(),
     this.jumlahBayar = const Value.absent(),
     this.kembalian = const Value.absent(),
     this.status = const Value.absent(),
-    this.pelangganId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   TransaksiTableCompanion.insert({
-    this.id = const Value.absent(),
-    required double totalHarga,
-    required double jumlahBayar,
-    required double kembalian,
+    required String id,
+    required String tokoId,
+    this.kasirId = const Value.absent(),
+    this.totalHarga = const Value.absent(),
+    this.jumlahBayar = const Value.absent(),
+    this.kembalian = const Value.absent(),
     this.status = const Value.absent(),
-    this.pelangganId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : totalHarga = Value(totalHarga),
-       jumlahBayar = Value(jumlahBayar),
-       kembalian = Value(kembalian);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId);
   static Insertable<TransaksiTableData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? kasirId,
     Expression<double>? totalHarga,
     Expression<double>? jumlahBayar,
     Expression<double>? kembalian,
     Expression<String>? status,
-    Expression<int>? pelangganId,
+    Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (kasirId != null) 'kasir_id': kasirId,
       if (totalHarga != null) 'total_harga': totalHarga,
       if (jumlahBayar != null) 'jumlah_bayar': jumlahBayar,
       if (kembalian != null) 'kembalian': kembalian,
       if (status != null) 'status': status,
-      if (pelangganId != null) 'pelanggan_id': pelangganId,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   TransaksiTableCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String?>? kasirId,
     Value<double>? totalHarga,
     Value<double>? jumlahBayar,
     Value<double>? kembalian,
     Value<String>? status,
-    Value<int?>? pelangganId,
+    Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return TransaksiTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      kasirId: kasirId ?? this.kasirId,
       totalHarga: totalHarga ?? this.totalHarga,
       jumlahBayar: jumlahBayar ?? this.jumlahBayar,
       kembalian: kembalian ?? this.kembalian,
       status: status ?? this.status,
-      pelangganId: pelangganId ?? this.pelangganId,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -1367,7 +3259,13 @@ class TransaksiTableCompanion extends UpdateCompanion<TransaksiTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (kasirId.present) {
+      map['kasir_id'] = Variable<String>(kasirId.value);
     }
     if (totalHarga.present) {
       map['total_harga'] = Variable<double>(totalHarga.value);
@@ -1381,11 +3279,14 @@ class TransaksiTableCompanion extends UpdateCompanion<TransaksiTableData> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
-    if (pelangganId.present) {
-      map['pelanggan_id'] = Variable<int>(pelangganId.value);
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -1394,12 +3295,15 @@ class TransaksiTableCompanion extends UpdateCompanion<TransaksiTableData> {
   String toString() {
     return (StringBuffer('TransaksiTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('kasirId: $kasirId, ')
           ..write('totalHarga: $totalHarga, ')
           ..write('jumlahBayar: $jumlahBayar, ')
           ..write('kembalian: $kembalian, ')
           ..write('status: $status, ')
-          ..write('pelangganId: $pelangganId, ')
-          ..write('createdAt: $createdAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1413,37 +3317,42 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
   $ItemTransaksiTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _transaksiIdMeta = const VerificationMeta(
     'transaksiId',
   );
   @override
-  late final GeneratedColumn<int> transaksiId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> transaksiId = GeneratedColumn<String>(
     'transaksi_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
@@ -1453,7 +3362,8 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _hargaSatuanMeta = const VerificationMeta(
     'hargaSatuan',
@@ -1464,7 +3374,8 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _subtotalMeta = const VerificationMeta(
     'subtotal',
@@ -1475,11 +3386,13 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     transaksiId,
     produkId,
     jumlah,
@@ -1500,6 +3413,16 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('transaksi_id')) {
       context.handle(
@@ -1525,8 +3448,6 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('harga_satuan')) {
       context.handle(
@@ -1536,16 +3457,12 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
           _hargaSatuanMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_hargaSatuanMeta);
     }
     if (data.containsKey('subtotal')) {
       context.handle(
         _subtotalMeta,
         subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
       );
-    } else if (isInserting) {
-      context.missing(_subtotalMeta);
     }
     return context;
   }
@@ -1557,15 +3474,19 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ItemTransaksiTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       transaksiId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}transaksi_id'],
       )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       jumlah: attachedDatabase.typeMapping.read(
@@ -1591,14 +3512,16 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
 
 class ItemTransaksiTableData extends DataClass
     implements Insertable<ItemTransaksiTableData> {
-  final int id;
-  final int transaksiId;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String transaksiId;
+  final String produkId;
   final int jumlah;
   final double hargaSatuan;
   final double subtotal;
   const ItemTransaksiTableData({
     required this.id,
+    required this.tokoId,
     required this.transaksiId,
     required this.produkId,
     required this.jumlah,
@@ -1608,9 +3531,10 @@ class ItemTransaksiTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['transaksi_id'] = Variable<int>(transaksiId);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['transaksi_id'] = Variable<String>(transaksiId);
+    map['produk_id'] = Variable<String>(produkId);
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_satuan'] = Variable<double>(hargaSatuan);
     map['subtotal'] = Variable<double>(subtotal);
@@ -1620,6 +3544,7 @@ class ItemTransaksiTableData extends DataClass
   ItemTransaksiTableCompanion toCompanion(bool nullToAbsent) {
     return ItemTransaksiTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       transaksiId: Value(transaksiId),
       produkId: Value(produkId),
       jumlah: Value(jumlah),
@@ -1634,9 +3559,10 @@ class ItemTransaksiTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ItemTransaksiTableData(
-      id: serializer.fromJson<int>(json['id']),
-      transaksiId: serializer.fromJson<int>(json['transaksiId']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      transaksiId: serializer.fromJson<String>(json['transaksiId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaSatuan: serializer.fromJson<double>(json['hargaSatuan']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
@@ -1646,9 +3572,10 @@ class ItemTransaksiTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'transaksiId': serializer.toJson<int>(transaksiId),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'transaksiId': serializer.toJson<String>(transaksiId),
+      'produkId': serializer.toJson<String>(produkId),
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaSatuan': serializer.toJson<double>(hargaSatuan),
       'subtotal': serializer.toJson<double>(subtotal),
@@ -1656,14 +3583,16 @@ class ItemTransaksiTableData extends DataClass
   }
 
   ItemTransaksiTableData copyWith({
-    int? id,
-    int? transaksiId,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? transaksiId,
+    String? produkId,
     int? jumlah,
     double? hargaSatuan,
     double? subtotal,
   }) => ItemTransaksiTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     transaksiId: transaksiId ?? this.transaksiId,
     produkId: produkId ?? this.produkId,
     jumlah: jumlah ?? this.jumlah,
@@ -1673,6 +3602,7 @@ class ItemTransaksiTableData extends DataClass
   ItemTransaksiTableData copyWithCompanion(ItemTransaksiTableCompanion data) {
     return ItemTransaksiTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       transaksiId: data.transaksiId.present
           ? data.transaksiId.value
           : this.transaksiId,
@@ -1689,6 +3619,7 @@ class ItemTransaksiTableData extends DataClass
   String toString() {
     return (StringBuffer('ItemTransaksiTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('produkId: $produkId, ')
           ..write('jumlah: $jumlah, ')
@@ -1699,13 +3630,21 @@ class ItemTransaksiTableData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, transaksiId, produkId, jumlah, hargaSatuan, subtotal);
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    transaksiId,
+    produkId,
+    jumlah,
+    hargaSatuan,
+    subtotal,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ItemTransaksiTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.transaksiId == this.transaksiId &&
           other.produkId == this.produkId &&
           other.jumlah == this.jumlah &&
@@ -1715,65 +3654,78 @@ class ItemTransaksiTableData extends DataClass
 
 class ItemTransaksiTableCompanion
     extends UpdateCompanion<ItemTransaksiTableData> {
-  final Value<int> id;
-  final Value<int> transaksiId;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> transaksiId;
+  final Value<String> produkId;
   final Value<int> jumlah;
   final Value<double> hargaSatuan;
   final Value<double> subtotal;
+  final Value<int> rowid;
   const ItemTransaksiTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.transaksiId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ItemTransaksiTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int transaksiId,
-    required int produkId,
-    required int jumlah,
-    required double hargaSatuan,
-    required double subtotal,
-  }) : transaksiId = Value(transaksiId),
-       produkId = Value(produkId),
-       jumlah = Value(jumlah),
-       hargaSatuan = Value(hargaSatuan),
-       subtotal = Value(subtotal);
+    required String id,
+    required String tokoId,
+    required String transaksiId,
+    required String produkId,
+    this.jumlah = const Value.absent(),
+    this.hargaSatuan = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       transaksiId = Value(transaksiId),
+       produkId = Value(produkId);
   static Insertable<ItemTransaksiTableData> custom({
-    Expression<int>? id,
-    Expression<int>? transaksiId,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? transaksiId,
+    Expression<String>? produkId,
     Expression<int>? jumlah,
     Expression<double>? hargaSatuan,
     Expression<double>? subtotal,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (transaksiId != null) 'transaksi_id': transaksiId,
       if (produkId != null) 'produk_id': produkId,
       if (jumlah != null) 'jumlah': jumlah,
       if (hargaSatuan != null) 'harga_satuan': hargaSatuan,
       if (subtotal != null) 'subtotal': subtotal,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ItemTransaksiTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? transaksiId,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? transaksiId,
+    Value<String>? produkId,
     Value<int>? jumlah,
     Value<double>? hargaSatuan,
     Value<double>? subtotal,
+    Value<int>? rowid,
   }) {
     return ItemTransaksiTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       transaksiId: transaksiId ?? this.transaksiId,
       produkId: produkId ?? this.produkId,
       jumlah: jumlah ?? this.jumlah,
       hargaSatuan: hargaSatuan ?? this.hargaSatuan,
       subtotal: subtotal ?? this.subtotal,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -1781,13 +3733,16 @@ class ItemTransaksiTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (transaksiId.present) {
-      map['transaksi_id'] = Variable<int>(transaksiId.value);
+      map['transaksi_id'] = Variable<String>(transaksiId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (jumlah.present) {
       map['jumlah'] = Variable<int>(jumlah.value);
@@ -1798,6 +3753,9 @@ class ItemTransaksiTableCompanion
     if (subtotal.present) {
       map['subtotal'] = Variable<double>(subtotal.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -1805,11 +3763,13 @@ class ItemTransaksiTableCompanion
   String toString() {
     return (StringBuffer('ItemTransaksiTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('produkId: $produkId, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaSatuan: $hargaSatuan, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1823,26 +3783,31 @@ class $HutangPiutangTableTable extends HutangPiutangTable
   $HutangPiutangTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _transaksiIdMeta = const VerificationMeta(
     'transaksiId',
   );
   @override
-  late final GeneratedColumn<int> transaksiId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> transaksiId = GeneratedColumn<String>(
     'transaksi_id',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _namaPelangganMeta = const VerificationMeta(
@@ -1863,7 +3828,8 @@ class $HutangPiutangTableTable extends HutangPiutangTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
@@ -1887,6 +3853,18 @@ class $HutangPiutangTableTable extends HutangPiutangTable
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1902,11 +3880,13 @@ class $HutangPiutangTableTable extends HutangPiutangTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     transaksiId,
     namaPelanggan,
     jumlah,
     status,
     tanggalJatuhTempo,
+    updatedAt,
     createdAt,
   ];
   @override
@@ -1923,6 +3903,16 @@ class $HutangPiutangTableTable extends HutangPiutangTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('transaksi_id')) {
       context.handle(
@@ -1949,8 +3939,6 @@ class $HutangPiutangTableTable extends HutangPiutangTable
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -1965,6 +3953,12 @@ class $HutangPiutangTableTable extends HutangPiutangTable
           data['tanggal_jatuh_tempo']!,
           _tanggalJatuhTempoMeta,
         ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -1983,11 +3977,15 @@ class $HutangPiutangTableTable extends HutangPiutangTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return HutangPiutangTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       transaksiId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}transaksi_id'],
       ),
       namaPelanggan: attachedDatabase.typeMapping.read(
@@ -2006,6 +4004,10 @@ class $HutangPiutangTableTable extends HutangPiutangTable
         DriftSqlType.dateTime,
         data['${effectivePrefix}tanggal_jatuh_tempo'],
       ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2021,28 +4023,33 @@ class $HutangPiutangTableTable extends HutangPiutangTable
 
 class HutangPiutangTableData extends DataClass
     implements Insertable<HutangPiutangTableData> {
-  final int id;
-  final int? transaksiId;
+  final String id;
+  final String tokoId;
+  final String? transaksiId;
   final String namaPelanggan;
   final double jumlah;
   final String status;
   final DateTime? tanggalJatuhTempo;
+  final DateTime updatedAt;
   final DateTime createdAt;
   const HutangPiutangTableData({
     required this.id,
+    required this.tokoId,
     this.transaksiId,
     required this.namaPelanggan,
     required this.jumlah,
     required this.status,
     this.tanggalJatuhTempo,
+    required this.updatedAt,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
     if (!nullToAbsent || transaksiId != null) {
-      map['transaksi_id'] = Variable<int>(transaksiId);
+      map['transaksi_id'] = Variable<String>(transaksiId);
     }
     map['nama_pelanggan'] = Variable<String>(namaPelanggan);
     map['jumlah'] = Variable<double>(jumlah);
@@ -2050,6 +4057,7 @@ class HutangPiutangTableData extends DataClass
     if (!nullToAbsent || tanggalJatuhTempo != null) {
       map['tanggal_jatuh_tempo'] = Variable<DateTime>(tanggalJatuhTempo);
     }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2057,6 +4065,7 @@ class HutangPiutangTableData extends DataClass
   HutangPiutangTableCompanion toCompanion(bool nullToAbsent) {
     return HutangPiutangTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       transaksiId: transaksiId == null && nullToAbsent
           ? const Value.absent()
           : Value(transaksiId),
@@ -2066,6 +4075,7 @@ class HutangPiutangTableData extends DataClass
       tanggalJatuhTempo: tanggalJatuhTempo == null && nullToAbsent
           ? const Value.absent()
           : Value(tanggalJatuhTempo),
+      updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -2076,14 +4086,16 @@ class HutangPiutangTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return HutangPiutangTableData(
-      id: serializer.fromJson<int>(json['id']),
-      transaksiId: serializer.fromJson<int?>(json['transaksiId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      transaksiId: serializer.fromJson<String?>(json['transaksiId']),
       namaPelanggan: serializer.fromJson<String>(json['namaPelanggan']),
       jumlah: serializer.fromJson<double>(json['jumlah']),
       status: serializer.fromJson<String>(json['status']),
       tanggalJatuhTempo: serializer.fromJson<DateTime?>(
         json['tanggalJatuhTempo'],
       ),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2091,26 +4103,31 @@ class HutangPiutangTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'transaksiId': serializer.toJson<int?>(transaksiId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'transaksiId': serializer.toJson<String?>(transaksiId),
       'namaPelanggan': serializer.toJson<String>(namaPelanggan),
       'jumlah': serializer.toJson<double>(jumlah),
       'status': serializer.toJson<String>(status),
       'tanggalJatuhTempo': serializer.toJson<DateTime?>(tanggalJatuhTempo),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   HutangPiutangTableData copyWith({
-    int? id,
-    Value<int?> transaksiId = const Value.absent(),
+    String? id,
+    String? tokoId,
+    Value<String?> transaksiId = const Value.absent(),
     String? namaPelanggan,
     double? jumlah,
     String? status,
     Value<DateTime?> tanggalJatuhTempo = const Value.absent(),
+    DateTime? updatedAt,
     DateTime? createdAt,
   }) => HutangPiutangTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     transaksiId: transaksiId.present ? transaksiId.value : this.transaksiId,
     namaPelanggan: namaPelanggan ?? this.namaPelanggan,
     jumlah: jumlah ?? this.jumlah,
@@ -2118,11 +4135,13 @@ class HutangPiutangTableData extends DataClass
     tanggalJatuhTempo: tanggalJatuhTempo.present
         ? tanggalJatuhTempo.value
         : this.tanggalJatuhTempo,
+    updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   HutangPiutangTableData copyWithCompanion(HutangPiutangTableCompanion data) {
     return HutangPiutangTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       transaksiId: data.transaksiId.present
           ? data.transaksiId.value
           : this.transaksiId,
@@ -2134,6 +4153,7 @@ class HutangPiutangTableData extends DataClass
       tanggalJatuhTempo: data.tanggalJatuhTempo.present
           ? data.tanggalJatuhTempo.value
           : this.tanggalJatuhTempo,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2142,11 +4162,13 @@ class HutangPiutangTableData extends DataClass
   String toString() {
     return (StringBuffer('HutangPiutangTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('namaPelanggan: $namaPelanggan, ')
           ..write('jumlah: $jumlah, ')
           ..write('status: $status, ')
           ..write('tanggalJatuhTempo: $tanggalJatuhTempo, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2155,11 +4177,13 @@ class HutangPiutangTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
     transaksiId,
     namaPelanggan,
     jumlah,
     status,
     tanggalJatuhTempo,
+    updatedAt,
     createdAt,
   );
   @override
@@ -2167,79 +4191,103 @@ class HutangPiutangTableData extends DataClass
       identical(this, other) ||
       (other is HutangPiutangTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.transaksiId == this.transaksiId &&
           other.namaPelanggan == this.namaPelanggan &&
           other.jumlah == this.jumlah &&
           other.status == this.status &&
           other.tanggalJatuhTempo == this.tanggalJatuhTempo &&
+          other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
 
 class HutangPiutangTableCompanion
     extends UpdateCompanion<HutangPiutangTableData> {
-  final Value<int> id;
-  final Value<int?> transaksiId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String?> transaksiId;
   final Value<String> namaPelanggan;
   final Value<double> jumlah;
   final Value<String> status;
   final Value<DateTime?> tanggalJatuhTempo;
+  final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const HutangPiutangTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.transaksiId = const Value.absent(),
     this.namaPelanggan = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.status = const Value.absent(),
     this.tanggalJatuhTempo = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   HutangPiutangTableCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
+    required String tokoId,
     this.transaksiId = const Value.absent(),
     required String namaPelanggan,
-    required double jumlah,
+    this.jumlah = const Value.absent(),
     this.status = const Value.absent(),
     this.tanggalJatuhTempo = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : namaPelanggan = Value(namaPelanggan),
-       jumlah = Value(jumlah);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       namaPelanggan = Value(namaPelanggan);
   static Insertable<HutangPiutangTableData> custom({
-    Expression<int>? id,
-    Expression<int>? transaksiId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? transaksiId,
     Expression<String>? namaPelanggan,
     Expression<double>? jumlah,
     Expression<String>? status,
     Expression<DateTime>? tanggalJatuhTempo,
+    Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (transaksiId != null) 'transaksi_id': transaksiId,
       if (namaPelanggan != null) 'nama_pelanggan': namaPelanggan,
       if (jumlah != null) 'jumlah': jumlah,
       if (status != null) 'status': status,
       if (tanggalJatuhTempo != null) 'tanggal_jatuh_tempo': tanggalJatuhTempo,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   HutangPiutangTableCompanion copyWith({
-    Value<int>? id,
-    Value<int?>? transaksiId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String?>? transaksiId,
     Value<String>? namaPelanggan,
     Value<double>? jumlah,
     Value<String>? status,
     Value<DateTime?>? tanggalJatuhTempo,
+    Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return HutangPiutangTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       transaksiId: transaksiId ?? this.transaksiId,
       namaPelanggan: namaPelanggan ?? this.namaPelanggan,
       jumlah: jumlah ?? this.jumlah,
       status: status ?? this.status,
       tanggalJatuhTempo: tanggalJatuhTempo ?? this.tanggalJatuhTempo,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -2247,10 +4295,13 @@ class HutangPiutangTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (transaksiId.present) {
-      map['transaksi_id'] = Variable<int>(transaksiId.value);
+      map['transaksi_id'] = Variable<String>(transaksiId.value);
     }
     if (namaPelanggan.present) {
       map['nama_pelanggan'] = Variable<String>(namaPelanggan.value);
@@ -2264,8 +4315,14 @@ class HutangPiutangTableCompanion
     if (tanggalJatuhTempo.present) {
       map['tanggal_jatuh_tempo'] = Variable<DateTime>(tanggalJatuhTempo.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -2274,12 +4331,15 @@ class HutangPiutangTableCompanion
   String toString() {
     return (StringBuffer('HutangPiutangTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('namaPelanggan: $namaPelanggan, ')
           ..write('jumlah: $jumlah, ')
           ..write('status: $status, ')
           ..write('tanggalJatuhTempo: $tanggalJatuhTempo, ')
-          ..write('createdAt: $createdAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -2293,26 +4353,31 @@ class $RiwayatStokTableTable extends RiwayatStokTable
   $RiwayatStokTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _tipeMeta = const VerificationMeta('tipe');
@@ -2331,7 +4396,8 @@ class $RiwayatStokTableTable extends RiwayatStokTable
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _keteranganMeta = const VerificationMeta(
     'keterangan',
@@ -2359,6 +4425,7 @@ class $RiwayatStokTableTable extends RiwayatStokTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     produkId,
     tipe,
     jumlah,
@@ -2379,6 +4446,16 @@ class $RiwayatStokTableTable extends RiwayatStokTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('produk_id')) {
       context.handle(
@@ -2401,8 +4478,6 @@ class $RiwayatStokTableTable extends RiwayatStokTable
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('keterangan')) {
       context.handle(
@@ -2426,11 +4501,15 @@ class $RiwayatStokTableTable extends RiwayatStokTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return RiwayatStokTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       tipe: attachedDatabase.typeMapping.read(
@@ -2460,14 +4539,16 @@ class $RiwayatStokTableTable extends RiwayatStokTable
 
 class RiwayatStokTableData extends DataClass
     implements Insertable<RiwayatStokTableData> {
-  final int id;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String produkId;
   final String tipe;
   final int jumlah;
   final String? keterangan;
   final DateTime createdAt;
   const RiwayatStokTableData({
     required this.id,
+    required this.tokoId,
     required this.produkId,
     required this.tipe,
     required this.jumlah,
@@ -2477,8 +4558,9 @@ class RiwayatStokTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['produk_id'] = Variable<String>(produkId);
     map['tipe'] = Variable<String>(tipe);
     map['jumlah'] = Variable<int>(jumlah);
     if (!nullToAbsent || keterangan != null) {
@@ -2491,6 +4573,7 @@ class RiwayatStokTableData extends DataClass
   RiwayatStokTableCompanion toCompanion(bool nullToAbsent) {
     return RiwayatStokTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       produkId: Value(produkId),
       tipe: Value(tipe),
       jumlah: Value(jumlah),
@@ -2507,8 +4590,9 @@ class RiwayatStokTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return RiwayatStokTableData(
-      id: serializer.fromJson<int>(json['id']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
       tipe: serializer.fromJson<String>(json['tipe']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       keterangan: serializer.fromJson<String?>(json['keterangan']),
@@ -2519,8 +4603,9 @@ class RiwayatStokTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'produkId': serializer.toJson<String>(produkId),
       'tipe': serializer.toJson<String>(tipe),
       'jumlah': serializer.toJson<int>(jumlah),
       'keterangan': serializer.toJson<String?>(keterangan),
@@ -2529,14 +4614,16 @@ class RiwayatStokTableData extends DataClass
   }
 
   RiwayatStokTableData copyWith({
-    int? id,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? produkId,
     String? tipe,
     int? jumlah,
     Value<String?> keterangan = const Value.absent(),
     DateTime? createdAt,
   }) => RiwayatStokTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     produkId: produkId ?? this.produkId,
     tipe: tipe ?? this.tipe,
     jumlah: jumlah ?? this.jumlah,
@@ -2546,6 +4633,7 @@ class RiwayatStokTableData extends DataClass
   RiwayatStokTableData copyWithCompanion(RiwayatStokTableCompanion data) {
     return RiwayatStokTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       produkId: data.produkId.present ? data.produkId.value : this.produkId,
       tipe: data.tipe.present ? data.tipe.value : this.tipe,
       jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
@@ -2560,6 +4648,7 @@ class RiwayatStokTableData extends DataClass
   String toString() {
     return (StringBuffer('RiwayatStokTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('produkId: $produkId, ')
           ..write('tipe: $tipe, ')
           ..write('jumlah: $jumlah, ')
@@ -2571,12 +4660,13 @@ class RiwayatStokTableData extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, produkId, tipe, jumlah, keterangan, createdAt);
+      Object.hash(id, tokoId, produkId, tipe, jumlah, keterangan, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RiwayatStokTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.produkId == this.produkId &&
           other.tipe == this.tipe &&
           other.jumlah == this.jumlah &&
@@ -2585,63 +4675,78 @@ class RiwayatStokTableData extends DataClass
 }
 
 class RiwayatStokTableCompanion extends UpdateCompanion<RiwayatStokTableData> {
-  final Value<int> id;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> produkId;
   final Value<String> tipe;
   final Value<int> jumlah;
   final Value<String?> keterangan;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const RiwayatStokTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.tipe = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.keterangan = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   RiwayatStokTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int produkId,
+    required String id,
+    required String tokoId,
+    required String produkId,
     required String tipe,
-    required int jumlah,
+    this.jumlah = const Value.absent(),
     this.keterangan = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : produkId = Value(produkId),
-       tipe = Value(tipe),
-       jumlah = Value(jumlah);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       produkId = Value(produkId),
+       tipe = Value(tipe);
   static Insertable<RiwayatStokTableData> custom({
-    Expression<int>? id,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? produkId,
     Expression<String>? tipe,
     Expression<int>? jumlah,
     Expression<String>? keterangan,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (produkId != null) 'produk_id': produkId,
       if (tipe != null) 'tipe': tipe,
       if (jumlah != null) 'jumlah': jumlah,
       if (keterangan != null) 'keterangan': keterangan,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   RiwayatStokTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? produkId,
     Value<String>? tipe,
     Value<int>? jumlah,
     Value<String?>? keterangan,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return RiwayatStokTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       produkId: produkId ?? this.produkId,
       tipe: tipe ?? this.tipe,
       jumlah: jumlah ?? this.jumlah,
       keterangan: keterangan ?? this.keterangan,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -2649,10 +4754,13 @@ class RiwayatStokTableCompanion extends UpdateCompanion<RiwayatStokTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (tipe.present) {
       map['tipe'] = Variable<String>(tipe.value);
@@ -2666,6 +4774,9 @@ class RiwayatStokTableCompanion extends UpdateCompanion<RiwayatStokTableData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -2673,11 +4784,13 @@ class RiwayatStokTableCompanion extends UpdateCompanion<RiwayatStokTableData> {
   String toString() {
     return (StringBuffer('RiwayatStokTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('produkId: $produkId, ')
           ..write('tipe: $tipe, ')
           ..write('jumlah: $jumlah, ')
           ..write('keterangan: $keterangan, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -2691,16 +4804,32 @@ class $PembelianTableTable extends PembelianTable
   $PembelianTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
+    'supplierId',
+  );
+  @override
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
+    'supplier_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
   );
   static const VerificationMeta _namaSupplierMeta = const VerificationMeta(
     'namaSupplier',
@@ -2709,9 +4838,9 @@ class $PembelianTableTable extends PembelianTable
   late final GeneratedColumn<String> namaSupplier = GeneratedColumn<String>(
     'nama_supplier',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _totalHargaMeta = const VerificationMeta(
     'totalHarga',
@@ -2722,7 +4851,20 @@ class $PembelianTableTable extends PembelianTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -2739,8 +4881,11 @@ class $PembelianTableTable extends PembelianTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
+    supplierId,
     namaSupplier,
     totalHarga,
+    updatedAt,
     createdAt,
   ];
   @override
@@ -2757,6 +4902,22 @@ class $PembelianTableTable extends PembelianTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+        _supplierIdMeta,
+        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+      );
     }
     if (data.containsKey('nama_supplier')) {
       context.handle(
@@ -2766,16 +4927,18 @@ class $PembelianTableTable extends PembelianTable
           _namaSupplierMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_namaSupplierMeta);
     }
     if (data.containsKey('total_harga')) {
       context.handle(
         _totalHargaMeta,
         totalHarga.isAcceptableOrUnknown(data['total_harga']!, _totalHargaMeta),
       );
-    } else if (isInserting) {
-      context.missing(_totalHargaMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -2793,16 +4956,28 @@ class $PembelianTableTable extends PembelianTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PembelianTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      supplierId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier_id'],
+      ),
       namaSupplier: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}nama_supplier'],
-      )!,
+      ),
       totalHarga: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}total_harga'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -2819,22 +4994,35 @@ class $PembelianTableTable extends PembelianTable
 
 class PembelianTableData extends DataClass
     implements Insertable<PembelianTableData> {
-  final int id;
-  final String namaSupplier;
+  final String id;
+  final String tokoId;
+  final String? supplierId;
+  final String? namaSupplier;
   final double totalHarga;
+  final DateTime updatedAt;
   final DateTime createdAt;
   const PembelianTableData({
     required this.id,
-    required this.namaSupplier,
+    required this.tokoId,
+    this.supplierId,
+    this.namaSupplier,
     required this.totalHarga,
+    required this.updatedAt,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['nama_supplier'] = Variable<String>(namaSupplier);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    if (!nullToAbsent || supplierId != null) {
+      map['supplier_id'] = Variable<String>(supplierId);
+    }
+    if (!nullToAbsent || namaSupplier != null) {
+      map['nama_supplier'] = Variable<String>(namaSupplier);
+    }
     map['total_harga'] = Variable<double>(totalHarga);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2842,8 +5030,15 @@ class PembelianTableData extends DataClass
   PembelianTableCompanion toCompanion(bool nullToAbsent) {
     return PembelianTableCompanion(
       id: Value(id),
-      namaSupplier: Value(namaSupplier),
+      tokoId: Value(tokoId),
+      supplierId: supplierId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierId),
+      namaSupplier: namaSupplier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(namaSupplier),
       totalHarga: Value(totalHarga),
+      updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -2854,9 +5049,12 @@ class PembelianTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PembelianTableData(
-      id: serializer.fromJson<int>(json['id']),
-      namaSupplier: serializer.fromJson<String>(json['namaSupplier']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      supplierId: serializer.fromJson<String?>(json['supplierId']),
+      namaSupplier: serializer.fromJson<String?>(json['namaSupplier']),
       totalHarga: serializer.fromJson<double>(json['totalHarga']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2864,33 +5062,47 @@ class PembelianTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'namaSupplier': serializer.toJson<String>(namaSupplier),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'supplierId': serializer.toJson<String?>(supplierId),
+      'namaSupplier': serializer.toJson<String?>(namaSupplier),
       'totalHarga': serializer.toJson<double>(totalHarga),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   PembelianTableData copyWith({
-    int? id,
-    String? namaSupplier,
+    String? id,
+    String? tokoId,
+    Value<String?> supplierId = const Value.absent(),
+    Value<String?> namaSupplier = const Value.absent(),
     double? totalHarga,
+    DateTime? updatedAt,
     DateTime? createdAt,
   }) => PembelianTableData(
     id: id ?? this.id,
-    namaSupplier: namaSupplier ?? this.namaSupplier,
+    tokoId: tokoId ?? this.tokoId,
+    supplierId: supplierId.present ? supplierId.value : this.supplierId,
+    namaSupplier: namaSupplier.present ? namaSupplier.value : this.namaSupplier,
     totalHarga: totalHarga ?? this.totalHarga,
+    updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   PembelianTableData copyWithCompanion(PembelianTableCompanion data) {
     return PembelianTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      supplierId: data.supplierId.present
+          ? data.supplierId.value
+          : this.supplierId,
       namaSupplier: data.namaSupplier.present
           ? data.namaSupplier.value
           : this.namaSupplier,
       totalHarga: data.totalHarga.present
           ? data.totalHarga.value
           : this.totalHarga,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2899,68 +5111,110 @@ class PembelianTableData extends DataClass
   String toString() {
     return (StringBuffer('PembelianTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('supplierId: $supplierId, ')
           ..write('namaSupplier: $namaSupplier, ')
           ..write('totalHarga: $totalHarga, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, namaSupplier, totalHarga, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    supplierId,
+    namaSupplier,
+    totalHarga,
+    updatedAt,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PembelianTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.supplierId == this.supplierId &&
           other.namaSupplier == this.namaSupplier &&
           other.totalHarga == this.totalHarga &&
+          other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
 
 class PembelianTableCompanion extends UpdateCompanion<PembelianTableData> {
-  final Value<int> id;
-  final Value<String> namaSupplier;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String?> supplierId;
+  final Value<String?> namaSupplier;
   final Value<double> totalHarga;
+  final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const PembelianTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.supplierId = const Value.absent(),
     this.namaSupplier = const Value.absent(),
     this.totalHarga = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   PembelianTableCompanion.insert({
-    this.id = const Value.absent(),
-    required String namaSupplier,
-    required double totalHarga,
+    required String id,
+    required String tokoId,
+    this.supplierId = const Value.absent(),
+    this.namaSupplier = const Value.absent(),
+    this.totalHarga = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : namaSupplier = Value(namaSupplier),
-       totalHarga = Value(totalHarga);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId);
   static Insertable<PembelianTableData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? supplierId,
     Expression<String>? namaSupplier,
     Expression<double>? totalHarga,
+    Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (supplierId != null) 'supplier_id': supplierId,
       if (namaSupplier != null) 'nama_supplier': namaSupplier,
       if (totalHarga != null) 'total_harga': totalHarga,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   PembelianTableCompanion copyWith({
-    Value<int>? id,
-    Value<String>? namaSupplier,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String?>? supplierId,
+    Value<String?>? namaSupplier,
     Value<double>? totalHarga,
+    Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return PembelianTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      supplierId: supplierId ?? this.supplierId,
       namaSupplier: namaSupplier ?? this.namaSupplier,
       totalHarga: totalHarga ?? this.totalHarga,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -2968,7 +5222,13 @@ class PembelianTableCompanion extends UpdateCompanion<PembelianTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
     }
     if (namaSupplier.present) {
       map['nama_supplier'] = Variable<String>(namaSupplier.value);
@@ -2976,8 +5236,14 @@ class PembelianTableCompanion extends UpdateCompanion<PembelianTableData> {
     if (totalHarga.present) {
       map['total_harga'] = Variable<double>(totalHarga.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -2986,9 +5252,13 @@ class PembelianTableCompanion extends UpdateCompanion<PembelianTableData> {
   String toString() {
     return (StringBuffer('PembelianTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('supplierId: $supplierId, ')
           ..write('namaSupplier: $namaSupplier, ')
           ..write('totalHarga: $totalHarga, ')
-          ..write('createdAt: $createdAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -3002,37 +5272,42 @@ class $ItemPembelianTableTable extends ItemPembelianTable
   $ItemPembelianTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _pembelianIdMeta = const VerificationMeta(
     'pembelianId',
   );
   @override
-  late final GeneratedColumn<int> pembelianId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> pembelianId = GeneratedColumn<String>(
     'pembelian_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
@@ -3042,7 +5317,8 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _hargaBeliSatuanMeta = const VerificationMeta(
     'hargaBeliSatuan',
@@ -3053,7 +5329,8 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _subtotalMeta = const VerificationMeta(
     'subtotal',
@@ -3064,11 +5341,13 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     pembelianId,
     produkId,
     jumlah,
@@ -3089,6 +5368,16 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('pembelian_id')) {
       context.handle(
@@ -3114,8 +5403,6 @@ class $ItemPembelianTableTable extends ItemPembelianTable
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('harga_beli_satuan')) {
       context.handle(
@@ -3125,16 +5412,12 @@ class $ItemPembelianTableTable extends ItemPembelianTable
           _hargaBeliSatuanMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_hargaBeliSatuanMeta);
     }
     if (data.containsKey('subtotal')) {
       context.handle(
         _subtotalMeta,
         subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
       );
-    } else if (isInserting) {
-      context.missing(_subtotalMeta);
     }
     return context;
   }
@@ -3146,15 +5429,19 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ItemPembelianTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       pembelianId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}pembelian_id'],
       )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       jumlah: attachedDatabase.typeMapping.read(
@@ -3180,14 +5467,16 @@ class $ItemPembelianTableTable extends ItemPembelianTable
 
 class ItemPembelianTableData extends DataClass
     implements Insertable<ItemPembelianTableData> {
-  final int id;
-  final int pembelianId;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String pembelianId;
+  final String produkId;
   final int jumlah;
   final double hargaBeliSatuan;
   final double subtotal;
   const ItemPembelianTableData({
     required this.id,
+    required this.tokoId,
     required this.pembelianId,
     required this.produkId,
     required this.jumlah,
@@ -3197,9 +5486,10 @@ class ItemPembelianTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['pembelian_id'] = Variable<int>(pembelianId);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['pembelian_id'] = Variable<String>(pembelianId);
+    map['produk_id'] = Variable<String>(produkId);
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_beli_satuan'] = Variable<double>(hargaBeliSatuan);
     map['subtotal'] = Variable<double>(subtotal);
@@ -3209,6 +5499,7 @@ class ItemPembelianTableData extends DataClass
   ItemPembelianTableCompanion toCompanion(bool nullToAbsent) {
     return ItemPembelianTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       pembelianId: Value(pembelianId),
       produkId: Value(produkId),
       jumlah: Value(jumlah),
@@ -3223,9 +5514,10 @@ class ItemPembelianTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ItemPembelianTableData(
-      id: serializer.fromJson<int>(json['id']),
-      pembelianId: serializer.fromJson<int>(json['pembelianId']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      pembelianId: serializer.fromJson<String>(json['pembelianId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaBeliSatuan: serializer.fromJson<double>(json['hargaBeliSatuan']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
@@ -3235,9 +5527,10 @@ class ItemPembelianTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'pembelianId': serializer.toJson<int>(pembelianId),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'pembelianId': serializer.toJson<String>(pembelianId),
+      'produkId': serializer.toJson<String>(produkId),
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaBeliSatuan': serializer.toJson<double>(hargaBeliSatuan),
       'subtotal': serializer.toJson<double>(subtotal),
@@ -3245,14 +5538,16 @@ class ItemPembelianTableData extends DataClass
   }
 
   ItemPembelianTableData copyWith({
-    int? id,
-    int? pembelianId,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? pembelianId,
+    String? produkId,
     int? jumlah,
     double? hargaBeliSatuan,
     double? subtotal,
   }) => ItemPembelianTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     pembelianId: pembelianId ?? this.pembelianId,
     produkId: produkId ?? this.produkId,
     jumlah: jumlah ?? this.jumlah,
@@ -3262,6 +5557,7 @@ class ItemPembelianTableData extends DataClass
   ItemPembelianTableData copyWithCompanion(ItemPembelianTableCompanion data) {
     return ItemPembelianTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       pembelianId: data.pembelianId.present
           ? data.pembelianId.value
           : this.pembelianId,
@@ -3278,6 +5574,7 @@ class ItemPembelianTableData extends DataClass
   String toString() {
     return (StringBuffer('ItemPembelianTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pembelianId: $pembelianId, ')
           ..write('produkId: $produkId, ')
           ..write('jumlah: $jumlah, ')
@@ -3288,13 +5585,21 @@ class ItemPembelianTableData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, pembelianId, produkId, jumlah, hargaBeliSatuan, subtotal);
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    pembelianId,
+    produkId,
+    jumlah,
+    hargaBeliSatuan,
+    subtotal,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ItemPembelianTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.pembelianId == this.pembelianId &&
           other.produkId == this.produkId &&
           other.jumlah == this.jumlah &&
@@ -3304,65 +5609,78 @@ class ItemPembelianTableData extends DataClass
 
 class ItemPembelianTableCompanion
     extends UpdateCompanion<ItemPembelianTableData> {
-  final Value<int> id;
-  final Value<int> pembelianId;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> pembelianId;
+  final Value<String> produkId;
   final Value<int> jumlah;
   final Value<double> hargaBeliSatuan;
   final Value<double> subtotal;
+  final Value<int> rowid;
   const ItemPembelianTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.pembelianId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaBeliSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ItemPembelianTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int pembelianId,
-    required int produkId,
-    required int jumlah,
-    required double hargaBeliSatuan,
-    required double subtotal,
-  }) : pembelianId = Value(pembelianId),
-       produkId = Value(produkId),
-       jumlah = Value(jumlah),
-       hargaBeliSatuan = Value(hargaBeliSatuan),
-       subtotal = Value(subtotal);
+    required String id,
+    required String tokoId,
+    required String pembelianId,
+    required String produkId,
+    this.jumlah = const Value.absent(),
+    this.hargaBeliSatuan = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       pembelianId = Value(pembelianId),
+       produkId = Value(produkId);
   static Insertable<ItemPembelianTableData> custom({
-    Expression<int>? id,
-    Expression<int>? pembelianId,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? pembelianId,
+    Expression<String>? produkId,
     Expression<int>? jumlah,
     Expression<double>? hargaBeliSatuan,
     Expression<double>? subtotal,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (pembelianId != null) 'pembelian_id': pembelianId,
       if (produkId != null) 'produk_id': produkId,
       if (jumlah != null) 'jumlah': jumlah,
       if (hargaBeliSatuan != null) 'harga_beli_satuan': hargaBeliSatuan,
       if (subtotal != null) 'subtotal': subtotal,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ItemPembelianTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? pembelianId,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? pembelianId,
+    Value<String>? produkId,
     Value<int>? jumlah,
     Value<double>? hargaBeliSatuan,
     Value<double>? subtotal,
+    Value<int>? rowid,
   }) {
     return ItemPembelianTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       pembelianId: pembelianId ?? this.pembelianId,
       produkId: produkId ?? this.produkId,
       jumlah: jumlah ?? this.jumlah,
       hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
       subtotal: subtotal ?? this.subtotal,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -3370,13 +5688,16 @@ class ItemPembelianTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (pembelianId.present) {
-      map['pembelian_id'] = Variable<int>(pembelianId.value);
+      map['pembelian_id'] = Variable<String>(pembelianId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (jumlah.present) {
       map['jumlah'] = Variable<int>(jumlah.value);
@@ -3387,6 +5708,9 @@ class ItemPembelianTableCompanion
     if (subtotal.present) {
       map['subtotal'] = Variable<double>(subtotal.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -3394,11 +5718,13 @@ class ItemPembelianTableCompanion
   String toString() {
     return (StringBuffer('ItemPembelianTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pembelianId: $pembelianId, ')
           ..write('produkId: $produkId, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -3412,16 +5738,21 @@ class $PendingOrderTableTable extends PendingOrderTable
   $PendingOrderTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _namaPelangganMeta = const VerificationMeta(
     'namaPelanggan',
@@ -3458,7 +5789,13 @@ class $PendingOrderTableTable extends PendingOrderTable
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, namaPelanggan, catatan, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    namaPelanggan,
+    catatan,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3473,6 +5810,16 @@ class $PendingOrderTableTable extends PendingOrderTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('nama_pelanggan')) {
       context.handle(
@@ -3507,8 +5854,12 @@ class $PendingOrderTableTable extends PendingOrderTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PendingOrderTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
       )!,
       namaPelanggan: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -3533,12 +5884,14 @@ class $PendingOrderTableTable extends PendingOrderTable
 
 class PendingOrderTableData extends DataClass
     implements Insertable<PendingOrderTableData> {
-  final int id;
+  final String id;
+  final String tokoId;
   final String namaPelanggan;
   final String? catatan;
   final DateTime createdAt;
   const PendingOrderTableData({
     required this.id,
+    required this.tokoId,
     required this.namaPelanggan,
     this.catatan,
     required this.createdAt,
@@ -3546,7 +5899,8 @@ class PendingOrderTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
     map['nama_pelanggan'] = Variable<String>(namaPelanggan);
     if (!nullToAbsent || catatan != null) {
       map['catatan'] = Variable<String>(catatan);
@@ -3558,6 +5912,7 @@ class PendingOrderTableData extends DataClass
   PendingOrderTableCompanion toCompanion(bool nullToAbsent) {
     return PendingOrderTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       namaPelanggan: Value(namaPelanggan),
       catatan: catatan == null && nullToAbsent
           ? const Value.absent()
@@ -3572,7 +5927,8 @@ class PendingOrderTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PendingOrderTableData(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
       namaPelanggan: serializer.fromJson<String>(json['namaPelanggan']),
       catatan: serializer.fromJson<String?>(json['catatan']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -3582,7 +5938,8 @@ class PendingOrderTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
       'namaPelanggan': serializer.toJson<String>(namaPelanggan),
       'catatan': serializer.toJson<String?>(catatan),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -3590,12 +5947,14 @@ class PendingOrderTableData extends DataClass
   }
 
   PendingOrderTableData copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
     String? namaPelanggan,
     Value<String?> catatan = const Value.absent(),
     DateTime? createdAt,
   }) => PendingOrderTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     namaPelanggan: namaPelanggan ?? this.namaPelanggan,
     catatan: catatan.present ? catatan.value : this.catatan,
     createdAt: createdAt ?? this.createdAt,
@@ -3603,6 +5962,7 @@ class PendingOrderTableData extends DataClass
   PendingOrderTableData copyWithCompanion(PendingOrderTableCompanion data) {
     return PendingOrderTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       namaPelanggan: data.namaPelanggan.present
           ? data.namaPelanggan.value
           : this.namaPelanggan,
@@ -3615,6 +5975,7 @@ class PendingOrderTableData extends DataClass
   String toString() {
     return (StringBuffer('PendingOrderTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('namaPelanggan: $namaPelanggan, ')
           ..write('catatan: $catatan, ')
           ..write('createdAt: $createdAt')
@@ -3623,12 +5984,14 @@ class PendingOrderTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, namaPelanggan, catatan, createdAt);
+  int get hashCode =>
+      Object.hash(id, tokoId, namaPelanggan, catatan, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PendingOrderTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.namaPelanggan == this.namaPelanggan &&
           other.catatan == this.catatan &&
           other.createdAt == this.createdAt);
@@ -3636,47 +5999,63 @@ class PendingOrderTableData extends DataClass
 
 class PendingOrderTableCompanion
     extends UpdateCompanion<PendingOrderTableData> {
-  final Value<int> id;
+  final Value<String> id;
+  final Value<String> tokoId;
   final Value<String> namaPelanggan;
   final Value<String?> catatan;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const PendingOrderTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.namaPelanggan = const Value.absent(),
     this.catatan = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   PendingOrderTableCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
+    required String tokoId,
     required String namaPelanggan,
     this.catatan = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : namaPelanggan = Value(namaPelanggan);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       namaPelanggan = Value(namaPelanggan);
   static Insertable<PendingOrderTableData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
+    Expression<String>? tokoId,
     Expression<String>? namaPelanggan,
     Expression<String>? catatan,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (namaPelanggan != null) 'nama_pelanggan': namaPelanggan,
       if (catatan != null) 'catatan': catatan,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   PendingOrderTableCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
+    Value<String>? tokoId,
     Value<String>? namaPelanggan,
     Value<String?>? catatan,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return PendingOrderTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       namaPelanggan: namaPelanggan ?? this.namaPelanggan,
       catatan: catatan ?? this.catatan,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -3684,7 +6063,10 @@ class PendingOrderTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (namaPelanggan.present) {
       map['nama_pelanggan'] = Variable<String>(namaPelanggan.value);
@@ -3695,6 +6077,9 @@ class PendingOrderTableCompanion
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -3702,9 +6087,11 @@ class PendingOrderTableCompanion
   String toString() {
     return (StringBuffer('PendingOrderTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('namaPelanggan: $namaPelanggan, ')
           ..write('catatan: $catatan, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -3718,37 +6105,42 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
   $PendingOrderItemTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _pendingOrderIdMeta = const VerificationMeta(
     'pendingOrderId',
   );
   @override
-  late final GeneratedColumn<int> pendingOrderId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> pendingOrderId = GeneratedColumn<String>(
     'pending_order_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _namaProdukMeta = const VerificationMeta(
@@ -3771,7 +6163,8 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
   @override
@@ -3780,7 +6173,8 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _diskonTipeMeta = const VerificationMeta(
     'diskonTipe',
@@ -3815,11 +6209,13 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     pendingOrderId,
     produkId,
     namaProduk,
@@ -3843,6 +6239,16 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('pending_order_id')) {
       context.handle(
@@ -3876,16 +6282,12 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
         _hargaJualMeta,
         hargaJual.isAcceptableOrUnknown(data['harga_jual']!, _hargaJualMeta),
       );
-    } else if (isInserting) {
-      context.missing(_hargaJualMeta);
     }
     if (data.containsKey('jumlah')) {
       context.handle(
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('diskon_tipe')) {
       context.handle(
@@ -3907,8 +6309,6 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
         _subtotalMeta,
         subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
       );
-    } else if (isInserting) {
-      context.missing(_subtotalMeta);
     }
     return context;
   }
@@ -3923,15 +6323,19 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PendingOrderItemTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       pendingOrderId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}pending_order_id'],
       )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       namaProduk: attachedDatabase.typeMapping.read(
@@ -3969,9 +6373,10 @@ class $PendingOrderItemTableTable extends PendingOrderItemTable
 
 class PendingOrderItemTableData extends DataClass
     implements Insertable<PendingOrderItemTableData> {
-  final int id;
-  final int pendingOrderId;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String pendingOrderId;
+  final String produkId;
   final String namaProduk;
   final double hargaJual;
   final int jumlah;
@@ -3980,6 +6385,7 @@ class PendingOrderItemTableData extends DataClass
   final double subtotal;
   const PendingOrderItemTableData({
     required this.id,
+    required this.tokoId,
     required this.pendingOrderId,
     required this.produkId,
     required this.namaProduk,
@@ -3992,9 +6398,10 @@ class PendingOrderItemTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['pending_order_id'] = Variable<int>(pendingOrderId);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['pending_order_id'] = Variable<String>(pendingOrderId);
+    map['produk_id'] = Variable<String>(produkId);
     map['nama_produk'] = Variable<String>(namaProduk);
     map['harga_jual'] = Variable<double>(hargaJual);
     map['jumlah'] = Variable<int>(jumlah);
@@ -4007,6 +6414,7 @@ class PendingOrderItemTableData extends DataClass
   PendingOrderItemTableCompanion toCompanion(bool nullToAbsent) {
     return PendingOrderItemTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       pendingOrderId: Value(pendingOrderId),
       produkId: Value(produkId),
       namaProduk: Value(namaProduk),
@@ -4024,9 +6432,10 @@ class PendingOrderItemTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PendingOrderItemTableData(
-      id: serializer.fromJson<int>(json['id']),
-      pendingOrderId: serializer.fromJson<int>(json['pendingOrderId']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      pendingOrderId: serializer.fromJson<String>(json['pendingOrderId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
       namaProduk: serializer.fromJson<String>(json['namaProduk']),
       hargaJual: serializer.fromJson<double>(json['hargaJual']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
@@ -4039,9 +6448,10 @@ class PendingOrderItemTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'pendingOrderId': serializer.toJson<int>(pendingOrderId),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'pendingOrderId': serializer.toJson<String>(pendingOrderId),
+      'produkId': serializer.toJson<String>(produkId),
       'namaProduk': serializer.toJson<String>(namaProduk),
       'hargaJual': serializer.toJson<double>(hargaJual),
       'jumlah': serializer.toJson<int>(jumlah),
@@ -4052,9 +6462,10 @@ class PendingOrderItemTableData extends DataClass
   }
 
   PendingOrderItemTableData copyWith({
-    int? id,
-    int? pendingOrderId,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? pendingOrderId,
+    String? produkId,
     String? namaProduk,
     double? hargaJual,
     int? jumlah,
@@ -4063,6 +6474,7 @@ class PendingOrderItemTableData extends DataClass
     double? subtotal,
   }) => PendingOrderItemTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     pendingOrderId: pendingOrderId ?? this.pendingOrderId,
     produkId: produkId ?? this.produkId,
     namaProduk: namaProduk ?? this.namaProduk,
@@ -4077,6 +6489,7 @@ class PendingOrderItemTableData extends DataClass
   ) {
     return PendingOrderItemTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       pendingOrderId: data.pendingOrderId.present
           ? data.pendingOrderId.value
           : this.pendingOrderId,
@@ -4100,6 +6513,7 @@ class PendingOrderItemTableData extends DataClass
   String toString() {
     return (StringBuffer('PendingOrderItemTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pendingOrderId: $pendingOrderId, ')
           ..write('produkId: $produkId, ')
           ..write('namaProduk: $namaProduk, ')
@@ -4115,6 +6529,7 @@ class PendingOrderItemTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
     pendingOrderId,
     produkId,
     namaProduk,
@@ -4129,6 +6544,7 @@ class PendingOrderItemTableData extends DataClass
       identical(this, other) ||
       (other is PendingOrderItemTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.pendingOrderId == this.pendingOrderId &&
           other.produkId == this.produkId &&
           other.namaProduk == this.namaProduk &&
@@ -4141,17 +6557,20 @@ class PendingOrderItemTableData extends DataClass
 
 class PendingOrderItemTableCompanion
     extends UpdateCompanion<PendingOrderItemTableData> {
-  final Value<int> id;
-  final Value<int> pendingOrderId;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> pendingOrderId;
+  final Value<String> produkId;
   final Value<String> namaProduk;
   final Value<double> hargaJual;
   final Value<int> jumlah;
   final Value<int> diskonTipe;
   final Value<double> diskonValue;
   final Value<double> subtotal;
+  final Value<int> rowid;
   const PendingOrderItemTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.pendingOrderId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.namaProduk = const Value.absent(),
@@ -4160,36 +6579,41 @@ class PendingOrderItemTableCompanion
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   PendingOrderItemTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int pendingOrderId,
-    required int produkId,
+    required String id,
+    required String tokoId,
+    required String pendingOrderId,
+    required String produkId,
     required String namaProduk,
-    required double hargaJual,
-    required int jumlah,
+    this.hargaJual = const Value.absent(),
+    this.jumlah = const Value.absent(),
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
-    required double subtotal,
-  }) : pendingOrderId = Value(pendingOrderId),
+    this.subtotal = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       pendingOrderId = Value(pendingOrderId),
        produkId = Value(produkId),
-       namaProduk = Value(namaProduk),
-       hargaJual = Value(hargaJual),
-       jumlah = Value(jumlah),
-       subtotal = Value(subtotal);
+       namaProduk = Value(namaProduk);
   static Insertable<PendingOrderItemTableData> custom({
-    Expression<int>? id,
-    Expression<int>? pendingOrderId,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? pendingOrderId,
+    Expression<String>? produkId,
     Expression<String>? namaProduk,
     Expression<double>? hargaJual,
     Expression<int>? jumlah,
     Expression<int>? diskonTipe,
     Expression<double>? diskonValue,
     Expression<double>? subtotal,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (pendingOrderId != null) 'pending_order_id': pendingOrderId,
       if (produkId != null) 'produk_id': produkId,
       if (namaProduk != null) 'nama_produk': namaProduk,
@@ -4198,22 +6622,26 @@ class PendingOrderItemTableCompanion
       if (diskonTipe != null) 'diskon_tipe': diskonTipe,
       if (diskonValue != null) 'diskon_value': diskonValue,
       if (subtotal != null) 'subtotal': subtotal,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   PendingOrderItemTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? pendingOrderId,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? pendingOrderId,
+    Value<String>? produkId,
     Value<String>? namaProduk,
     Value<double>? hargaJual,
     Value<int>? jumlah,
     Value<int>? diskonTipe,
     Value<double>? diskonValue,
     Value<double>? subtotal,
+    Value<int>? rowid,
   }) {
     return PendingOrderItemTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       pendingOrderId: pendingOrderId ?? this.pendingOrderId,
       produkId: produkId ?? this.produkId,
       namaProduk: namaProduk ?? this.namaProduk,
@@ -4222,6 +6650,7 @@ class PendingOrderItemTableCompanion
       diskonTipe: diskonTipe ?? this.diskonTipe,
       diskonValue: diskonValue ?? this.diskonValue,
       subtotal: subtotal ?? this.subtotal,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -4229,13 +6658,16 @@ class PendingOrderItemTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (pendingOrderId.present) {
-      map['pending_order_id'] = Variable<int>(pendingOrderId.value);
+      map['pending_order_id'] = Variable<String>(pendingOrderId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (namaProduk.present) {
       map['nama_produk'] = Variable<String>(namaProduk.value);
@@ -4255,6 +6687,9 @@ class PendingOrderItemTableCompanion
     if (subtotal.present) {
       map['subtotal'] = Variable<double>(subtotal.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -4262,6 +6697,7 @@ class PendingOrderItemTableCompanion
   String toString() {
     return (StringBuffer('PendingOrderItemTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pendingOrderId: $pendingOrderId, ')
           ..write('produkId: $produkId, ')
           ..write('namaProduk: $namaProduk, ')
@@ -4269,7 +6705,8 @@ class PendingOrderItemTableCompanion
           ..write('jumlah: $jumlah, ')
           ..write('diskonTipe: $diskonTipe, ')
           ..write('diskonValue: $diskonValue, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -4283,26 +6720,31 @@ class $PendingPembelianTableTable extends PendingPembelianTable
   $PendingPembelianTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _supplierIdMeta = const VerificationMeta(
     'supplierId',
   );
   @override
-  late final GeneratedColumn<int> supplierId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> supplierId = GeneratedColumn<String>(
     'supplier_id',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _namaSupplierMeta = const VerificationMeta(
@@ -4315,18 +6757,6 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
   );
   static const VerificationMeta _isPpnEnabledMeta = const VerificationMeta(
     'isPpnEnabled',
@@ -4355,14 +6785,27 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     requiredDuringInsert: false,
     defaultValue: const Constant(11.0),
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     supplierId,
     namaSupplier,
-    createdAt,
     isPpnEnabled,
     ppnPercent,
+    createdAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4378,6 +6821,16 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('supplier_id')) {
       context.handle(
@@ -4392,12 +6845,6 @@ class $PendingPembelianTableTable extends PendingPembelianTable
           data['nama_supplier']!,
           _namaSupplierMeta,
         ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
     if (data.containsKey('is_ppn_enabled')) {
@@ -4415,6 +6862,12 @@ class $PendingPembelianTableTable extends PendingPembelianTable
         ppnPercent.isAcceptableOrUnknown(data['ppn_percent']!, _ppnPercentMeta),
       );
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
     return context;
   }
 
@@ -4428,21 +6881,21 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PendingPembelianTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       supplierId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}supplier_id'],
       ),
       namaSupplier: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}nama_supplier'],
       ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
       isPpnEnabled: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_ppn_enabled'],
@@ -4450,6 +6903,10 @@ class $PendingPembelianTableTable extends PendingPembelianTable
       ppnPercent: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}ppn_percent'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
       )!,
     );
   }
@@ -4462,48 +6919,52 @@ class $PendingPembelianTableTable extends PendingPembelianTable
 
 class PendingPembelianTableData extends DataClass
     implements Insertable<PendingPembelianTableData> {
-  final int id;
-  final int? supplierId;
+  final String id;
+  final String tokoId;
+  final String? supplierId;
   final String? namaSupplier;
-  final DateTime createdAt;
   final bool isPpnEnabled;
   final double ppnPercent;
+  final DateTime createdAt;
   const PendingPembelianTableData({
     required this.id,
+    required this.tokoId,
     this.supplierId,
     this.namaSupplier,
-    required this.createdAt,
     required this.isPpnEnabled,
     required this.ppnPercent,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
     if (!nullToAbsent || supplierId != null) {
-      map['supplier_id'] = Variable<int>(supplierId);
+      map['supplier_id'] = Variable<String>(supplierId);
     }
     if (!nullToAbsent || namaSupplier != null) {
       map['nama_supplier'] = Variable<String>(namaSupplier);
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
     map['is_ppn_enabled'] = Variable<bool>(isPpnEnabled);
     map['ppn_percent'] = Variable<double>(ppnPercent);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
   PendingPembelianTableCompanion toCompanion(bool nullToAbsent) {
     return PendingPembelianTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       supplierId: supplierId == null && nullToAbsent
           ? const Value.absent()
           : Value(supplierId),
       namaSupplier: namaSupplier == null && nullToAbsent
           ? const Value.absent()
           : Value(namaSupplier),
-      createdAt: Value(createdAt),
       isPpnEnabled: Value(isPpnEnabled),
       ppnPercent: Value(ppnPercent),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -4513,60 +6974,65 @@ class PendingPembelianTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PendingPembelianTableData(
-      id: serializer.fromJson<int>(json['id']),
-      supplierId: serializer.fromJson<int?>(json['supplierId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      supplierId: serializer.fromJson<String?>(json['supplierId']),
       namaSupplier: serializer.fromJson<String?>(json['namaSupplier']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       isPpnEnabled: serializer.fromJson<bool>(json['isPpnEnabled']),
       ppnPercent: serializer.fromJson<double>(json['ppnPercent']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'supplierId': serializer.toJson<int?>(supplierId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'supplierId': serializer.toJson<String?>(supplierId),
       'namaSupplier': serializer.toJson<String?>(namaSupplier),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
       'isPpnEnabled': serializer.toJson<bool>(isPpnEnabled),
       'ppnPercent': serializer.toJson<double>(ppnPercent),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   PendingPembelianTableData copyWith({
-    int? id,
-    Value<int?> supplierId = const Value.absent(),
+    String? id,
+    String? tokoId,
+    Value<String?> supplierId = const Value.absent(),
     Value<String?> namaSupplier = const Value.absent(),
-    DateTime? createdAt,
     bool? isPpnEnabled,
     double? ppnPercent,
+    DateTime? createdAt,
   }) => PendingPembelianTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     supplierId: supplierId.present ? supplierId.value : this.supplierId,
     namaSupplier: namaSupplier.present ? namaSupplier.value : this.namaSupplier,
-    createdAt: createdAt ?? this.createdAt,
     isPpnEnabled: isPpnEnabled ?? this.isPpnEnabled,
     ppnPercent: ppnPercent ?? this.ppnPercent,
+    createdAt: createdAt ?? this.createdAt,
   );
   PendingPembelianTableData copyWithCompanion(
     PendingPembelianTableCompanion data,
   ) {
     return PendingPembelianTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       supplierId: data.supplierId.present
           ? data.supplierId.value
           : this.supplierId,
       namaSupplier: data.namaSupplier.present
           ? data.namaSupplier.value
           : this.namaSupplier,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       isPpnEnabled: data.isPpnEnabled.present
           ? data.isPpnEnabled.value
           : this.isPpnEnabled,
       ppnPercent: data.ppnPercent.present
           ? data.ppnPercent.value
           : this.ppnPercent,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -4574,11 +7040,12 @@ class PendingPembelianTableData extends DataClass
   String toString() {
     return (StringBuffer('PendingPembelianTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('supplierId: $supplierId, ')
           ..write('namaSupplier: $namaSupplier, ')
-          ..write('createdAt: $createdAt, ')
           ..write('isPpnEnabled: $isPpnEnabled, ')
-          ..write('ppnPercent: $ppnPercent')
+          ..write('ppnPercent: $ppnPercent, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -4586,81 +7053,98 @@ class PendingPembelianTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
     supplierId,
     namaSupplier,
-    createdAt,
     isPpnEnabled,
     ppnPercent,
+    createdAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PendingPembelianTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.supplierId == this.supplierId &&
           other.namaSupplier == this.namaSupplier &&
-          other.createdAt == this.createdAt &&
           other.isPpnEnabled == this.isPpnEnabled &&
-          other.ppnPercent == this.ppnPercent);
+          other.ppnPercent == this.ppnPercent &&
+          other.createdAt == this.createdAt);
 }
 
 class PendingPembelianTableCompanion
     extends UpdateCompanion<PendingPembelianTableData> {
-  final Value<int> id;
-  final Value<int?> supplierId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String?> supplierId;
   final Value<String?> namaSupplier;
-  final Value<DateTime> createdAt;
   final Value<bool> isPpnEnabled;
   final Value<double> ppnPercent;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const PendingPembelianTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.namaSupplier = const Value.absent(),
-    this.createdAt = const Value.absent(),
     this.isPpnEnabled = const Value.absent(),
     this.ppnPercent = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   PendingPembelianTableCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
+    required String tokoId,
     this.supplierId = const Value.absent(),
     this.namaSupplier = const Value.absent(),
-    this.createdAt = const Value.absent(),
     this.isPpnEnabled = const Value.absent(),
     this.ppnPercent = const Value.absent(),
-  });
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId);
   static Insertable<PendingPembelianTableData> custom({
-    Expression<int>? id,
-    Expression<int>? supplierId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? supplierId,
     Expression<String>? namaSupplier,
-    Expression<DateTime>? createdAt,
     Expression<bool>? isPpnEnabled,
     Expression<double>? ppnPercent,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (supplierId != null) 'supplier_id': supplierId,
       if (namaSupplier != null) 'nama_supplier': namaSupplier,
-      if (createdAt != null) 'created_at': createdAt,
       if (isPpnEnabled != null) 'is_ppn_enabled': isPpnEnabled,
       if (ppnPercent != null) 'ppn_percent': ppnPercent,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   PendingPembelianTableCompanion copyWith({
-    Value<int>? id,
-    Value<int?>? supplierId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String?>? supplierId,
     Value<String?>? namaSupplier,
-    Value<DateTime>? createdAt,
     Value<bool>? isPpnEnabled,
     Value<double>? ppnPercent,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return PendingPembelianTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       supplierId: supplierId ?? this.supplierId,
       namaSupplier: namaSupplier ?? this.namaSupplier,
-      createdAt: createdAt ?? this.createdAt,
       isPpnEnabled: isPpnEnabled ?? this.isPpnEnabled,
       ppnPercent: ppnPercent ?? this.ppnPercent,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -4668,22 +7152,28 @@ class PendingPembelianTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (supplierId.present) {
-      map['supplier_id'] = Variable<int>(supplierId.value);
+      map['supplier_id'] = Variable<String>(supplierId.value);
     }
     if (namaSupplier.present) {
       map['nama_supplier'] = Variable<String>(namaSupplier.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (isPpnEnabled.present) {
       map['is_ppn_enabled'] = Variable<bool>(isPpnEnabled.value);
     }
     if (ppnPercent.present) {
       map['ppn_percent'] = Variable<double>(ppnPercent.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -4692,11 +7182,13 @@ class PendingPembelianTableCompanion
   String toString() {
     return (StringBuffer('PendingPembelianTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('supplierId: $supplierId, ')
           ..write('namaSupplier: $namaSupplier, ')
-          ..write('createdAt: $createdAt, ')
           ..write('isPpnEnabled: $isPpnEnabled, ')
-          ..write('ppnPercent: $ppnPercent')
+          ..write('ppnPercent: $ppnPercent, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -4714,36 +7206,42 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
   $PendingPembelianItemTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _pendingPembelianIdMeta =
       const VerificationMeta('pendingPembelianId');
   @override
-  late final GeneratedColumn<int> pendingPembelianId = GeneratedColumn<int>(
-    'pending_pembelian_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumn<String> pendingPembelianId =
+      GeneratedColumn<String>(
+        'pending_pembelian_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
   static const VerificationMeta _produkIdMeta = const VerificationMeta(
     'produkId',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
     'produk_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _namaProdukMeta = const VerificationMeta(
@@ -4764,7 +7262,8 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _hargaBeliSatuanMeta = const VerificationMeta(
     'hargaBeliSatuan',
@@ -4775,7 +7274,8 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _hargaBeliLamaMeta = const VerificationMeta(
     'hargaBeliLama',
@@ -4786,7 +7286,8 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     aliasedName,
     false,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _diskonTipeMeta = const VerificationMeta(
     'diskonTipe',
@@ -4815,6 +7316,7 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     pendingPembelianId,
     produkId,
     namaProduk,
@@ -4838,6 +7340,16 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('pending_pembelian_id')) {
       context.handle(
@@ -4871,8 +7383,6 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
         _jumlahMeta,
         jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
       );
-    } else if (isInserting) {
-      context.missing(_jumlahMeta);
     }
     if (data.containsKey('harga_beli_satuan')) {
       context.handle(
@@ -4882,8 +7392,6 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
           _hargaBeliSatuanMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_hargaBeliSatuanMeta);
     }
     if (data.containsKey('harga_beli_lama')) {
       context.handle(
@@ -4893,8 +7401,6 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
           _hargaBeliLamaMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_hargaBeliLamaMeta);
     }
     if (data.containsKey('diskon_tipe')) {
       context.handle(
@@ -4924,15 +7430,19 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PendingPembelianItemTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
       pendingPembelianId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}pending_pembelian_id'],
       )!,
       produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
       namaProduk: attachedDatabase.typeMapping.read(
@@ -4970,9 +7480,10 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
 
 class PendingPembelianItemTableData extends DataClass
     implements Insertable<PendingPembelianItemTableData> {
-  final int id;
-  final int pendingPembelianId;
-  final int produkId;
+  final String id;
+  final String tokoId;
+  final String pendingPembelianId;
+  final String produkId;
   final String namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
@@ -4981,6 +7492,7 @@ class PendingPembelianItemTableData extends DataClass
   final double diskonValue;
   const PendingPembelianItemTableData({
     required this.id,
+    required this.tokoId,
     required this.pendingPembelianId,
     required this.produkId,
     required this.namaProduk,
@@ -4993,9 +7505,10 @@ class PendingPembelianItemTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['pending_pembelian_id'] = Variable<int>(pendingPembelianId);
-    map['produk_id'] = Variable<int>(produkId);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['pending_pembelian_id'] = Variable<String>(pendingPembelianId);
+    map['produk_id'] = Variable<String>(produkId);
     map['nama_produk'] = Variable<String>(namaProduk);
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_beli_satuan'] = Variable<double>(hargaBeliSatuan);
@@ -5008,6 +7521,7 @@ class PendingPembelianItemTableData extends DataClass
   PendingPembelianItemTableCompanion toCompanion(bool nullToAbsent) {
     return PendingPembelianItemTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       pendingPembelianId: Value(pendingPembelianId),
       produkId: Value(produkId),
       namaProduk: Value(namaProduk),
@@ -5025,9 +7539,12 @@ class PendingPembelianItemTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PendingPembelianItemTableData(
-      id: serializer.fromJson<int>(json['id']),
-      pendingPembelianId: serializer.fromJson<int>(json['pendingPembelianId']),
-      produkId: serializer.fromJson<int>(json['produkId']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      pendingPembelianId: serializer.fromJson<String>(
+        json['pendingPembelianId'],
+      ),
+      produkId: serializer.fromJson<String>(json['produkId']),
       namaProduk: serializer.fromJson<String>(json['namaProduk']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaBeliSatuan: serializer.fromJson<double>(json['hargaBeliSatuan']),
@@ -5040,9 +7557,10 @@ class PendingPembelianItemTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'pendingPembelianId': serializer.toJson<int>(pendingPembelianId),
-      'produkId': serializer.toJson<int>(produkId),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'pendingPembelianId': serializer.toJson<String>(pendingPembelianId),
+      'produkId': serializer.toJson<String>(produkId),
       'namaProduk': serializer.toJson<String>(namaProduk),
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaBeliSatuan': serializer.toJson<double>(hargaBeliSatuan),
@@ -5053,9 +7571,10 @@ class PendingPembelianItemTableData extends DataClass
   }
 
   PendingPembelianItemTableData copyWith({
-    int? id,
-    int? pendingPembelianId,
-    int? produkId,
+    String? id,
+    String? tokoId,
+    String? pendingPembelianId,
+    String? produkId,
     String? namaProduk,
     int? jumlah,
     double? hargaBeliSatuan,
@@ -5064,6 +7583,7 @@ class PendingPembelianItemTableData extends DataClass
     double? diskonValue,
   }) => PendingPembelianItemTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     pendingPembelianId: pendingPembelianId ?? this.pendingPembelianId,
     produkId: produkId ?? this.produkId,
     namaProduk: namaProduk ?? this.namaProduk,
@@ -5078,6 +7598,7 @@ class PendingPembelianItemTableData extends DataClass
   ) {
     return PendingPembelianItemTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       pendingPembelianId: data.pendingPembelianId.present
           ? data.pendingPembelianId.value
           : this.pendingPembelianId,
@@ -5105,6 +7626,7 @@ class PendingPembelianItemTableData extends DataClass
   String toString() {
     return (StringBuffer('PendingPembelianItemTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pendingPembelianId: $pendingPembelianId, ')
           ..write('produkId: $produkId, ')
           ..write('namaProduk: $namaProduk, ')
@@ -5120,6 +7642,7 @@ class PendingPembelianItemTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    tokoId,
     pendingPembelianId,
     produkId,
     namaProduk,
@@ -5134,6 +7657,7 @@ class PendingPembelianItemTableData extends DataClass
       identical(this, other) ||
       (other is PendingPembelianItemTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.pendingPembelianId == this.pendingPembelianId &&
           other.produkId == this.produkId &&
           other.namaProduk == this.namaProduk &&
@@ -5146,17 +7670,20 @@ class PendingPembelianItemTableData extends DataClass
 
 class PendingPembelianItemTableCompanion
     extends UpdateCompanion<PendingPembelianItemTableData> {
-  final Value<int> id;
-  final Value<int> pendingPembelianId;
-  final Value<int> produkId;
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> pendingPembelianId;
+  final Value<String> produkId;
   final Value<String> namaProduk;
   final Value<int> jumlah;
   final Value<double> hargaBeliSatuan;
   final Value<double> hargaBeliLama;
   final Value<int> diskonTipe;
   final Value<double> diskonValue;
+  final Value<int> rowid;
   const PendingPembelianItemTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.pendingPembelianId = const Value.absent(),
     this.produkId = const Value.absent(),
     this.namaProduk = const Value.absent(),
@@ -5165,36 +7692,41 @@ class PendingPembelianItemTableCompanion
     this.hargaBeliLama = const Value.absent(),
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   PendingPembelianItemTableCompanion.insert({
-    this.id = const Value.absent(),
-    required int pendingPembelianId,
-    required int produkId,
+    required String id,
+    required String tokoId,
+    required String pendingPembelianId,
+    required String produkId,
     required String namaProduk,
-    required int jumlah,
-    required double hargaBeliSatuan,
-    required double hargaBeliLama,
+    this.jumlah = const Value.absent(),
+    this.hargaBeliSatuan = const Value.absent(),
+    this.hargaBeliLama = const Value.absent(),
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
-  }) : pendingPembelianId = Value(pendingPembelianId),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       pendingPembelianId = Value(pendingPembelianId),
        produkId = Value(produkId),
-       namaProduk = Value(namaProduk),
-       jumlah = Value(jumlah),
-       hargaBeliSatuan = Value(hargaBeliSatuan),
-       hargaBeliLama = Value(hargaBeliLama);
+       namaProduk = Value(namaProduk);
   static Insertable<PendingPembelianItemTableData> custom({
-    Expression<int>? id,
-    Expression<int>? pendingPembelianId,
-    Expression<int>? produkId,
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? pendingPembelianId,
+    Expression<String>? produkId,
     Expression<String>? namaProduk,
     Expression<int>? jumlah,
     Expression<double>? hargaBeliSatuan,
     Expression<double>? hargaBeliLama,
     Expression<int>? diskonTipe,
     Expression<double>? diskonValue,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (pendingPembelianId != null)
         'pending_pembelian_id': pendingPembelianId,
       if (produkId != null) 'produk_id': produkId,
@@ -5204,22 +7736,26 @@ class PendingPembelianItemTableCompanion
       if (hargaBeliLama != null) 'harga_beli_lama': hargaBeliLama,
       if (diskonTipe != null) 'diskon_tipe': diskonTipe,
       if (diskonValue != null) 'diskon_value': diskonValue,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   PendingPembelianItemTableCompanion copyWith({
-    Value<int>? id,
-    Value<int>? pendingPembelianId,
-    Value<int>? produkId,
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? pendingPembelianId,
+    Value<String>? produkId,
     Value<String>? namaProduk,
     Value<int>? jumlah,
     Value<double>? hargaBeliSatuan,
     Value<double>? hargaBeliLama,
     Value<int>? diskonTipe,
     Value<double>? diskonValue,
+    Value<int>? rowid,
   }) {
     return PendingPembelianItemTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       pendingPembelianId: pendingPembelianId ?? this.pendingPembelianId,
       produkId: produkId ?? this.produkId,
       namaProduk: namaProduk ?? this.namaProduk,
@@ -5228,6 +7764,7 @@ class PendingPembelianItemTableCompanion
       hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,
       diskonTipe: diskonTipe ?? this.diskonTipe,
       diskonValue: diskonValue ?? this.diskonValue,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -5235,13 +7772,16 @@ class PendingPembelianItemTableCompanion
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (pendingPembelianId.present) {
-      map['pending_pembelian_id'] = Variable<int>(pendingPembelianId.value);
+      map['pending_pembelian_id'] = Variable<String>(pendingPembelianId.value);
     }
     if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+      map['produk_id'] = Variable<String>(produkId.value);
     }
     if (namaProduk.present) {
       map['nama_produk'] = Variable<String>(namaProduk.value);
@@ -5261,6 +7801,9 @@ class PendingPembelianItemTableCompanion
     if (diskonValue.present) {
       map['diskon_value'] = Variable<double>(diskonValue.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -5268,6 +7811,7 @@ class PendingPembelianItemTableCompanion
   String toString() {
     return (StringBuffer('PendingPembelianItemTableCompanion(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('pendingPembelianId: $pendingPembelianId, ')
           ..write('produkId: $produkId, ')
           ..write('namaProduk: $namaProduk, ')
@@ -5275,350 +7819,8 @@ class PendingPembelianItemTableCompanion
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
           ..write('hargaBeliLama: $hargaBeliLama, ')
           ..write('diskonTipe: $diskonTipe, ')
-          ..write('diskonValue: $diskonValue')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $SupplierTableTable extends SupplierTable
-    with TableInfo<$SupplierTableTable, SupplierTableData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $SupplierTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
-  @override
-  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
-    'nama',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _teleponMeta = const VerificationMeta(
-    'telepon',
-  );
-  @override
-  late final GeneratedColumn<String> telepon = GeneratedColumn<String>(
-    'telepon',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _alamatMeta = const VerificationMeta('alamat');
-  @override
-  late final GeneratedColumn<String> alamat = GeneratedColumn<String>(
-    'alamat',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, nama, telepon, alamat, createdAt];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'supplier_table';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<SupplierTableData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('nama')) {
-      context.handle(
-        _namaMeta,
-        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_namaMeta);
-    }
-    if (data.containsKey('telepon')) {
-      context.handle(
-        _teleponMeta,
-        telepon.isAcceptableOrUnknown(data['telepon']!, _teleponMeta),
-      );
-    }
-    if (data.containsKey('alamat')) {
-      context.handle(
-        _alamatMeta,
-        alamat.isAcceptableOrUnknown(data['alamat']!, _alamatMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  SupplierTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SupplierTableData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      nama: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}nama'],
-      )!,
-      telepon: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}telepon'],
-      ),
-      alamat: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}alamat'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $SupplierTableTable createAlias(String alias) {
-    return $SupplierTableTable(attachedDatabase, alias);
-  }
-}
-
-class SupplierTableData extends DataClass
-    implements Insertable<SupplierTableData> {
-  final int id;
-  final String nama;
-  final String? telepon;
-  final String? alamat;
-  final DateTime createdAt;
-  const SupplierTableData({
-    required this.id,
-    required this.nama,
-    this.telepon,
-    this.alamat,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['nama'] = Variable<String>(nama);
-    if (!nullToAbsent || telepon != null) {
-      map['telepon'] = Variable<String>(telepon);
-    }
-    if (!nullToAbsent || alamat != null) {
-      map['alamat'] = Variable<String>(alamat);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  SupplierTableCompanion toCompanion(bool nullToAbsent) {
-    return SupplierTableCompanion(
-      id: Value(id),
-      nama: Value(nama),
-      telepon: telepon == null && nullToAbsent
-          ? const Value.absent()
-          : Value(telepon),
-      alamat: alamat == null && nullToAbsent
-          ? const Value.absent()
-          : Value(alamat),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory SupplierTableData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SupplierTableData(
-      id: serializer.fromJson<int>(json['id']),
-      nama: serializer.fromJson<String>(json['nama']),
-      telepon: serializer.fromJson<String?>(json['telepon']),
-      alamat: serializer.fromJson<String?>(json['alamat']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'nama': serializer.toJson<String>(nama),
-      'telepon': serializer.toJson<String?>(telepon),
-      'alamat': serializer.toJson<String?>(alamat),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  SupplierTableData copyWith({
-    int? id,
-    String? nama,
-    Value<String?> telepon = const Value.absent(),
-    Value<String?> alamat = const Value.absent(),
-    DateTime? createdAt,
-  }) => SupplierTableData(
-    id: id ?? this.id,
-    nama: nama ?? this.nama,
-    telepon: telepon.present ? telepon.value : this.telepon,
-    alamat: alamat.present ? alamat.value : this.alamat,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  SupplierTableData copyWithCompanion(SupplierTableCompanion data) {
-    return SupplierTableData(
-      id: data.id.present ? data.id.value : this.id,
-      nama: data.nama.present ? data.nama.value : this.nama,
-      telepon: data.telepon.present ? data.telepon.value : this.telepon,
-      alamat: data.alamat.present ? data.alamat.value : this.alamat,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SupplierTableData(')
-          ..write('id: $id, ')
-          ..write('nama: $nama, ')
-          ..write('telepon: $telepon, ')
-          ..write('alamat: $alamat, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, nama, telepon, alamat, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SupplierTableData &&
-          other.id == this.id &&
-          other.nama == this.nama &&
-          other.telepon == this.telepon &&
-          other.alamat == this.alamat &&
-          other.createdAt == this.createdAt);
-}
-
-class SupplierTableCompanion extends UpdateCompanion<SupplierTableData> {
-  final Value<int> id;
-  final Value<String> nama;
-  final Value<String?> telepon;
-  final Value<String?> alamat;
-  final Value<DateTime> createdAt;
-  const SupplierTableCompanion({
-    this.id = const Value.absent(),
-    this.nama = const Value.absent(),
-    this.telepon = const Value.absent(),
-    this.alamat = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  });
-  SupplierTableCompanion.insert({
-    this.id = const Value.absent(),
-    required String nama,
-    this.telepon = const Value.absent(),
-    this.alamat = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  }) : nama = Value(nama);
-  static Insertable<SupplierTableData> custom({
-    Expression<int>? id,
-    Expression<String>? nama,
-    Expression<String>? telepon,
-    Expression<String>? alamat,
-    Expression<DateTime>? createdAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (nama != null) 'nama': nama,
-      if (telepon != null) 'telepon': telepon,
-      if (alamat != null) 'alamat': alamat,
-      if (createdAt != null) 'created_at': createdAt,
-    });
-  }
-
-  SupplierTableCompanion copyWith({
-    Value<int>? id,
-    Value<String>? nama,
-    Value<String?>? telepon,
-    Value<String?>? alamat,
-    Value<DateTime>? createdAt,
-  }) {
-    return SupplierTableCompanion(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      telepon: telepon ?? this.telepon,
-      alamat: alamat ?? this.alamat,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (nama.present) {
-      map['nama'] = Variable<String>(nama.value);
-    }
-    if (telepon.present) {
-      map['telepon'] = Variable<String>(telepon.value);
-    }
-    if (alamat.present) {
-      map['alamat'] = Variable<String>(alamat.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SupplierTableCompanion(')
-          ..write('id: $id, ')
-          ..write('nama: $nama, ')
-          ..write('telepon: $telepon, ')
-          ..write('alamat: $alamat, ')
-          ..write('createdAt: $createdAt')
+          ..write('diskonValue: $diskonValue, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -5632,16 +7834,21 @@ class $NotifikasiTableTable extends NotifikasiTable
   $NotifikasiTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _judulMeta = const VerificationMeta('judul');
   @override
@@ -5699,6 +7906,7 @@ class $NotifikasiTableTable extends NotifikasiTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    tokoId,
     judul,
     pesan,
     tipe,
@@ -5719,6 +7927,16 @@ class $NotifikasiTableTable extends NotifikasiTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
     }
     if (data.containsKey('judul')) {
       context.handle(
@@ -5764,8 +7982,12 @@ class $NotifikasiTableTable extends NotifikasiTable
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return NotifikasiTableData(
       id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
       )!,
       judul: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -5798,7 +8020,8 @@ class $NotifikasiTableTable extends NotifikasiTable
 
 class NotifikasiTableData extends DataClass
     implements Insertable<NotifikasiTableData> {
-  final int id;
+  final String id;
+  final String tokoId;
   final String judul;
   final String pesan;
   final String tipe;
@@ -5806,6 +8029,7 @@ class NotifikasiTableData extends DataClass
   final DateTime createdAt;
   const NotifikasiTableData({
     required this.id,
+    required this.tokoId,
     required this.judul,
     required this.pesan,
     required this.tipe,
@@ -5815,7 +8039,8 @@ class NotifikasiTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
     map['judul'] = Variable<String>(judul);
     map['pesan'] = Variable<String>(pesan);
     map['tipe'] = Variable<String>(tipe);
@@ -5827,6 +8052,7 @@ class NotifikasiTableData extends DataClass
   NotifikasiTableCompanion toCompanion(bool nullToAbsent) {
     return NotifikasiTableCompanion(
       id: Value(id),
+      tokoId: Value(tokoId),
       judul: Value(judul),
       pesan: Value(pesan),
       tipe: Value(tipe),
@@ -5841,7 +8067,8 @@ class NotifikasiTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return NotifikasiTableData(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
       judul: serializer.fromJson<String>(json['judul']),
       pesan: serializer.fromJson<String>(json['pesan']),
       tipe: serializer.fromJson<String>(json['tipe']),
@@ -5853,7 +8080,8 @@ class NotifikasiTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
       'judul': serializer.toJson<String>(judul),
       'pesan': serializer.toJson<String>(pesan),
       'tipe': serializer.toJson<String>(tipe),
@@ -5863,7 +8091,8 @@ class NotifikasiTableData extends DataClass
   }
 
   NotifikasiTableData copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
     String? judul,
     String? pesan,
     String? tipe,
@@ -5871,6 +8100,7 @@ class NotifikasiTableData extends DataClass
     DateTime? createdAt,
   }) => NotifikasiTableData(
     id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
     judul: judul ?? this.judul,
     pesan: pesan ?? this.pesan,
     tipe: tipe ?? this.tipe,
@@ -5880,6 +8110,7 @@ class NotifikasiTableData extends DataClass
   NotifikasiTableData copyWithCompanion(NotifikasiTableCompanion data) {
     return NotifikasiTableData(
       id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
       judul: data.judul.present ? data.judul.value : this.judul,
       pesan: data.pesan.present ? data.pesan.value : this.pesan,
       tipe: data.tipe.present ? data.tipe.value : this.tipe,
@@ -5892,6 +8123,7 @@ class NotifikasiTableData extends DataClass
   String toString() {
     return (StringBuffer('NotifikasiTableData(')
           ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
           ..write('judul: $judul, ')
           ..write('pesan: $pesan, ')
           ..write('tipe: $tipe, ')
@@ -5902,12 +8134,14 @@ class NotifikasiTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, judul, pesan, tipe, isRead, createdAt);
+  int get hashCode =>
+      Object.hash(id, tokoId, judul, pesan, tipe, isRead, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is NotifikasiTableData &&
           other.id == this.id &&
+          other.tokoId == this.tokoId &&
           other.judul == this.judul &&
           other.pesan == this.pesan &&
           other.tipe == this.tipe &&
@@ -5916,62 +8150,78 @@ class NotifikasiTableData extends DataClass
 }
 
 class NotifikasiTableCompanion extends UpdateCompanion<NotifikasiTableData> {
-  final Value<int> id;
+  final Value<String> id;
+  final Value<String> tokoId;
   final Value<String> judul;
   final Value<String> pesan;
   final Value<String> tipe;
   final Value<bool> isRead;
   final Value<DateTime> createdAt;
+  final Value<int> rowid;
   const NotifikasiTableCompanion({
     this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
     this.judul = const Value.absent(),
     this.pesan = const Value.absent(),
     this.tipe = const Value.absent(),
     this.isRead = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   NotifikasiTableCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
+    required String tokoId,
     required String judul,
     required String pesan,
     this.tipe = const Value.absent(),
     this.isRead = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : judul = Value(judul),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       judul = Value(judul),
        pesan = Value(pesan);
   static Insertable<NotifikasiTableData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
+    Expression<String>? tokoId,
     Expression<String>? judul,
     Expression<String>? pesan,
     Expression<String>? tipe,
     Expression<bool>? isRead,
     Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
       if (judul != null) 'judul': judul,
       if (pesan != null) 'pesan': pesan,
       if (tipe != null) 'tipe': tipe,
       if (isRead != null) 'is_read': isRead,
       if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   NotifikasiTableCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
+    Value<String>? tokoId,
     Value<String>? judul,
     Value<String>? pesan,
     Value<String>? tipe,
     Value<bool>? isRead,
     Value<DateTime>? createdAt,
+    Value<int>? rowid,
   }) {
     return NotifikasiTableCompanion(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       judul: judul ?? this.judul,
       pesan: pesan ?? this.pesan,
       tipe: tipe ?? this.tipe,
       isRead: isRead ?? this.isRead,
       createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -5979,7 +8229,10 @@ class NotifikasiTableCompanion extends UpdateCompanion<NotifikasiTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
     }
     if (judul.present) {
       map['judul'] = Variable<String>(judul.value);
@@ -5996,1297 +8249,6 @@ class NotifikasiTableCompanion extends UpdateCompanion<NotifikasiTableData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NotifikasiTableCompanion(')
-          ..write('id: $id, ')
-          ..write('judul: $judul, ')
-          ..write('pesan: $pesan, ')
-          ..write('tipe: $tipe, ')
-          ..write('isRead: $isRead, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $TokoTableTable extends TokoTable
-    with TableInfo<$TokoTableTable, TokoTableData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $TokoTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
-  @override
-  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
-    'nama',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _alamatMeta = const VerificationMeta('alamat');
-  @override
-  late final GeneratedColumn<String> alamat = GeneratedColumn<String>(
-    'alamat',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _teleponMeta = const VerificationMeta(
-    'telepon',
-  );
-  @override
-  late final GeneratedColumn<String> telepon = GeneratedColumn<String>(
-    'telepon',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, nama, alamat, telepon, createdAt];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'toko_table';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<TokoTableData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('nama')) {
-      context.handle(
-        _namaMeta,
-        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_namaMeta);
-    }
-    if (data.containsKey('alamat')) {
-      context.handle(
-        _alamatMeta,
-        alamat.isAcceptableOrUnknown(data['alamat']!, _alamatMeta),
-      );
-    }
-    if (data.containsKey('telepon')) {
-      context.handle(
-        _teleponMeta,
-        telepon.isAcceptableOrUnknown(data['telepon']!, _teleponMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  TokoTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TokoTableData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      nama: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}nama'],
-      )!,
-      alamat: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}alamat'],
-      ),
-      telepon: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}telepon'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $TokoTableTable createAlias(String alias) {
-    return $TokoTableTable(attachedDatabase, alias);
-  }
-}
-
-class TokoTableData extends DataClass implements Insertable<TokoTableData> {
-  final int id;
-  final String nama;
-  final String? alamat;
-  final String? telepon;
-  final DateTime createdAt;
-  const TokoTableData({
-    required this.id,
-    required this.nama,
-    this.alamat,
-    this.telepon,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['nama'] = Variable<String>(nama);
-    if (!nullToAbsent || alamat != null) {
-      map['alamat'] = Variable<String>(alamat);
-    }
-    if (!nullToAbsent || telepon != null) {
-      map['telepon'] = Variable<String>(telepon);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  TokoTableCompanion toCompanion(bool nullToAbsent) {
-    return TokoTableCompanion(
-      id: Value(id),
-      nama: Value(nama),
-      alamat: alamat == null && nullToAbsent
-          ? const Value.absent()
-          : Value(alamat),
-      telepon: telepon == null && nullToAbsent
-          ? const Value.absent()
-          : Value(telepon),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory TokoTableData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TokoTableData(
-      id: serializer.fromJson<int>(json['id']),
-      nama: serializer.fromJson<String>(json['nama']),
-      alamat: serializer.fromJson<String?>(json['alamat']),
-      telepon: serializer.fromJson<String?>(json['telepon']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'nama': serializer.toJson<String>(nama),
-      'alamat': serializer.toJson<String?>(alamat),
-      'telepon': serializer.toJson<String?>(telepon),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  TokoTableData copyWith({
-    int? id,
-    String? nama,
-    Value<String?> alamat = const Value.absent(),
-    Value<String?> telepon = const Value.absent(),
-    DateTime? createdAt,
-  }) => TokoTableData(
-    id: id ?? this.id,
-    nama: nama ?? this.nama,
-    alamat: alamat.present ? alamat.value : this.alamat,
-    telepon: telepon.present ? telepon.value : this.telepon,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  TokoTableData copyWithCompanion(TokoTableCompanion data) {
-    return TokoTableData(
-      id: data.id.present ? data.id.value : this.id,
-      nama: data.nama.present ? data.nama.value : this.nama,
-      alamat: data.alamat.present ? data.alamat.value : this.alamat,
-      telepon: data.telepon.present ? data.telepon.value : this.telepon,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TokoTableData(')
-          ..write('id: $id, ')
-          ..write('nama: $nama, ')
-          ..write('alamat: $alamat, ')
-          ..write('telepon: $telepon, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, nama, alamat, telepon, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TokoTableData &&
-          other.id == this.id &&
-          other.nama == this.nama &&
-          other.alamat == this.alamat &&
-          other.telepon == this.telepon &&
-          other.createdAt == this.createdAt);
-}
-
-class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
-  final Value<int> id;
-  final Value<String> nama;
-  final Value<String?> alamat;
-  final Value<String?> telepon;
-  final Value<DateTime> createdAt;
-  const TokoTableCompanion({
-    this.id = const Value.absent(),
-    this.nama = const Value.absent(),
-    this.alamat = const Value.absent(),
-    this.telepon = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  });
-  TokoTableCompanion.insert({
-    this.id = const Value.absent(),
-    required String nama,
-    this.alamat = const Value.absent(),
-    this.telepon = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  }) : nama = Value(nama);
-  static Insertable<TokoTableData> custom({
-    Expression<int>? id,
-    Expression<String>? nama,
-    Expression<String>? alamat,
-    Expression<String>? telepon,
-    Expression<DateTime>? createdAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (nama != null) 'nama': nama,
-      if (alamat != null) 'alamat': alamat,
-      if (telepon != null) 'telepon': telepon,
-      if (createdAt != null) 'created_at': createdAt,
-    });
-  }
-
-  TokoTableCompanion copyWith({
-    Value<int>? id,
-    Value<String>? nama,
-    Value<String?>? alamat,
-    Value<String?>? telepon,
-    Value<DateTime>? createdAt,
-  }) {
-    return TokoTableCompanion(
-      id: id ?? this.id,
-      nama: nama ?? this.nama,
-      alamat: alamat ?? this.alamat,
-      telepon: telepon ?? this.telepon,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (nama.present) {
-      map['nama'] = Variable<String>(nama.value);
-    }
-    if (alamat.present) {
-      map['alamat'] = Variable<String>(alamat.value);
-    }
-    if (telepon.present) {
-      map['telepon'] = Variable<String>(telepon.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TokoTableCompanion(')
-          ..write('id: $id, ')
-          ..write('nama: $nama, ')
-          ..write('alamat: $alamat, ')
-          ..write('telepon: $telepon, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $UserTableTable extends UserTable
-    with TableInfo<$UserTableTable, UserTableData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $UserTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _usernameMeta = const VerificationMeta(
-    'username',
-  );
-  @override
-  late final GeneratedColumn<String> username = GeneratedColumn<String>(
-    'username',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _passwordMeta = const VerificationMeta(
-    'password',
-  );
-  @override
-  late final GeneratedColumn<String> password = GeneratedColumn<String>(
-    'password',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _roleMeta = const VerificationMeta('role');
-  @override
-  late final GeneratedColumn<String> role = GeneratedColumn<String>(
-    'role',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
-  @override
-  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
-    'nama',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _emailMeta = const VerificationMeta('email');
-  @override
-  late final GeneratedColumn<String> email = GeneratedColumn<String>(
-    'email',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
-  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
-  @override
-  late final GeneratedColumn<int> tokoId = GeneratedColumn<int>(
-    'toko_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    username,
-    password,
-    role,
-    nama,
-    email,
-    tokoId,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'user_table';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<UserTableData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('username')) {
-      context.handle(
-        _usernameMeta,
-        username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
-      );
-    }
-    if (data.containsKey('password')) {
-      context.handle(
-        _passwordMeta,
-        password.isAcceptableOrUnknown(data['password']!, _passwordMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_passwordMeta);
-    }
-    if (data.containsKey('role')) {
-      context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_roleMeta);
-    }
-    if (data.containsKey('nama')) {
-      context.handle(
-        _namaMeta,
-        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
-      );
-    }
-    if (data.containsKey('email')) {
-      context.handle(
-        _emailMeta,
-        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
-      );
-    }
-    if (data.containsKey('toko_id')) {
-      context.handle(
-        _tokoIdMeta,
-        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  UserTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return UserTableData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      username: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}username'],
-      ),
-      password: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}password'],
-      )!,
-      role: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}role'],
-      )!,
-      nama: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}nama'],
-      ),
-      email: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}email'],
-      ),
-      tokoId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}toko_id'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $UserTableTable createAlias(String alias) {
-    return $UserTableTable(attachedDatabase, alias);
-  }
-}
-
-class UserTableData extends DataClass implements Insertable<UserTableData> {
-  final int id;
-  final String? username;
-  final String password;
-  final String role;
-  final String? nama;
-  final String? email;
-  final int tokoId;
-  final DateTime createdAt;
-  const UserTableData({
-    required this.id,
-    this.username,
-    required this.password,
-    required this.role,
-    this.nama,
-    this.email,
-    required this.tokoId,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    if (!nullToAbsent || username != null) {
-      map['username'] = Variable<String>(username);
-    }
-    map['password'] = Variable<String>(password);
-    map['role'] = Variable<String>(role);
-    if (!nullToAbsent || nama != null) {
-      map['nama'] = Variable<String>(nama);
-    }
-    if (!nullToAbsent || email != null) {
-      map['email'] = Variable<String>(email);
-    }
-    map['toko_id'] = Variable<int>(tokoId);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  UserTableCompanion toCompanion(bool nullToAbsent) {
-    return UserTableCompanion(
-      id: Value(id),
-      username: username == null && nullToAbsent
-          ? const Value.absent()
-          : Value(username),
-      password: Value(password),
-      role: Value(role),
-      nama: nama == null && nullToAbsent ? const Value.absent() : Value(nama),
-      email: email == null && nullToAbsent
-          ? const Value.absent()
-          : Value(email),
-      tokoId: Value(tokoId),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory UserTableData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return UserTableData(
-      id: serializer.fromJson<int>(json['id']),
-      username: serializer.fromJson<String?>(json['username']),
-      password: serializer.fromJson<String>(json['password']),
-      role: serializer.fromJson<String>(json['role']),
-      nama: serializer.fromJson<String?>(json['nama']),
-      email: serializer.fromJson<String?>(json['email']),
-      tokoId: serializer.fromJson<int>(json['tokoId']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'username': serializer.toJson<String?>(username),
-      'password': serializer.toJson<String>(password),
-      'role': serializer.toJson<String>(role),
-      'nama': serializer.toJson<String?>(nama),
-      'email': serializer.toJson<String?>(email),
-      'tokoId': serializer.toJson<int>(tokoId),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  UserTableData copyWith({
-    int? id,
-    Value<String?> username = const Value.absent(),
-    String? password,
-    String? role,
-    Value<String?> nama = const Value.absent(),
-    Value<String?> email = const Value.absent(),
-    int? tokoId,
-    DateTime? createdAt,
-  }) => UserTableData(
-    id: id ?? this.id,
-    username: username.present ? username.value : this.username,
-    password: password ?? this.password,
-    role: role ?? this.role,
-    nama: nama.present ? nama.value : this.nama,
-    email: email.present ? email.value : this.email,
-    tokoId: tokoId ?? this.tokoId,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  UserTableData copyWithCompanion(UserTableCompanion data) {
-    return UserTableData(
-      id: data.id.present ? data.id.value : this.id,
-      username: data.username.present ? data.username.value : this.username,
-      password: data.password.present ? data.password.value : this.password,
-      role: data.role.present ? data.role.value : this.role,
-      nama: data.nama.present ? data.nama.value : this.nama,
-      email: data.email.present ? data.email.value : this.email,
-      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('UserTableData(')
-          ..write('id: $id, ')
-          ..write('username: $username, ')
-          ..write('password: $password, ')
-          ..write('role: $role, ')
-          ..write('nama: $nama, ')
-          ..write('email: $email, ')
-          ..write('tokoId: $tokoId, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, username, password, role, nama, email, tokoId, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserTableData &&
-          other.id == this.id &&
-          other.username == this.username &&
-          other.password == this.password &&
-          other.role == this.role &&
-          other.nama == this.nama &&
-          other.email == this.email &&
-          other.tokoId == this.tokoId &&
-          other.createdAt == this.createdAt);
-}
-
-class UserTableCompanion extends UpdateCompanion<UserTableData> {
-  final Value<int> id;
-  final Value<String?> username;
-  final Value<String> password;
-  final Value<String> role;
-  final Value<String?> nama;
-  final Value<String?> email;
-  final Value<int> tokoId;
-  final Value<DateTime> createdAt;
-  const UserTableCompanion({
-    this.id = const Value.absent(),
-    this.username = const Value.absent(),
-    this.password = const Value.absent(),
-    this.role = const Value.absent(),
-    this.nama = const Value.absent(),
-    this.email = const Value.absent(),
-    this.tokoId = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  });
-  UserTableCompanion.insert({
-    this.id = const Value.absent(),
-    this.username = const Value.absent(),
-    required String password,
-    required String role,
-    this.nama = const Value.absent(),
-    this.email = const Value.absent(),
-    this.tokoId = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  }) : password = Value(password),
-       role = Value(role);
-  static Insertable<UserTableData> custom({
-    Expression<int>? id,
-    Expression<String>? username,
-    Expression<String>? password,
-    Expression<String>? role,
-    Expression<String>? nama,
-    Expression<String>? email,
-    Expression<int>? tokoId,
-    Expression<DateTime>? createdAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (username != null) 'username': username,
-      if (password != null) 'password': password,
-      if (role != null) 'role': role,
-      if (nama != null) 'nama': nama,
-      if (email != null) 'email': email,
-      if (tokoId != null) 'toko_id': tokoId,
-      if (createdAt != null) 'created_at': createdAt,
-    });
-  }
-
-  UserTableCompanion copyWith({
-    Value<int>? id,
-    Value<String?>? username,
-    Value<String>? password,
-    Value<String>? role,
-    Value<String?>? nama,
-    Value<String?>? email,
-    Value<int>? tokoId,
-    Value<DateTime>? createdAt,
-  }) {
-    return UserTableCompanion(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      password: password ?? this.password,
-      role: role ?? this.role,
-      nama: nama ?? this.nama,
-      email: email ?? this.email,
-      tokoId: tokoId ?? this.tokoId,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (username.present) {
-      map['username'] = Variable<String>(username.value);
-    }
-    if (password.present) {
-      map['password'] = Variable<String>(password.value);
-    }
-    if (role.present) {
-      map['role'] = Variable<String>(role.value);
-    }
-    if (nama.present) {
-      map['nama'] = Variable<String>(nama.value);
-    }
-    if (email.present) {
-      map['email'] = Variable<String>(email.value);
-    }
-    if (tokoId.present) {
-      map['toko_id'] = Variable<int>(tokoId.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('UserTableCompanion(')
-          ..write('id: $id, ')
-          ..write('username: $username, ')
-          ..write('password: $password, ')
-          ..write('role: $role, ')
-          ..write('nama: $nama, ')
-          ..write('email: $email, ')
-          ..write('tokoId: $tokoId, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $SyncRecordTableTable extends SyncRecordTable
-    with TableInfo<$SyncRecordTableTable, SyncRecordTableData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $SyncRecordTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
-  @override
-  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _tableEntityMeta = const VerificationMeta(
-    'tableEntity',
-  );
-  @override
-  late final GeneratedColumn<String> tableEntity = GeneratedColumn<String>(
-    'table_entity',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _localIdMeta = const VerificationMeta(
-    'localId',
-  );
-  @override
-  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
-    'local_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
-    'isDeleted',
-  );
-  @override
-  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
-    'is_deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('pending'),
-  );
-  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
-  @override
-  late final GeneratedColumn<int> tokoId = GeneratedColumn<int>(
-    'toko_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    uuid,
-    tableEntity,
-    localId,
-    updatedAt,
-    isDeleted,
-    syncStatus,
-    tokoId,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'sync_record_table';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<SyncRecordTableData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('uuid')) {
-      context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_uuidMeta);
-    }
-    if (data.containsKey('table_entity')) {
-      context.handle(
-        _tableEntityMeta,
-        tableEntity.isAcceptableOrUnknown(
-          data['table_entity']!,
-          _tableEntityMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_tableEntityMeta);
-    }
-    if (data.containsKey('local_id')) {
-      context.handle(
-        _localIdMeta,
-        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_localIdMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
-    if (data.containsKey('is_deleted')) {
-      context.handle(
-        _isDeletedMeta,
-        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
-      );
-    }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('toko_id')) {
-      context.handle(
-        _tokoIdMeta,
-        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {uuid};
-  @override
-  SyncRecordTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SyncRecordTableData(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      tableEntity: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}table_entity'],
-      )!,
-      localId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}local_id'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}updated_at'],
-      )!,
-      isDeleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_deleted'],
-      )!,
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      )!,
-      tokoId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}toko_id'],
-      )!,
-    );
-  }
-
-  @override
-  $SyncRecordTableTable createAlias(String alias) {
-    return $SyncRecordTableTable(attachedDatabase, alias);
-  }
-}
-
-class SyncRecordTableData extends DataClass
-    implements Insertable<SyncRecordTableData> {
-  final String uuid;
-  final String tableEntity;
-  final int localId;
-  final int updatedAt;
-  final bool isDeleted;
-  final String syncStatus;
-  final int tokoId;
-  const SyncRecordTableData({
-    required this.uuid,
-    required this.tableEntity,
-    required this.localId,
-    required this.updatedAt,
-    required this.isDeleted,
-    required this.syncStatus,
-    required this.tokoId,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['uuid'] = Variable<String>(uuid);
-    map['table_entity'] = Variable<String>(tableEntity);
-    map['local_id'] = Variable<int>(localId);
-    map['updated_at'] = Variable<int>(updatedAt);
-    map['is_deleted'] = Variable<bool>(isDeleted);
-    map['sync_status'] = Variable<String>(syncStatus);
-    map['toko_id'] = Variable<int>(tokoId);
-    return map;
-  }
-
-  SyncRecordTableCompanion toCompanion(bool nullToAbsent) {
-    return SyncRecordTableCompanion(
-      uuid: Value(uuid),
-      tableEntity: Value(tableEntity),
-      localId: Value(localId),
-      updatedAt: Value(updatedAt),
-      isDeleted: Value(isDeleted),
-      syncStatus: Value(syncStatus),
-      tokoId: Value(tokoId),
-    );
-  }
-
-  factory SyncRecordTableData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SyncRecordTableData(
-      uuid: serializer.fromJson<String>(json['uuid']),
-      tableEntity: serializer.fromJson<String>(json['tableEntity']),
-      localId: serializer.fromJson<int>(json['localId']),
-      updatedAt: serializer.fromJson<int>(json['updatedAt']),
-      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
-      syncStatus: serializer.fromJson<String>(json['syncStatus']),
-      tokoId: serializer.fromJson<int>(json['tokoId']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'uuid': serializer.toJson<String>(uuid),
-      'tableEntity': serializer.toJson<String>(tableEntity),
-      'localId': serializer.toJson<int>(localId),
-      'updatedAt': serializer.toJson<int>(updatedAt),
-      'isDeleted': serializer.toJson<bool>(isDeleted),
-      'syncStatus': serializer.toJson<String>(syncStatus),
-      'tokoId': serializer.toJson<int>(tokoId),
-    };
-  }
-
-  SyncRecordTableData copyWith({
-    String? uuid,
-    String? tableEntity,
-    int? localId,
-    int? updatedAt,
-    bool? isDeleted,
-    String? syncStatus,
-    int? tokoId,
-  }) => SyncRecordTableData(
-    uuid: uuid ?? this.uuid,
-    tableEntity: tableEntity ?? this.tableEntity,
-    localId: localId ?? this.localId,
-    updatedAt: updatedAt ?? this.updatedAt,
-    isDeleted: isDeleted ?? this.isDeleted,
-    syncStatus: syncStatus ?? this.syncStatus,
-    tokoId: tokoId ?? this.tokoId,
-  );
-  SyncRecordTableData copyWithCompanion(SyncRecordTableCompanion data) {
-    return SyncRecordTableData(
-      uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      tableEntity: data.tableEntity.present
-          ? data.tableEntity.value
-          : this.tableEntity,
-      localId: data.localId.present ? data.localId.value : this.localId,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SyncRecordTableData(')
-          ..write('uuid: $uuid, ')
-          ..write('tableEntity: $tableEntity, ')
-          ..write('localId: $localId, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('isDeleted: $isDeleted, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('tokoId: $tokoId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    uuid,
-    tableEntity,
-    localId,
-    updatedAt,
-    isDeleted,
-    syncStatus,
-    tokoId,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SyncRecordTableData &&
-          other.uuid == this.uuid &&
-          other.tableEntity == this.tableEntity &&
-          other.localId == this.localId &&
-          other.updatedAt == this.updatedAt &&
-          other.isDeleted == this.isDeleted &&
-          other.syncStatus == this.syncStatus &&
-          other.tokoId == this.tokoId);
-}
-
-class SyncRecordTableCompanion extends UpdateCompanion<SyncRecordTableData> {
-  final Value<String> uuid;
-  final Value<String> tableEntity;
-  final Value<int> localId;
-  final Value<int> updatedAt;
-  final Value<bool> isDeleted;
-  final Value<String> syncStatus;
-  final Value<int> tokoId;
-  final Value<int> rowid;
-  const SyncRecordTableCompanion({
-    this.uuid = const Value.absent(),
-    this.tableEntity = const Value.absent(),
-    this.localId = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.isDeleted = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.tokoId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  SyncRecordTableCompanion.insert({
-    required String uuid,
-    required String tableEntity,
-    required int localId,
-    required int updatedAt,
-    this.isDeleted = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.tokoId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       tableEntity = Value(tableEntity),
-       localId = Value(localId),
-       updatedAt = Value(updatedAt);
-  static Insertable<SyncRecordTableData> custom({
-    Expression<String>? uuid,
-    Expression<String>? tableEntity,
-    Expression<int>? localId,
-    Expression<int>? updatedAt,
-    Expression<bool>? isDeleted,
-    Expression<String>? syncStatus,
-    Expression<int>? tokoId,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (uuid != null) 'uuid': uuid,
-      if (tableEntity != null) 'table_entity': tableEntity,
-      if (localId != null) 'local_id': localId,
-      if (updatedAt != null) 'updated_at': updatedAt,
-      if (isDeleted != null) 'is_deleted': isDeleted,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (tokoId != null) 'toko_id': tokoId,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  SyncRecordTableCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? tableEntity,
-    Value<int>? localId,
-    Value<int>? updatedAt,
-    Value<bool>? isDeleted,
-    Value<String>? syncStatus,
-    Value<int>? tokoId,
-    Value<int>? rowid,
-  }) {
-    return SyncRecordTableCompanion(
-      uuid: uuid ?? this.uuid,
-      tableEntity: tableEntity ?? this.tableEntity,
-      localId: localId ?? this.localId,
-      updatedAt: updatedAt ?? this.updatedAt,
-      isDeleted: isDeleted ?? this.isDeleted,
-      syncStatus: syncStatus ?? this.syncStatus,
-      tokoId: tokoId ?? this.tokoId,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (uuid.present) {
-      map['uuid'] = Variable<String>(uuid.value);
-    }
-    if (tableEntity.present) {
-      map['table_entity'] = Variable<String>(tableEntity.value);
-    }
-    if (localId.present) {
-      map['local_id'] = Variable<int>(localId.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<int>(updatedAt.value);
-    }
-    if (isDeleted.present) {
-      map['is_deleted'] = Variable<bool>(isDeleted.value);
-    }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (tokoId.present) {
-      map['toko_id'] = Variable<int>(tokoId.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7295,26 +8257,26 @@ class SyncRecordTableCompanion extends UpdateCompanion<SyncRecordTableData> {
 
   @override
   String toString() {
-    return (StringBuffer('SyncRecordTableCompanion(')
-          ..write('uuid: $uuid, ')
-          ..write('tableEntity: $tableEntity, ')
-          ..write('localId: $localId, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('isDeleted: $isDeleted, ')
-          ..write('syncStatus: $syncStatus, ')
+    return (StringBuffer('NotifikasiTableCompanion(')
+          ..write('id: $id, ')
           ..write('tokoId: $tokoId, ')
+          ..write('judul: $judul, ')
+          ..write('pesan: $pesan, ')
+          ..write('tipe: $tipe, ')
+          ..write('isRead: $isRead, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
 }
 
-class $SupplierProductsTableTable extends SupplierProductsTable
-    with TableInfo<$SupplierProductsTableTable, SupplierProductsTableData> {
+class $PendingSyncQueueTableTable extends PendingSyncQueueTable
+    with TableInfo<$PendingSyncQueueTableTable, PendingSyncQueueTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SupplierProductsTableTable(this.attachedDatabase, [this._alias]);
+  $PendingSyncQueueTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -7328,72 +8290,79 @@ class $SupplierProductsTableTable extends SupplierProductsTable
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _supplierIdMeta = const VerificationMeta(
-    'supplierId',
+  static const VerificationMeta _targetTableMeta = const VerificationMeta(
+    'targetTable',
   );
   @override
-  late final GeneratedColumn<int> supplierId = GeneratedColumn<int>(
-    'supplier_id',
+  late final GeneratedColumn<String> targetTable = GeneratedColumn<String>(
+    'target_table',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES supplier_table (id)',
-    ),
   );
-  static const VerificationMeta _produkIdMeta = const VerificationMeta(
-    'produkId',
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
   );
   @override
-  late final GeneratedColumn<int> produkId = GeneratedColumn<int>(
-    'produk_id',
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES produk_table (id)',
-    ),
   );
-  static const VerificationMeta _lastPriceMeta = const VerificationMeta(
-    'lastPrice',
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
   );
   @override
-  late final GeneratedColumn<double> lastPrice = GeneratedColumn<double>(
-    'last_price',
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
     aliasedName,
     false,
-    type: DriftSqlType.double,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
   );
   @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
     aliasedName,
     false,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    supplierId,
-    produkId,
-    lastPrice,
-    updatedAt,
+    targetTable,
+    operation,
+    recordId,
+    payload,
+    createdAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'supplier_products_table';
+  static const String $name = 'pending_sync_queue_table';
   @override
   VerificationContext validateIntegrity(
-    Insertable<SupplierProductsTableData> instance, {
+    Insertable<PendingSyncQueueTableData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -7401,37 +8370,46 @@ class $SupplierProductsTableTable extends SupplierProductsTable
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('supplier_id')) {
+    if (data.containsKey('target_table')) {
       context.handle(
-        _supplierIdMeta,
-        supplierId.isAcceptableOrUnknown(data['supplier_id']!, _supplierIdMeta),
+        _targetTableMeta,
+        targetTable.isAcceptableOrUnknown(
+          data['target_table']!,
+          _targetTableMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_supplierIdMeta);
+      context.missing(_targetTableMeta);
     }
-    if (data.containsKey('produk_id')) {
+    if (data.containsKey('operation')) {
       context.handle(
-        _produkIdMeta,
-        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
       );
     } else if (isInserting) {
-      context.missing(_produkIdMeta);
+      context.missing(_operationMeta);
     }
-    if (data.containsKey('last_price')) {
+    if (data.containsKey('record_id')) {
       context.handle(
-        _lastPriceMeta,
-        lastPrice.isAcceptableOrUnknown(data['last_price']!, _lastPriceMeta),
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
       );
     } else if (isInserting) {
-      context.missing(_lastPriceMeta);
+      context.missing(_recordIdMeta);
     }
-    if (data.containsKey('updated_at')) {
+    if (data.containsKey('payload')) {
       context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
       );
     } else if (isInserting) {
-      context.missing(_updatedAtMeta);
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     return context;
   }
@@ -7439,87 +8417,96 @@ class $SupplierProductsTableTable extends SupplierProductsTable
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  SupplierProductsTableData map(
+  PendingSyncQueueTableData map(
     Map<String, dynamic> data, {
     String? tablePrefix,
   }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SupplierProductsTableData(
+    return PendingSyncQueueTableData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      supplierId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}supplier_id'],
+      targetTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_table'],
       )!,
-      produkId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}produk_id'],
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
       )!,
-      lastPrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}last_price'],
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
       )!,
-      updatedAt: attachedDatabase.typeMapping.read(
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
+        data['${effectivePrefix}created_at'],
       )!,
     );
   }
 
   @override
-  $SupplierProductsTableTable createAlias(String alias) {
-    return $SupplierProductsTableTable(attachedDatabase, alias);
+  $PendingSyncQueueTableTable createAlias(String alias) {
+    return $PendingSyncQueueTableTable(attachedDatabase, alias);
   }
 }
 
-class SupplierProductsTableData extends DataClass
-    implements Insertable<SupplierProductsTableData> {
+class PendingSyncQueueTableData extends DataClass
+    implements Insertable<PendingSyncQueueTableData> {
   final int id;
-  final int supplierId;
-  final int produkId;
-  final double lastPrice;
-  final DateTime updatedAt;
-  const SupplierProductsTableData({
+  final String targetTable;
+  final String operation;
+  final String recordId;
+  final String payload;
+  final DateTime createdAt;
+  const PendingSyncQueueTableData({
     required this.id,
-    required this.supplierId,
-    required this.produkId,
-    required this.lastPrice,
-    required this.updatedAt,
+    required this.targetTable,
+    required this.operation,
+    required this.recordId,
+    required this.payload,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['supplier_id'] = Variable<int>(supplierId);
-    map['produk_id'] = Variable<int>(produkId);
-    map['last_price'] = Variable<double>(lastPrice);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['target_table'] = Variable<String>(targetTable);
+    map['operation'] = Variable<String>(operation);
+    map['record_id'] = Variable<String>(recordId);
+    map['payload'] = Variable<String>(payload);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
-  SupplierProductsTableCompanion toCompanion(bool nullToAbsent) {
-    return SupplierProductsTableCompanion(
+  PendingSyncQueueTableCompanion toCompanion(bool nullToAbsent) {
+    return PendingSyncQueueTableCompanion(
       id: Value(id),
-      supplierId: Value(supplierId),
-      produkId: Value(produkId),
-      lastPrice: Value(lastPrice),
-      updatedAt: Value(updatedAt),
+      targetTable: Value(targetTable),
+      operation: Value(operation),
+      recordId: Value(recordId),
+      payload: Value(payload),
+      createdAt: Value(createdAt),
     );
   }
 
-  factory SupplierProductsTableData.fromJson(
+  factory PendingSyncQueueTableData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SupplierProductsTableData(
+    return PendingSyncQueueTableData(
       id: serializer.fromJson<int>(json['id']),
-      supplierId: serializer.fromJson<int>(json['supplierId']),
-      produkId: serializer.fromJson<int>(json['produkId']),
-      lastPrice: serializer.fromJson<double>(json['lastPrice']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      targetTable: serializer.fromJson<String>(json['targetTable']),
+      operation: serializer.fromJson<String>(json['operation']),
+      recordId: serializer.fromJson<String>(json['recordId']),
+      payload: serializer.fromJson<String>(json['payload']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -7527,119 +8514,132 @@ class SupplierProductsTableData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'supplierId': serializer.toJson<int>(supplierId),
-      'produkId': serializer.toJson<int>(produkId),
-      'lastPrice': serializer.toJson<double>(lastPrice),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'targetTable': serializer.toJson<String>(targetTable),
+      'operation': serializer.toJson<String>(operation),
+      'recordId': serializer.toJson<String>(recordId),
+      'payload': serializer.toJson<String>(payload),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  SupplierProductsTableData copyWith({
+  PendingSyncQueueTableData copyWith({
     int? id,
-    int? supplierId,
-    int? produkId,
-    double? lastPrice,
-    DateTime? updatedAt,
-  }) => SupplierProductsTableData(
+    String? targetTable,
+    String? operation,
+    String? recordId,
+    String? payload,
+    DateTime? createdAt,
+  }) => PendingSyncQueueTableData(
     id: id ?? this.id,
-    supplierId: supplierId ?? this.supplierId,
-    produkId: produkId ?? this.produkId,
-    lastPrice: lastPrice ?? this.lastPrice,
-    updatedAt: updatedAt ?? this.updatedAt,
+    targetTable: targetTable ?? this.targetTable,
+    operation: operation ?? this.operation,
+    recordId: recordId ?? this.recordId,
+    payload: payload ?? this.payload,
+    createdAt: createdAt ?? this.createdAt,
   );
-  SupplierProductsTableData copyWithCompanion(
-    SupplierProductsTableCompanion data,
+  PendingSyncQueueTableData copyWithCompanion(
+    PendingSyncQueueTableCompanion data,
   ) {
-    return SupplierProductsTableData(
+    return PendingSyncQueueTableData(
       id: data.id.present ? data.id.value : this.id,
-      supplierId: data.supplierId.present
-          ? data.supplierId.value
-          : this.supplierId,
-      produkId: data.produkId.present ? data.produkId.value : this.produkId,
-      lastPrice: data.lastPrice.present ? data.lastPrice.value : this.lastPrice,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      targetTable: data.targetTable.present
+          ? data.targetTable.value
+          : this.targetTable,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('SupplierProductsTableData(')
+    return (StringBuffer('PendingSyncQueueTableData(')
           ..write('id: $id, ')
-          ..write('supplierId: $supplierId, ')
-          ..write('produkId: $produkId, ')
-          ..write('lastPrice: $lastPrice, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('targetTable: $targetTable, ')
+          ..write('operation: $operation, ')
+          ..write('recordId: $recordId, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, supplierId, produkId, lastPrice, updatedAt);
+      Object.hash(id, targetTable, operation, recordId, payload, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is SupplierProductsTableData &&
+      (other is PendingSyncQueueTableData &&
           other.id == this.id &&
-          other.supplierId == this.supplierId &&
-          other.produkId == this.produkId &&
-          other.lastPrice == this.lastPrice &&
-          other.updatedAt == this.updatedAt);
+          other.targetTable == this.targetTable &&
+          other.operation == this.operation &&
+          other.recordId == this.recordId &&
+          other.payload == this.payload &&
+          other.createdAt == this.createdAt);
 }
 
-class SupplierProductsTableCompanion
-    extends UpdateCompanion<SupplierProductsTableData> {
+class PendingSyncQueueTableCompanion
+    extends UpdateCompanion<PendingSyncQueueTableData> {
   final Value<int> id;
-  final Value<int> supplierId;
-  final Value<int> produkId;
-  final Value<double> lastPrice;
-  final Value<DateTime> updatedAt;
-  const SupplierProductsTableCompanion({
+  final Value<String> targetTable;
+  final Value<String> operation;
+  final Value<String> recordId;
+  final Value<String> payload;
+  final Value<DateTime> createdAt;
+  const PendingSyncQueueTableCompanion({
     this.id = const Value.absent(),
-    this.supplierId = const Value.absent(),
-    this.produkId = const Value.absent(),
-    this.lastPrice = const Value.absent(),
-    this.updatedAt = const Value.absent(),
+    this.targetTable = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.recordId = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.createdAt = const Value.absent(),
   });
-  SupplierProductsTableCompanion.insert({
+  PendingSyncQueueTableCompanion.insert({
     this.id = const Value.absent(),
-    required int supplierId,
-    required int produkId,
-    required double lastPrice,
-    required DateTime updatedAt,
-  }) : supplierId = Value(supplierId),
-       produkId = Value(produkId),
-       lastPrice = Value(lastPrice),
-       updatedAt = Value(updatedAt);
-  static Insertable<SupplierProductsTableData> custom({
+    required String targetTable,
+    required String operation,
+    required String recordId,
+    required String payload,
+    this.createdAt = const Value.absent(),
+  }) : targetTable = Value(targetTable),
+       operation = Value(operation),
+       recordId = Value(recordId),
+       payload = Value(payload);
+  static Insertable<PendingSyncQueueTableData> custom({
     Expression<int>? id,
-    Expression<int>? supplierId,
-    Expression<int>? produkId,
-    Expression<double>? lastPrice,
-    Expression<DateTime>? updatedAt,
+    Expression<String>? targetTable,
+    Expression<String>? operation,
+    Expression<String>? recordId,
+    Expression<String>? payload,
+    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (supplierId != null) 'supplier_id': supplierId,
-      if (produkId != null) 'produk_id': produkId,
-      if (lastPrice != null) 'last_price': lastPrice,
-      if (updatedAt != null) 'updated_at': updatedAt,
+      if (targetTable != null) 'target_table': targetTable,
+      if (operation != null) 'operation': operation,
+      if (recordId != null) 'record_id': recordId,
+      if (payload != null) 'payload': payload,
+      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
-  SupplierProductsTableCompanion copyWith({
+  PendingSyncQueueTableCompanion copyWith({
     Value<int>? id,
-    Value<int>? supplierId,
-    Value<int>? produkId,
-    Value<double>? lastPrice,
-    Value<DateTime>? updatedAt,
+    Value<String>? targetTable,
+    Value<String>? operation,
+    Value<String>? recordId,
+    Value<String>? payload,
+    Value<DateTime>? createdAt,
   }) {
-    return SupplierProductsTableCompanion(
+    return PendingSyncQueueTableCompanion(
       id: id ?? this.id,
-      supplierId: supplierId ?? this.supplierId,
-      produkId: produkId ?? this.produkId,
-      lastPrice: lastPrice ?? this.lastPrice,
-      updatedAt: updatedAt ?? this.updatedAt,
+      targetTable: targetTable ?? this.targetTable,
+      operation: operation ?? this.operation,
+      recordId: recordId ?? this.recordId,
+      payload: payload ?? this.payload,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -7649,29 +8649,33 @@ class SupplierProductsTableCompanion
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (supplierId.present) {
-      map['supplier_id'] = Variable<int>(supplierId.value);
+    if (targetTable.present) {
+      map['target_table'] = Variable<String>(targetTable.value);
     }
-    if (produkId.present) {
-      map['produk_id'] = Variable<int>(produkId.value);
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
     }
-    if (lastPrice.present) {
-      map['last_price'] = Variable<double>(lastPrice.value);
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
     }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('SupplierProductsTableCompanion(')
+    return (StringBuffer('PendingSyncQueueTableCompanion(')
           ..write('id: $id, ')
-          ..write('supplierId: $supplierId, ')
-          ..write('produkId: $produkId, ')
-          ..write('lastPrice: $lastPrice, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('targetTable: $targetTable, ')
+          ..write('operation: $operation, ')
+          ..write('recordId: $recordId, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -7680,9 +8684,14 @@ class SupplierProductsTableCompanion
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $TokoTableTable tokoTable = $TokoTableTable(this);
+  late final $UserTableTable userTable = $UserTableTable(this);
   late final $ProdukTableTable produkTable = $ProdukTableTable(this);
   late final $SatuanProdukTableTable satuanProdukTable =
       $SatuanProdukTableTable(this);
+  late final $SupplierTableTable supplierTable = $SupplierTableTable(this);
+  late final $SupplierProductsTableTable supplierProductsTable =
+      $SupplierProductsTableTable(this);
   late final $TransaksiTableTable transaksiTable = $TransaksiTableTable(this);
   late final $ItemTransaksiTableTable itemTransaksiTable =
       $ItemTransaksiTableTable(this);
@@ -7702,24 +8711,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $PendingPembelianTableTable(this);
   late final $PendingPembelianItemTableTable pendingPembelianItemTable =
       $PendingPembelianItemTableTable(this);
-  late final $SupplierTableTable supplierTable = $SupplierTableTable(this);
   late final $NotifikasiTableTable notifikasiTable = $NotifikasiTableTable(
     this,
   );
-  late final $TokoTableTable tokoTable = $TokoTableTable(this);
-  late final $UserTableTable userTable = $UserTableTable(this);
-  late final $SyncRecordTableTable syncRecordTable = $SyncRecordTableTable(
-    this,
-  );
-  late final $SupplierProductsTableTable supplierProductsTable =
-      $SupplierProductsTableTable(this);
+  late final $PendingSyncQueueTableTable pendingSyncQueueTable =
+      $PendingSyncQueueTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    tokoTable,
+    userTable,
     produkTable,
     satuanProdukTable,
+    supplierTable,
+    supplierProductsTable,
     transaksiTable,
     itemTransaksiTable,
     hutangPiutangTable,
@@ -7730,30 +8737,449 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pendingOrderItemTable,
     pendingPembelianTable,
     pendingPembelianItemTable,
-    supplierTable,
     notifikasiTable,
-    tokoTable,
-    userTable,
-    syncRecordTable,
-    supplierProductsTable,
+    pendingSyncQueueTable,
   ];
 }
 
+typedef $$TokoTableTableCreateCompanionBuilder =
+    TokoTableCompanion Function({
+      required String id,
+      required String nama,
+      Value<String?> alamat,
+      Value<String?> telepon,
+      Value<String?> ownerId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$TokoTableTableUpdateCompanionBuilder =
+    TokoTableCompanion Function({
+      Value<String> id,
+      Value<String> nama,
+      Value<String?> alamat,
+      Value<String?> telepon,
+      Value<String?> ownerId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$TokoTableTableFilterComposer
+    extends Composer<_$AppDatabase, $TokoTableTable> {
+  $$TokoTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerId => $composableBuilder(
+    column: $table.ownerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TokoTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $TokoTableTable> {
+  $$TokoTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerId => $composableBuilder(
+    column: $table.ownerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TokoTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TokoTableTable> {
+  $$TokoTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nama =>
+      $composableBuilder(column: $table.nama, builder: (column) => column);
+
+  GeneratedColumn<String> get alamat =>
+      $composableBuilder(column: $table.alamat, builder: (column) => column);
+
+  GeneratedColumn<String> get telepon =>
+      $composableBuilder(column: $table.telepon, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerId =>
+      $composableBuilder(column: $table.ownerId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$TokoTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TokoTableTable,
+          TokoTableData,
+          $$TokoTableTableFilterComposer,
+          $$TokoTableTableOrderingComposer,
+          $$TokoTableTableAnnotationComposer,
+          $$TokoTableTableCreateCompanionBuilder,
+          $$TokoTableTableUpdateCompanionBuilder,
+          (
+            TokoTableData,
+            BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
+          ),
+          TokoTableData,
+          PrefetchHooks Function()
+        > {
+  $$TokoTableTableTableManager(_$AppDatabase db, $TokoTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TokoTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TokoTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TokoTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nama = const Value.absent(),
+                Value<String?> alamat = const Value.absent(),
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> ownerId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TokoTableCompanion(
+                id: id,
+                nama: nama,
+                alamat: alamat,
+                telepon: telepon,
+                ownerId: ownerId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nama,
+                Value<String?> alamat = const Value.absent(),
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> ownerId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TokoTableCompanion.insert(
+                id: id,
+                nama: nama,
+                alamat: alamat,
+                telepon: telepon,
+                ownerId: ownerId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TokoTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TokoTableTable,
+      TokoTableData,
+      $$TokoTableTableFilterComposer,
+      $$TokoTableTableOrderingComposer,
+      $$TokoTableTableAnnotationComposer,
+      $$TokoTableTableCreateCompanionBuilder,
+      $$TokoTableTableUpdateCompanionBuilder,
+      (
+        TokoTableData,
+        BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
+      ),
+      TokoTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$UserTableTableCreateCompanionBuilder =
+    UserTableCompanion Function({
+      required String id,
+      required String tokoId,
+      Value<String?> nama,
+      Value<String> role,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$UserTableTableUpdateCompanionBuilder =
+    UserTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String?> nama,
+      Value<String> role,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$UserTableTableFilterComposer
+    extends Composer<_$AppDatabase, $UserTableTable> {
+  $$UserTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserTableTable> {
+  $$UserTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserTableTable> {
+  $$UserTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get nama =>
+      $composableBuilder(column: $table.nama, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$UserTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserTableTable,
+          UserTableData,
+          $$UserTableTableFilterComposer,
+          $$UserTableTableOrderingComposer,
+          $$UserTableTableAnnotationComposer,
+          $$UserTableTableCreateCompanionBuilder,
+          $$UserTableTableUpdateCompanionBuilder,
+          (
+            UserTableData,
+            BaseReferences<_$AppDatabase, $UserTableTable, UserTableData>,
+          ),
+          UserTableData,
+          PrefetchHooks Function()
+        > {
+  $$UserTableTableTableManager(_$AppDatabase db, $UserTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String?> nama = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                nama: nama,
+                role: role,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                Value<String?> nama = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                nama: nama,
+                role: role,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserTableTable,
+      UserTableData,
+      $$UserTableTableFilterComposer,
+      $$UserTableTableOrderingComposer,
+      $$UserTableTableAnnotationComposer,
+      $$UserTableTableCreateCompanionBuilder,
+      $$UserTableTableUpdateCompanionBuilder,
+      (
+        UserTableData,
+        BaseReferences<_$AppDatabase, $UserTableTable, UserTableData>,
+      ),
+      UserTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$ProdukTableTableCreateCompanionBuilder =
     ProdukTableCompanion Function({
-      Value<int> id,
+      required String id,
+      required String tokoId,
       required String nama,
       Value<String?> barcode,
-      required double hargaBeli,
-      required double hargaJual,
+      Value<double> hargaBeli,
+      Value<double> hargaJual,
       Value<int> stok,
       Value<String?> kategori,
       Value<String> satuan,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$ProdukTableTableUpdateCompanionBuilder =
     ProdukTableCompanion Function({
-      Value<int> id,
+      Value<String> id,
+      Value<String> tokoId,
       Value<String> nama,
       Value<String?> barcode,
       Value<double> hargaBeli,
@@ -7761,41 +9187,10 @@ typedef $$ProdukTableTableUpdateCompanionBuilder =
       Value<int> stok,
       Value<String?> kategori,
       Value<String> satuan,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
-
-final class $$ProdukTableTableReferences
-    extends BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData> {
-  $$ProdukTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<
-    $SupplierProductsTableTable,
-    List<SupplierProductsTableData>
-  >
-  _supplierProductsTableRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.supplierProductsTable,
-        aliasName: $_aliasNameGenerator(
-          db.produkTable.id,
-          db.supplierProductsTable.produkId,
-        ),
-      );
-
-  $$SupplierProductsTableTableProcessedTableManager
-  get supplierProductsTableRefs {
-    final manager = $$SupplierProductsTableTableTableManager(
-      $_db,
-      $_db.supplierProductsTable,
-    ).filter((f) => f.produkId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _supplierProductsTableRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$ProdukTableTableFilterComposer
     extends Composer<_$AppDatabase, $ProdukTableTable> {
@@ -7806,8 +9201,13 @@ class $$ProdukTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7846,36 +9246,15 @@ class $$ProdukTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> supplierProductsTableRefs(
-    Expression<bool> Function($$SupplierProductsTableTableFilterComposer f) f,
-  ) {
-    final $$SupplierProductsTableTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.supplierProductsTable,
-          getReferencedColumn: (t) => t.produkId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SupplierProductsTableTableFilterComposer(
-                $db: $db,
-                $table: $db.supplierProductsTable,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$ProdukTableTableOrderingComposer
@@ -7887,8 +9266,13 @@ class $$ProdukTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -7927,6 +9311,11 @@ class $$ProdukTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -7942,8 +9331,11 @@ class $$ProdukTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
 
   GeneratedColumn<String> get nama =>
       $composableBuilder(column: $table.nama, builder: (column) => column);
@@ -7966,34 +9358,11 @@ class $$ProdukTableTableAnnotationComposer
   GeneratedColumn<String> get satuan =>
       $composableBuilder(column: $table.satuan, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  Expression<T> supplierProductsTableRefs<T extends Object>(
-    Expression<T> Function($$SupplierProductsTableTableAnnotationComposer a) f,
-  ) {
-    final $$SupplierProductsTableTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.supplierProductsTable,
-          getReferencedColumn: (t) => t.produkId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SupplierProductsTableTableAnnotationComposer(
-                $db: $db,
-                $table: $db.supplierProductsTable,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$ProdukTableTableTableManager
@@ -8007,9 +9376,12 @@ class $$ProdukTableTableTableManager
           $$ProdukTableTableAnnotationComposer,
           $$ProdukTableTableCreateCompanionBuilder,
           $$ProdukTableTableUpdateCompanionBuilder,
-          (ProdukTableData, $$ProdukTableTableReferences),
+          (
+            ProdukTableData,
+            BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData>,
+          ),
           ProdukTableData,
-          PrefetchHooks Function({bool supplierProductsTableRefs})
+          PrefetchHooks Function()
         > {
   $$ProdukTableTableTableManager(_$AppDatabase db, $ProdukTableTable table)
     : super(
@@ -8024,7 +9396,8 @@ class $$ProdukTableTableTableManager
               $$ProdukTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
                 Value<String> nama = const Value.absent(),
                 Value<String?> barcode = const Value.absent(),
                 Value<double> hargaBeli = const Value.absent(),
@@ -8032,9 +9405,12 @@ class $$ProdukTableTableTableManager
                 Value<int> stok = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ProdukTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 nama: nama,
                 barcode: barcode,
                 hargaBeli: hargaBeli,
@@ -8042,21 +9418,27 @@ class $$ProdukTableTableTableManager
                 stok: stok,
                 kategori: kategori,
                 satuan: satuan,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
+                required String tokoId,
                 required String nama,
                 Value<String?> barcode = const Value.absent(),
-                required double hargaBeli,
-                required double hargaJual,
+                Value<double> hargaBeli = const Value.absent(),
+                Value<double> hargaJual = const Value.absent(),
                 Value<int> stok = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ProdukTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 nama: nama,
                 barcode: barcode,
                 hargaBeli: hargaBeli,
@@ -8064,48 +9446,14 @@ class $$ProdukTableTableTableManager
                 stok: stok,
                 kategori: kategori,
                 satuan: satuan,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$ProdukTableTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({supplierProductsTableRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (supplierProductsTableRefs) db.supplierProductsTable,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (supplierProductsTableRefs)
-                    await $_getPrefetchedData<
-                      ProdukTableData,
-                      $ProdukTableTable,
-                      SupplierProductsTableData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ProdukTableTableReferences
-                          ._supplierProductsTableRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$ProdukTableTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).supplierProductsTableRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.produkId == item.id),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -8120,27 +9468,36 @@ typedef $$ProdukTableTableProcessedTableManager =
       $$ProdukTableTableAnnotationComposer,
       $$ProdukTableTableCreateCompanionBuilder,
       $$ProdukTableTableUpdateCompanionBuilder,
-      (ProdukTableData, $$ProdukTableTableReferences),
+      (
+        ProdukTableData,
+        BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData>,
+      ),
       ProdukTableData,
-      PrefetchHooks Function({bool supplierProductsTableRefs})
+      PrefetchHooks Function()
     >;
 typedef $$SatuanProdukTableTableCreateCompanionBuilder =
     SatuanProdukTableCompanion Function({
-      Value<int> id,
-      required int produkId,
+      required String id,
+      required String tokoId,
+      required String produkId,
       required String nama,
-      required double konversi,
-      required double hargaBeli,
-      required double hargaJual,
+      Value<double> konversi,
+      Value<double> hargaBeli,
+      Value<double> hargaJual,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
     });
 typedef $$SatuanProdukTableTableUpdateCompanionBuilder =
     SatuanProdukTableCompanion Function({
-      Value<int> id,
-      Value<int> produkId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> produkId,
       Value<String> nama,
       Value<double> konversi,
       Value<double> hargaBeli,
       Value<double> hargaJual,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
     });
 
 class $$SatuanProdukTableTableFilterComposer
@@ -8152,12 +9509,17 @@ class $$SatuanProdukTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -8181,6 +9543,11 @@ class $$SatuanProdukTableTableFilterComposer
     column: $table.hargaJual,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$SatuanProdukTableTableOrderingComposer
@@ -8192,12 +9559,17 @@ class $$SatuanProdukTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -8221,6 +9593,11 @@ class $$SatuanProdukTableTableOrderingComposer
     column: $table.hargaJual,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SatuanProdukTableTableAnnotationComposer
@@ -8232,10 +9609,13 @@ class $$SatuanProdukTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<String> get nama =>
@@ -8249,6 +9629,9 @@ class $$SatuanProdukTableTableAnnotationComposer
 
   GeneratedColumn<double> get hargaJual =>
       $composableBuilder(column: $table.hargaJual, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$SatuanProdukTableTableTableManager
@@ -8291,35 +9674,47 @@ class $$SatuanProdukTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<String> nama = const Value.absent(),
                 Value<double> konversi = const Value.absent(),
                 Value<double> hargaBeli = const Value.absent(),
                 Value<double> hargaJual = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => SatuanProdukTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 produkId: produkId,
                 nama: nama,
                 konversi: konversi,
                 hargaBeli: hargaBeli,
                 hargaJual: hargaJual,
+                updatedAt: updatedAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int produkId,
+                required String id,
+                required String tokoId,
+                required String produkId,
                 required String nama,
-                required double konversi,
-                required double hargaBeli,
-                required double hargaJual,
+                Value<double> konversi = const Value.absent(),
+                Value<double> hargaBeli = const Value.absent(),
+                Value<double> hargaJual = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => SatuanProdukTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 produkId: produkId,
                 nama: nama,
                 konversi: konversi,
                 hargaBeli: hargaBeli,
                 hargaJual: hargaJual,
+                updatedAt: updatedAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8350,25 +9745,513 @@ typedef $$SatuanProdukTableTableProcessedTableManager =
       SatuanProdukTableData,
       PrefetchHooks Function()
     >;
+typedef $$SupplierTableTableCreateCompanionBuilder =
+    SupplierTableCompanion Function({
+      required String id,
+      required String tokoId,
+      required String nama,
+      Value<String?> telepon,
+      Value<String?> alamat,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$SupplierTableTableUpdateCompanionBuilder =
+    SupplierTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> nama,
+      Value<String?> telepon,
+      Value<String?> alamat,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$SupplierTableTableFilterComposer
+    extends Composer<_$AppDatabase, $SupplierTableTable> {
+  $$SupplierTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SupplierTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $SupplierTableTable> {
+  $$SupplierTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SupplierTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SupplierTableTable> {
+  $$SupplierTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get nama =>
+      $composableBuilder(column: $table.nama, builder: (column) => column);
+
+  GeneratedColumn<String> get telepon =>
+      $composableBuilder(column: $table.telepon, builder: (column) => column);
+
+  GeneratedColumn<String> get alamat =>
+      $composableBuilder(column: $table.alamat, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SupplierTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SupplierTableTable,
+          SupplierTableData,
+          $$SupplierTableTableFilterComposer,
+          $$SupplierTableTableOrderingComposer,
+          $$SupplierTableTableAnnotationComposer,
+          $$SupplierTableTableCreateCompanionBuilder,
+          $$SupplierTableTableUpdateCompanionBuilder,
+          (
+            SupplierTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $SupplierTableTable,
+              SupplierTableData
+            >,
+          ),
+          SupplierTableData,
+          PrefetchHooks Function()
+        > {
+  $$SupplierTableTableTableManager(_$AppDatabase db, $SupplierTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SupplierTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SupplierTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SupplierTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> nama = const Value.absent(),
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> alamat = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SupplierTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                nama: nama,
+                telepon: telepon,
+                alamat: alamat,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                required String nama,
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> alamat = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SupplierTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                nama: nama,
+                telepon: telepon,
+                alamat: alamat,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SupplierTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SupplierTableTable,
+      SupplierTableData,
+      $$SupplierTableTableFilterComposer,
+      $$SupplierTableTableOrderingComposer,
+      $$SupplierTableTableAnnotationComposer,
+      $$SupplierTableTableCreateCompanionBuilder,
+      $$SupplierTableTableUpdateCompanionBuilder,
+      (
+        SupplierTableData,
+        BaseReferences<_$AppDatabase, $SupplierTableTable, SupplierTableData>,
+      ),
+      SupplierTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$SupplierProductsTableTableCreateCompanionBuilder =
+    SupplierProductsTableCompanion Function({
+      required String id,
+      required String tokoId,
+      required String supplierId,
+      required String produkId,
+      Value<double> harga,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$SupplierProductsTableTableUpdateCompanionBuilder =
+    SupplierProductsTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> supplierId,
+      Value<String> produkId,
+      Value<double> harga,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$SupplierProductsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
+  $$SupplierProductsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get harga => $composableBuilder(
+    column: $table.harga,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SupplierProductsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
+  $$SupplierProductsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get harga => $composableBuilder(
+    column: $table.harga,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SupplierProductsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
+  $$SupplierProductsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get produkId =>
+      $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<double> get harga =>
+      $composableBuilder(column: $table.harga, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SupplierProductsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SupplierProductsTableTable,
+          SupplierProductsTableData,
+          $$SupplierProductsTableTableFilterComposer,
+          $$SupplierProductsTableTableOrderingComposer,
+          $$SupplierProductsTableTableAnnotationComposer,
+          $$SupplierProductsTableTableCreateCompanionBuilder,
+          $$SupplierProductsTableTableUpdateCompanionBuilder,
+          (
+            SupplierProductsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $SupplierProductsTableTable,
+              SupplierProductsTableData
+            >,
+          ),
+          SupplierProductsTableData,
+          PrefetchHooks Function()
+        > {
+  $$SupplierProductsTableTableTableManager(
+    _$AppDatabase db,
+    $SupplierProductsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SupplierProductsTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$SupplierProductsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$SupplierProductsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> supplierId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
+                Value<double> harga = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SupplierProductsTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                supplierId: supplierId,
+                produkId: produkId,
+                harga: harga,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                required String supplierId,
+                required String produkId,
+                Value<double> harga = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SupplierProductsTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                supplierId: supplierId,
+                produkId: produkId,
+                harga: harga,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SupplierProductsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SupplierProductsTableTable,
+      SupplierProductsTableData,
+      $$SupplierProductsTableTableFilterComposer,
+      $$SupplierProductsTableTableOrderingComposer,
+      $$SupplierProductsTableTableAnnotationComposer,
+      $$SupplierProductsTableTableCreateCompanionBuilder,
+      $$SupplierProductsTableTableUpdateCompanionBuilder,
+      (
+        SupplierProductsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $SupplierProductsTableTable,
+          SupplierProductsTableData
+        >,
+      ),
+      SupplierProductsTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$TransaksiTableTableCreateCompanionBuilder =
     TransaksiTableCompanion Function({
-      Value<int> id,
-      required double totalHarga,
-      required double jumlahBayar,
-      required double kembalian,
-      Value<String> status,
-      Value<int?> pelangganId,
-      Value<DateTime> createdAt,
-    });
-typedef $$TransaksiTableTableUpdateCompanionBuilder =
-    TransaksiTableCompanion Function({
-      Value<int> id,
+      required String id,
+      required String tokoId,
+      Value<String?> kasirId,
       Value<double> totalHarga,
       Value<double> jumlahBayar,
       Value<double> kembalian,
       Value<String> status,
-      Value<int?> pelangganId,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$TransaksiTableTableUpdateCompanionBuilder =
+    TransaksiTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String?> kasirId,
+      Value<double> totalHarga,
+      Value<double> jumlahBayar,
+      Value<double> kembalian,
+      Value<String> status,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$TransaksiTableTableFilterComposer
@@ -8380,8 +10263,18 @@ class $$TransaksiTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kasirId => $composableBuilder(
+    column: $table.kasirId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8405,8 +10298,8 @@ class $$TransaksiTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pelangganId => $composableBuilder(
-    column: $table.pelangganId,
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8425,8 +10318,18 @@ class $$TransaksiTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kasirId => $composableBuilder(
+    column: $table.kasirId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -8450,8 +10353,8 @@ class $$TransaksiTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pelangganId => $composableBuilder(
-    column: $table.pelangganId,
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -8470,8 +10373,14 @@ class $$TransaksiTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get kasirId =>
+      $composableBuilder(column: $table.kasirId, builder: (column) => column);
 
   GeneratedColumn<double> get totalHarga => $composableBuilder(
     column: $table.totalHarga,
@@ -8489,10 +10398,8 @@ class $$TransaksiTableTableAnnotationComposer
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
-  GeneratedColumn<int> get pelangganId => $composableBuilder(
-    column: $table.pelangganId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8535,39 +10442,51 @@ class $$TransaksiTableTableTableManager
               $$TransaksiTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String?> kasirId = const Value.absent(),
                 Value<double> totalHarga = const Value.absent(),
                 Value<double> jumlahBayar = const Value.absent(),
                 Value<double> kembalian = const Value.absent(),
                 Value<String> status = const Value.absent(),
-                Value<int?> pelangganId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => TransaksiTableCompanion(
                 id: id,
+                tokoId: tokoId,
+                kasirId: kasirId,
                 totalHarga: totalHarga,
                 jumlahBayar: jumlahBayar,
                 kembalian: kembalian,
                 status: status,
-                pelangganId: pelangganId,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required double totalHarga,
-                required double jumlahBayar,
-                required double kembalian,
+                required String id,
+                required String tokoId,
+                Value<String?> kasirId = const Value.absent(),
+                Value<double> totalHarga = const Value.absent(),
+                Value<double> jumlahBayar = const Value.absent(),
+                Value<double> kembalian = const Value.absent(),
                 Value<String> status = const Value.absent(),
-                Value<int?> pelangganId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => TransaksiTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
+                kasirId: kasirId,
                 totalHarga: totalHarga,
                 jumlahBayar: jumlahBayar,
                 kembalian: kembalian,
                 status: status,
-                pelangganId: pelangganId,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8596,21 +10515,25 @@ typedef $$TransaksiTableTableProcessedTableManager =
     >;
 typedef $$ItemTransaksiTableTableCreateCompanionBuilder =
     ItemTransaksiTableCompanion Function({
-      Value<int> id,
-      required int transaksiId,
-      required int produkId,
-      required int jumlah,
-      required double hargaSatuan,
-      required double subtotal,
-    });
-typedef $$ItemTransaksiTableTableUpdateCompanionBuilder =
-    ItemTransaksiTableCompanion Function({
-      Value<int> id,
-      Value<int> transaksiId,
-      Value<int> produkId,
+      required String id,
+      required String tokoId,
+      required String transaksiId,
+      required String produkId,
       Value<int> jumlah,
       Value<double> hargaSatuan,
       Value<double> subtotal,
+      Value<int> rowid,
+    });
+typedef $$ItemTransaksiTableTableUpdateCompanionBuilder =
+    ItemTransaksiTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> transaksiId,
+      Value<String> produkId,
+      Value<int> jumlah,
+      Value<double> hargaSatuan,
+      Value<double> subtotal,
+      Value<int> rowid,
     });
 
 class $$ItemTransaksiTableTableFilterComposer
@@ -8622,17 +10545,22 @@ class $$ItemTransaksiTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get transaksiId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -8662,17 +10590,22 @@ class $$ItemTransaksiTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get transaksiId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -8702,15 +10635,18 @@ class $$ItemTransaksiTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get transaksiId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<int> get jumlah =>
@@ -8765,35 +10701,43 @@ class $$ItemTransaksiTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> transaksiId = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> transaksiId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ItemTransaksiTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 transaksiId: transaksiId,
                 produkId: produkId,
                 jumlah: jumlah,
                 hargaSatuan: hargaSatuan,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int transaksiId,
-                required int produkId,
-                required int jumlah,
-                required double hargaSatuan,
-                required double subtotal,
+                required String id,
+                required String tokoId,
+                required String transaksiId,
+                required String produkId,
+                Value<int> jumlah = const Value.absent(),
+                Value<double> hargaSatuan = const Value.absent(),
+                Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ItemTransaksiTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 transaksiId: transaksiId,
                 produkId: produkId,
                 jumlah: jumlah,
                 hargaSatuan: hargaSatuan,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8826,23 +10770,29 @@ typedef $$ItemTransaksiTableTableProcessedTableManager =
     >;
 typedef $$HutangPiutangTableTableCreateCompanionBuilder =
     HutangPiutangTableCompanion Function({
-      Value<int> id,
-      Value<int?> transaksiId,
+      required String id,
+      required String tokoId,
+      Value<String?> transaksiId,
       required String namaPelanggan,
-      required double jumlah,
+      Value<double> jumlah,
       Value<String> status,
       Value<DateTime?> tanggalJatuhTempo,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$HutangPiutangTableTableUpdateCompanionBuilder =
     HutangPiutangTableCompanion Function({
-      Value<int> id,
-      Value<int?> transaksiId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String?> transaksiId,
       Value<String> namaPelanggan,
       Value<double> jumlah,
       Value<String> status,
       Value<DateTime?> tanggalJatuhTempo,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$HutangPiutangTableTableFilterComposer
@@ -8854,12 +10804,17 @@ class $$HutangPiutangTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get transaksiId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => ColumnFilters(column),
   );
@@ -8884,6 +10839,11 @@ class $$HutangPiutangTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -8899,12 +10859,17 @@ class $$HutangPiutangTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get transaksiId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -8929,6 +10894,11 @@ class $$HutangPiutangTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8944,10 +10914,13 @@ class $$HutangPiutangTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get transaksiId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get transaksiId => $composableBuilder(
     column: $table.transaksiId,
     builder: (column) => column,
   );
@@ -8967,6 +10940,9 @@ class $$HutangPiutangTableTableAnnotationComposer
     column: $table.tanggalJatuhTempo,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -9012,39 +10988,51 @@ class $$HutangPiutangTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int?> transaksiId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String?> transaksiId = const Value.absent(),
                 Value<String> namaPelanggan = const Value.absent(),
                 Value<double> jumlah = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> tanggalJatuhTempo = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => HutangPiutangTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 transaksiId: transaksiId,
                 namaPelanggan: namaPelanggan,
                 jumlah: jumlah,
                 status: status,
                 tanggalJatuhTempo: tanggalJatuhTempo,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int?> transaksiId = const Value.absent(),
+                required String id,
+                required String tokoId,
+                Value<String?> transaksiId = const Value.absent(),
                 required String namaPelanggan,
-                required double jumlah,
+                Value<double> jumlah = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> tanggalJatuhTempo = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => HutangPiutangTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 transaksiId: transaksiId,
                 namaPelanggan: namaPelanggan,
                 jumlah: jumlah,
                 status: status,
                 tanggalJatuhTempo: tanggalJatuhTempo,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9077,21 +11065,25 @@ typedef $$HutangPiutangTableTableProcessedTableManager =
     >;
 typedef $$RiwayatStokTableTableCreateCompanionBuilder =
     RiwayatStokTableCompanion Function({
-      Value<int> id,
-      required int produkId,
+      required String id,
+      required String tokoId,
+      required String produkId,
       required String tipe,
-      required int jumlah,
+      Value<int> jumlah,
       Value<String?> keterangan,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$RiwayatStokTableTableUpdateCompanionBuilder =
     RiwayatStokTableCompanion Function({
-      Value<int> id,
-      Value<int> produkId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> produkId,
       Value<String> tipe,
       Value<int> jumlah,
       Value<String?> keterangan,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$RiwayatStokTableTableFilterComposer
@@ -9103,12 +11095,17 @@ class $$RiwayatStokTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -9143,12 +11140,17 @@ class $$RiwayatStokTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -9183,10 +11185,13 @@ class $$RiwayatStokTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<String> get tipe =>
@@ -9241,35 +11246,43 @@ class $$RiwayatStokTableTableTableManager
               $$RiwayatStokTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<String> tipe = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<String?> keterangan = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => RiwayatStokTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 produkId: produkId,
                 tipe: tipe,
                 jumlah: jumlah,
                 keterangan: keterangan,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int produkId,
+                required String id,
+                required String tokoId,
+                required String produkId,
                 required String tipe,
-                required int jumlah,
+                Value<int> jumlah = const Value.absent(),
                 Value<String?> keterangan = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => RiwayatStokTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 produkId: produkId,
                 tipe: tipe,
                 jumlah: jumlah,
                 keterangan: keterangan,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9302,17 +11315,25 @@ typedef $$RiwayatStokTableTableProcessedTableManager =
     >;
 typedef $$PembelianTableTableCreateCompanionBuilder =
     PembelianTableCompanion Function({
-      Value<int> id,
-      required String namaSupplier,
-      required double totalHarga,
+      required String id,
+      required String tokoId,
+      Value<String?> supplierId,
+      Value<String?> namaSupplier,
+      Value<double> totalHarga,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$PembelianTableTableUpdateCompanionBuilder =
     PembelianTableCompanion Function({
-      Value<int> id,
-      Value<String> namaSupplier,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String?> supplierId,
+      Value<String?> namaSupplier,
       Value<double> totalHarga,
+      Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$PembelianTableTableFilterComposer
@@ -9324,8 +11345,18 @@ class $$PembelianTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9336,6 +11367,11 @@ class $$PembelianTableTableFilterComposer
 
   ColumnFilters<double> get totalHarga => $composableBuilder(
     column: $table.totalHarga,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9354,8 +11390,18 @@ class $$PembelianTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9366,6 +11412,11 @@ class $$PembelianTableTableOrderingComposer
 
   ColumnOrderings<double> get totalHarga => $composableBuilder(
     column: $table.totalHarga,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9384,8 +11435,16 @@ class $$PembelianTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
+    column: $table.supplierId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get namaSupplier => $composableBuilder(
     column: $table.namaSupplier,
@@ -9396,6 +11455,9 @@ class $$PembelianTableTableAnnotationComposer
     column: $table.totalHarga,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -9438,27 +11500,43 @@ class $$PembelianTableTableTableManager
               $$PembelianTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<String> namaSupplier = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String?> supplierId = const Value.absent(),
+                Value<String?> namaSupplier = const Value.absent(),
                 Value<double> totalHarga = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PembelianTableCompanion(
                 id: id,
+                tokoId: tokoId,
+                supplierId: supplierId,
                 namaSupplier: namaSupplier,
                 totalHarga: totalHarga,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required String namaSupplier,
-                required double totalHarga,
+                required String id,
+                required String tokoId,
+                Value<String?> supplierId = const Value.absent(),
+                Value<String?> namaSupplier = const Value.absent(),
+                Value<double> totalHarga = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PembelianTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
+                supplierId: supplierId,
                 namaSupplier: namaSupplier,
                 totalHarga: totalHarga,
+                updatedAt: updatedAt,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9487,21 +11565,25 @@ typedef $$PembelianTableTableProcessedTableManager =
     >;
 typedef $$ItemPembelianTableTableCreateCompanionBuilder =
     ItemPembelianTableCompanion Function({
-      Value<int> id,
-      required int pembelianId,
-      required int produkId,
-      required int jumlah,
-      required double hargaBeliSatuan,
-      required double subtotal,
-    });
-typedef $$ItemPembelianTableTableUpdateCompanionBuilder =
-    ItemPembelianTableCompanion Function({
-      Value<int> id,
-      Value<int> pembelianId,
-      Value<int> produkId,
+      required String id,
+      required String tokoId,
+      required String pembelianId,
+      required String produkId,
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> subtotal,
+      Value<int> rowid,
+    });
+typedef $$ItemPembelianTableTableUpdateCompanionBuilder =
+    ItemPembelianTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> pembelianId,
+      Value<String> produkId,
+      Value<int> jumlah,
+      Value<double> hargaBeliSatuan,
+      Value<double> subtotal,
+      Value<int> rowid,
     });
 
 class $$ItemPembelianTableTableFilterComposer
@@ -9513,17 +11595,22 @@ class $$ItemPembelianTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pembelianId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pembelianId => $composableBuilder(
     column: $table.pembelianId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -9553,17 +11640,22 @@ class $$ItemPembelianTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pembelianId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pembelianId => $composableBuilder(
     column: $table.pembelianId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -9593,15 +11685,18 @@ class $$ItemPembelianTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get pembelianId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get pembelianId => $composableBuilder(
     column: $table.pembelianId,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<int> get jumlah =>
@@ -9656,35 +11751,43 @@ class $$ItemPembelianTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> pembelianId = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> pembelianId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ItemPembelianTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 pembelianId: pembelianId,
                 produkId: produkId,
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int pembelianId,
-                required int produkId,
-                required int jumlah,
-                required double hargaBeliSatuan,
-                required double subtotal,
+                required String id,
+                required String tokoId,
+                required String pembelianId,
+                required String produkId,
+                Value<int> jumlah = const Value.absent(),
+                Value<double> hargaBeliSatuan = const Value.absent(),
+                Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ItemPembelianTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 pembelianId: pembelianId,
                 produkId: produkId,
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9717,17 +11820,21 @@ typedef $$ItemPembelianTableTableProcessedTableManager =
     >;
 typedef $$PendingOrderTableTableCreateCompanionBuilder =
     PendingOrderTableCompanion Function({
-      Value<int> id,
+      required String id,
+      required String tokoId,
       required String namaPelanggan,
       Value<String?> catatan,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$PendingOrderTableTableUpdateCompanionBuilder =
     PendingOrderTableCompanion Function({
-      Value<int> id,
+      Value<String> id,
+      Value<String> tokoId,
       Value<String> namaPelanggan,
       Value<String?> catatan,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$PendingOrderTableTableFilterComposer
@@ -9739,8 +11846,13 @@ class $$PendingOrderTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9769,8 +11881,13 @@ class $$PendingOrderTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9799,8 +11916,11 @@ class $$PendingOrderTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
 
   GeneratedColumn<String> get namaPelanggan => $composableBuilder(
     column: $table.namaPelanggan,
@@ -9854,27 +11974,35 @@ class $$PendingOrderTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
                 Value<String> namaPelanggan = const Value.absent(),
                 Value<String?> catatan = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingOrderTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 namaPelanggan: namaPelanggan,
                 catatan: catatan,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
+                required String tokoId,
                 required String namaPelanggan,
                 Value<String?> catatan = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingOrderTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 namaPelanggan: namaPelanggan,
                 catatan: catatan,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9907,27 +12035,31 @@ typedef $$PendingOrderTableTableProcessedTableManager =
     >;
 typedef $$PendingOrderItemTableTableCreateCompanionBuilder =
     PendingOrderItemTableCompanion Function({
-      Value<int> id,
-      required int pendingOrderId,
-      required int produkId,
+      required String id,
+      required String tokoId,
+      required String pendingOrderId,
+      required String produkId,
       required String namaProduk,
-      required double hargaJual,
-      required int jumlah,
+      Value<double> hargaJual,
+      Value<int> jumlah,
       Value<int> diskonTipe,
       Value<double> diskonValue,
-      required double subtotal,
+      Value<double> subtotal,
+      Value<int> rowid,
     });
 typedef $$PendingOrderItemTableTableUpdateCompanionBuilder =
     PendingOrderItemTableCompanion Function({
-      Value<int> id,
-      Value<int> pendingOrderId,
-      Value<int> produkId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> pendingOrderId,
+      Value<String> produkId,
       Value<String> namaProduk,
       Value<double> hargaJual,
       Value<int> jumlah,
       Value<int> diskonTipe,
       Value<double> diskonValue,
       Value<double> subtotal,
+      Value<int> rowid,
     });
 
 class $$PendingOrderItemTableTableFilterComposer
@@ -9939,17 +12071,22 @@ class $$PendingOrderItemTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pendingOrderId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pendingOrderId => $composableBuilder(
     column: $table.pendingOrderId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -9994,17 +12131,22 @@ class $$PendingOrderItemTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pendingOrderId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pendingOrderId => $composableBuilder(
     column: $table.pendingOrderId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -10049,15 +12191,18 @@ class $$PendingOrderItemTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get pendingOrderId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get pendingOrderId => $composableBuilder(
     column: $table.pendingOrderId,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<String> get namaProduk => $composableBuilder(
@@ -10131,17 +12276,20 @@ class $$PendingOrderItemTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> pendingOrderId = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> pendingOrderId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<String> namaProduk = const Value.absent(),
                 Value<double> hargaJual = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingOrderItemTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 pendingOrderId: pendingOrderId,
                 produkId: produkId,
                 namaProduk: namaProduk,
@@ -10150,20 +12298,24 @@ class $$PendingOrderItemTableTableTableManager
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int pendingOrderId,
-                required int produkId,
+                required String id,
+                required String tokoId,
+                required String pendingOrderId,
+                required String produkId,
                 required String namaProduk,
-                required double hargaJual,
-                required int jumlah,
+                Value<double> hargaJual = const Value.absent(),
+                Value<int> jumlah = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
-                required double subtotal,
+                Value<double> subtotal = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingOrderItemTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 pendingOrderId: pendingOrderId,
                 produkId: produkId,
                 namaProduk: namaProduk,
@@ -10172,6 +12324,7 @@ class $$PendingOrderItemTableTableTableManager
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
                 subtotal: subtotal,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -10204,21 +12357,25 @@ typedef $$PendingOrderItemTableTableProcessedTableManager =
     >;
 typedef $$PendingPembelianTableTableCreateCompanionBuilder =
     PendingPembelianTableCompanion Function({
-      Value<int> id,
-      Value<int?> supplierId,
+      required String id,
+      required String tokoId,
+      Value<String?> supplierId,
       Value<String?> namaSupplier,
-      Value<DateTime> createdAt,
       Value<bool> isPpnEnabled,
       Value<double> ppnPercent,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$PendingPembelianTableTableUpdateCompanionBuilder =
     PendingPembelianTableCompanion Function({
-      Value<int> id,
-      Value<int?> supplierId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String?> supplierId,
       Value<String?> namaSupplier,
-      Value<DateTime> createdAt,
       Value<bool> isPpnEnabled,
       Value<double> ppnPercent,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$PendingPembelianTableTableFilterComposer
@@ -10230,23 +12387,23 @@ class $$PendingPembelianTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get supplierId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get namaSupplier => $composableBuilder(
     column: $table.namaSupplier,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10257,6 +12414,11 @@ class $$PendingPembelianTableTableFilterComposer
 
   ColumnFilters<double> get ppnPercent => $composableBuilder(
     column: $table.ppnPercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10270,23 +12432,23 @@ class $$PendingPembelianTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get supplierId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get namaSupplier => $composableBuilder(
     column: $table.namaSupplier,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -10297,6 +12459,11 @@ class $$PendingPembelianTableTableOrderingComposer
 
   ColumnOrderings<double> get ppnPercent => $composableBuilder(
     column: $table.ppnPercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -10310,10 +12477,13 @@ class $$PendingPembelianTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get supplierId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get supplierId => $composableBuilder(
     column: $table.supplierId,
     builder: (column) => column,
   );
@@ -10322,9 +12492,6 @@ class $$PendingPembelianTableTableAnnotationComposer
     column: $table.namaSupplier,
     builder: (column) => column,
   );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<bool> get isPpnEnabled => $composableBuilder(
     column: $table.isPpnEnabled,
@@ -10335,6 +12502,9 @@ class $$PendingPembelianTableTableAnnotationComposer
     column: $table.ppnPercent,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$PendingPembelianTableTableTableManager
@@ -10383,35 +12553,43 @@ class $$PendingPembelianTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int?> supplierId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String?> supplierId = const Value.absent(),
                 Value<String?> namaSupplier = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isPpnEnabled = const Value.absent(),
                 Value<double> ppnPercent = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingPembelianTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 supplierId: supplierId,
                 namaSupplier: namaSupplier,
-                createdAt: createdAt,
                 isPpnEnabled: isPpnEnabled,
                 ppnPercent: ppnPercent,
+                createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int?> supplierId = const Value.absent(),
+                required String id,
+                required String tokoId,
+                Value<String?> supplierId = const Value.absent(),
                 Value<String?> namaSupplier = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isPpnEnabled = const Value.absent(),
                 Value<double> ppnPercent = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingPembelianTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 supplierId: supplierId,
                 namaSupplier: namaSupplier,
-                createdAt: createdAt,
                 isPpnEnabled: isPpnEnabled,
                 ppnPercent: ppnPercent,
+                createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -10444,27 +12622,31 @@ typedef $$PendingPembelianTableTableProcessedTableManager =
     >;
 typedef $$PendingPembelianItemTableTableCreateCompanionBuilder =
     PendingPembelianItemTableCompanion Function({
-      Value<int> id,
-      required int pendingPembelianId,
-      required int produkId,
+      required String id,
+      required String tokoId,
+      required String pendingPembelianId,
+      required String produkId,
       required String namaProduk,
-      required int jumlah,
-      required double hargaBeliSatuan,
-      required double hargaBeliLama,
+      Value<int> jumlah,
+      Value<double> hargaBeliSatuan,
+      Value<double> hargaBeliLama,
       Value<int> diskonTipe,
       Value<double> diskonValue,
+      Value<int> rowid,
     });
 typedef $$PendingPembelianItemTableTableUpdateCompanionBuilder =
     PendingPembelianItemTableCompanion Function({
-      Value<int> id,
-      Value<int> pendingPembelianId,
-      Value<int> produkId,
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> pendingPembelianId,
+      Value<String> produkId,
       Value<String> namaProduk,
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> hargaBeliLama,
       Value<int> diskonTipe,
       Value<double> diskonValue,
+      Value<int> rowid,
     });
 
 class $$PendingPembelianItemTableTableFilterComposer
@@ -10476,17 +12658,22 @@ class $$PendingPembelianItemTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pendingPembelianId => $composableBuilder(
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pendingPembelianId => $composableBuilder(
     column: $table.pendingPembelianId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get produkId => $composableBuilder(
+  ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnFilters(column),
   );
@@ -10531,17 +12718,22 @@ class $$PendingPembelianItemTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pendingPembelianId => $composableBuilder(
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pendingPembelianId => $composableBuilder(
     column: $table.pendingPembelianId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get produkId => $composableBuilder(
+  ColumnOrderings<String> get produkId => $composableBuilder(
     column: $table.produkId,
     builder: (column) => ColumnOrderings(column),
   );
@@ -10586,15 +12778,18 @@ class $$PendingPembelianItemTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get pendingPembelianId => $composableBuilder(
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get pendingPembelianId => $composableBuilder(
     column: $table.pendingPembelianId,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get produkId =>
+  GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
 
   GeneratedColumn<String> get namaProduk => $composableBuilder(
@@ -10672,17 +12867,20 @@ class $$PendingPembelianItemTableTableTableManager
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<int> pendingPembelianId = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> pendingPembelianId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
                 Value<String> namaProduk = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> hargaBeliLama = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingPembelianItemTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 pendingPembelianId: pendingPembelianId,
                 produkId: produkId,
                 namaProduk: namaProduk,
@@ -10691,20 +12889,24 @@ class $$PendingPembelianItemTableTableTableManager
                 hargaBeliLama: hargaBeliLama,
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                required int pendingPembelianId,
-                required int produkId,
+                required String id,
+                required String tokoId,
+                required String pendingPembelianId,
+                required String produkId,
                 required String namaProduk,
-                required int jumlah,
-                required double hargaBeliSatuan,
-                required double hargaBeliLama,
+                Value<int> jumlah = const Value.absent(),
+                Value<double> hargaBeliSatuan = const Value.absent(),
+                Value<double> hargaBeliLama = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => PendingPembelianItemTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 pendingPembelianId: pendingPembelianId,
                 produkId: produkId,
                 namaProduk: namaProduk,
@@ -10713,6 +12915,7 @@ class $$PendingPembelianItemTableTableTableManager
                 hargaBeliLama: hargaBeliLama,
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -10743,337 +12946,27 @@ typedef $$PendingPembelianItemTableTableProcessedTableManager =
       PendingPembelianItemTableData,
       PrefetchHooks Function()
     >;
-typedef $$SupplierTableTableCreateCompanionBuilder =
-    SupplierTableCompanion Function({
-      Value<int> id,
-      required String nama,
-      Value<String?> telepon,
-      Value<String?> alamat,
-      Value<DateTime> createdAt,
-    });
-typedef $$SupplierTableTableUpdateCompanionBuilder =
-    SupplierTableCompanion Function({
-      Value<int> id,
-      Value<String> nama,
-      Value<String?> telepon,
-      Value<String?> alamat,
-      Value<DateTime> createdAt,
-    });
-
-final class $$SupplierTableTableReferences
-    extends
-        BaseReferences<_$AppDatabase, $SupplierTableTable, SupplierTableData> {
-  $$SupplierTableTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<
-    $SupplierProductsTableTable,
-    List<SupplierProductsTableData>
-  >
-  _supplierProductsTableRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.supplierProductsTable,
-        aliasName: $_aliasNameGenerator(
-          db.supplierTable.id,
-          db.supplierProductsTable.supplierId,
-        ),
-      );
-
-  $$SupplierProductsTableTableProcessedTableManager
-  get supplierProductsTableRefs {
-    final manager = $$SupplierProductsTableTableTableManager(
-      $_db,
-      $_db.supplierProductsTable,
-    ).filter((f) => f.supplierId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _supplierProductsTableRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$SupplierTableTableFilterComposer
-    extends Composer<_$AppDatabase, $SupplierTableTable> {
-  $$SupplierTableTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get nama => $composableBuilder(
-    column: $table.nama,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get telepon => $composableBuilder(
-    column: $table.telepon,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get alamat => $composableBuilder(
-    column: $table.alamat,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  Expression<bool> supplierProductsTableRefs(
-    Expression<bool> Function($$SupplierProductsTableTableFilterComposer f) f,
-  ) {
-    final $$SupplierProductsTableTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.supplierProductsTable,
-          getReferencedColumn: (t) => t.supplierId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SupplierProductsTableTableFilterComposer(
-                $db: $db,
-                $table: $db.supplierProductsTable,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-}
-
-class $$SupplierTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $SupplierTableTable> {
-  $$SupplierTableTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get nama => $composableBuilder(
-    column: $table.nama,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get telepon => $composableBuilder(
-    column: $table.telepon,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get alamat => $composableBuilder(
-    column: $table.alamat,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$SupplierTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SupplierTableTable> {
-  $$SupplierTableTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get nama =>
-      $composableBuilder(column: $table.nama, builder: (column) => column);
-
-  GeneratedColumn<String> get telepon =>
-      $composableBuilder(column: $table.telepon, builder: (column) => column);
-
-  GeneratedColumn<String> get alamat =>
-      $composableBuilder(column: $table.alamat, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  Expression<T> supplierProductsTableRefs<T extends Object>(
-    Expression<T> Function($$SupplierProductsTableTableAnnotationComposer a) f,
-  ) {
-    final $$SupplierProductsTableTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.supplierProductsTable,
-          getReferencedColumn: (t) => t.supplierId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SupplierProductsTableTableAnnotationComposer(
-                $db: $db,
-                $table: $db.supplierProductsTable,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-}
-
-class $$SupplierTableTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $SupplierTableTable,
-          SupplierTableData,
-          $$SupplierTableTableFilterComposer,
-          $$SupplierTableTableOrderingComposer,
-          $$SupplierTableTableAnnotationComposer,
-          $$SupplierTableTableCreateCompanionBuilder,
-          $$SupplierTableTableUpdateCompanionBuilder,
-          (SupplierTableData, $$SupplierTableTableReferences),
-          SupplierTableData,
-          PrefetchHooks Function({bool supplierProductsTableRefs})
-        > {
-  $$SupplierTableTableTableManager(_$AppDatabase db, $SupplierTableTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$SupplierTableTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$SupplierTableTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$SupplierTableTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> nama = const Value.absent(),
-                Value<String?> telepon = const Value.absent(),
-                Value<String?> alamat = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => SupplierTableCompanion(
-                id: id,
-                nama: nama,
-                telepon: telepon,
-                alamat: alamat,
-                createdAt: createdAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String nama,
-                Value<String?> telepon = const Value.absent(),
-                Value<String?> alamat = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => SupplierTableCompanion.insert(
-                id: id,
-                nama: nama,
-                telepon: telepon,
-                alamat: alamat,
-                createdAt: createdAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SupplierTableTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({supplierProductsTableRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (supplierProductsTableRefs) db.supplierProductsTable,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (supplierProductsTableRefs)
-                    await $_getPrefetchedData<
-                      SupplierTableData,
-                      $SupplierTableTable,
-                      SupplierProductsTableData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$SupplierTableTableReferences
-                          ._supplierProductsTableRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$SupplierTableTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).supplierProductsTableRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.supplierId == item.id),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$SupplierTableTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $SupplierTableTable,
-      SupplierTableData,
-      $$SupplierTableTableFilterComposer,
-      $$SupplierTableTableOrderingComposer,
-      $$SupplierTableTableAnnotationComposer,
-      $$SupplierTableTableCreateCompanionBuilder,
-      $$SupplierTableTableUpdateCompanionBuilder,
-      (SupplierTableData, $$SupplierTableTableReferences),
-      SupplierTableData,
-      PrefetchHooks Function({bool supplierProductsTableRefs})
-    >;
 typedef $$NotifikasiTableTableCreateCompanionBuilder =
     NotifikasiTableCompanion Function({
-      Value<int> id,
+      required String id,
+      required String tokoId,
       required String judul,
       required String pesan,
       Value<String> tipe,
       Value<bool> isRead,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 typedef $$NotifikasiTableTableUpdateCompanionBuilder =
     NotifikasiTableCompanion Function({
-      Value<int> id,
+      Value<String> id,
+      Value<String> tokoId,
       Value<String> judul,
       Value<String> pesan,
       Value<String> tipe,
       Value<bool> isRead,
       Value<DateTime> createdAt,
+      Value<int> rowid,
     });
 
 class $$NotifikasiTableTableFilterComposer
@@ -11085,8 +12978,13 @@ class $$NotifikasiTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11125,8 +13023,13 @@ class $$NotifikasiTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -11165,8 +13068,11 @@ class $$NotifikasiTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
 
   GeneratedColumn<String> get judul =>
       $composableBuilder(column: $table.judul, builder: (column) => column);
@@ -11221,35 +13127,43 @@ class $$NotifikasiTableTableTableManager
               $$NotifikasiTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
                 Value<String> judul = const Value.absent(),
                 Value<String> pesan = const Value.absent(),
                 Value<String> tipe = const Value.absent(),
                 Value<bool> isRead = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => NotifikasiTableCompanion(
                 id: id,
+                tokoId: tokoId,
                 judul: judul,
                 pesan: pesan,
                 tipe: tipe,
                 isRead: isRead,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
+                required String tokoId,
                 required String judul,
                 required String pesan,
                 Value<String> tipe = const Value.absent(),
                 Value<bool> isRead = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => NotifikasiTableCompanion.insert(
                 id: id,
+                tokoId: tokoId,
                 judul: judul,
                 pesan: pesan,
                 tipe: tipe,
                 isRead: isRead,
                 createdAt: createdAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -11280,26 +13194,28 @@ typedef $$NotifikasiTableTableProcessedTableManager =
       NotifikasiTableData,
       PrefetchHooks Function()
     >;
-typedef $$TokoTableTableCreateCompanionBuilder =
-    TokoTableCompanion Function({
+typedef $$PendingSyncQueueTableTableCreateCompanionBuilder =
+    PendingSyncQueueTableCompanion Function({
       Value<int> id,
-      required String nama,
-      Value<String?> alamat,
-      Value<String?> telepon,
+      required String targetTable,
+      required String operation,
+      required String recordId,
+      required String payload,
       Value<DateTime> createdAt,
     });
-typedef $$TokoTableTableUpdateCompanionBuilder =
-    TokoTableCompanion Function({
+typedef $$PendingSyncQueueTableTableUpdateCompanionBuilder =
+    PendingSyncQueueTableCompanion Function({
       Value<int> id,
-      Value<String> nama,
-      Value<String?> alamat,
-      Value<String?> telepon,
+      Value<String> targetTable,
+      Value<String> operation,
+      Value<String> recordId,
+      Value<String> payload,
       Value<DateTime> createdAt,
     });
 
-class $$TokoTableTableFilterComposer
-    extends Composer<_$AppDatabase, $TokoTableTable> {
-  $$TokoTableTableFilterComposer({
+class $$PendingSyncQueueTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingSyncQueueTableTable> {
+  $$PendingSyncQueueTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11311,18 +13227,23 @@ class $$TokoTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get nama => $composableBuilder(
-    column: $table.nama,
+  ColumnFilters<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get alamat => $composableBuilder(
-    column: $table.alamat,
+  ColumnFilters<String> get operation => $composableBuilder(
+    column: $table.operation,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get telepon => $composableBuilder(
-    column: $table.telepon,
+  ColumnFilters<String> get recordId => $composableBuilder(
+    column: $table.recordId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11332,9 +13253,9 @@ class $$TokoTableTableFilterComposer
   );
 }
 
-class $$TokoTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $TokoTableTable> {
-  $$TokoTableTableOrderingComposer({
+class $$PendingSyncQueueTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingSyncQueueTableTable> {
+  $$PendingSyncQueueTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11346,248 +13267,23 @@ class $$TokoTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get nama => $composableBuilder(
-    column: $table.nama,
+  ColumnOrderings<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get alamat => $composableBuilder(
-    column: $table.alamat,
+  ColumnOrderings<String> get operation => $composableBuilder(
+    column: $table.operation,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get telepon => $composableBuilder(
-    column: $table.telepon,
+  ColumnOrderings<String> get recordId => $composableBuilder(
+    column: $table.recordId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$TokoTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $TokoTableTable> {
-  $$TokoTableTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get nama =>
-      $composableBuilder(column: $table.nama, builder: (column) => column);
-
-  GeneratedColumn<String> get alamat =>
-      $composableBuilder(column: $table.alamat, builder: (column) => column);
-
-  GeneratedColumn<String> get telepon =>
-      $composableBuilder(column: $table.telepon, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-}
-
-class $$TokoTableTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $TokoTableTable,
-          TokoTableData,
-          $$TokoTableTableFilterComposer,
-          $$TokoTableTableOrderingComposer,
-          $$TokoTableTableAnnotationComposer,
-          $$TokoTableTableCreateCompanionBuilder,
-          $$TokoTableTableUpdateCompanionBuilder,
-          (
-            TokoTableData,
-            BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
-          ),
-          TokoTableData,
-          PrefetchHooks Function()
-        > {
-  $$TokoTableTableTableManager(_$AppDatabase db, $TokoTableTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$TokoTableTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$TokoTableTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$TokoTableTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> nama = const Value.absent(),
-                Value<String?> alamat = const Value.absent(),
-                Value<String?> telepon = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => TokoTableCompanion(
-                id: id,
-                nama: nama,
-                alamat: alamat,
-                telepon: telepon,
-                createdAt: createdAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String nama,
-                Value<String?> alamat = const Value.absent(),
-                Value<String?> telepon = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => TokoTableCompanion.insert(
-                id: id,
-                nama: nama,
-                alamat: alamat,
-                telepon: telepon,
-                createdAt: createdAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$TokoTableTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $TokoTableTable,
-      TokoTableData,
-      $$TokoTableTableFilterComposer,
-      $$TokoTableTableOrderingComposer,
-      $$TokoTableTableAnnotationComposer,
-      $$TokoTableTableCreateCompanionBuilder,
-      $$TokoTableTableUpdateCompanionBuilder,
-      (
-        TokoTableData,
-        BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
-      ),
-      TokoTableData,
-      PrefetchHooks Function()
-    >;
-typedef $$UserTableTableCreateCompanionBuilder =
-    UserTableCompanion Function({
-      Value<int> id,
-      Value<String?> username,
-      required String password,
-      required String role,
-      Value<String?> nama,
-      Value<String?> email,
-      Value<int> tokoId,
-      Value<DateTime> createdAt,
-    });
-typedef $$UserTableTableUpdateCompanionBuilder =
-    UserTableCompanion Function({
-      Value<int> id,
-      Value<String?> username,
-      Value<String> password,
-      Value<String> role,
-      Value<String?> nama,
-      Value<String?> email,
-      Value<int> tokoId,
-      Value<DateTime> createdAt,
-    });
-
-class $$UserTableTableFilterComposer
-    extends Composer<_$AppDatabase, $UserTableTable> {
-  $$UserTableTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get username => $composableBuilder(
-    column: $table.username,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get password => $composableBuilder(
-    column: $table.password,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get nama => $composableBuilder(
-    column: $table.nama,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get email => $composableBuilder(
-    column: $table.email,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get tokoId => $composableBuilder(
-    column: $table.tokoId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$UserTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $UserTableTable> {
-  $$UserTableTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get username => $composableBuilder(
-    column: $table.username,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get password => $composableBuilder(
-    column: $table.password,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get nama => $composableBuilder(
-    column: $table.nama,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get email => $composableBuilder(
-    column: $table.email,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get tokoId => $composableBuilder(
-    column: $table.tokoId,
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -11597,9 +13293,9 @@ class $$UserTableTableOrderingComposer
   );
 }
 
-class $$UserTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $UserTableTable> {
-  $$UserTableTableAnnotationComposer({
+class $$PendingSyncQueueTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingSyncQueueTableTable> {
+  $$PendingSyncQueueTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11609,344 +13305,99 @@ class $$UserTableTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get username =>
-      $composableBuilder(column: $table.username, builder: (column) => column);
+  GeneratedColumn<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get password =>
-      $composableBuilder(column: $table.password, builder: (column) => column);
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
 
-  GeneratedColumn<String> get role =>
-      $composableBuilder(column: $table.role, builder: (column) => column);
+  GeneratedColumn<String> get recordId =>
+      $composableBuilder(column: $table.recordId, builder: (column) => column);
 
-  GeneratedColumn<String> get nama =>
-      $composableBuilder(column: $table.nama, builder: (column) => column);
-
-  GeneratedColumn<String> get email =>
-      $composableBuilder(column: $table.email, builder: (column) => column);
-
-  GeneratedColumn<int> get tokoId =>
-      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$UserTableTableTableManager
+class $$PendingSyncQueueTableTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $UserTableTable,
-          UserTableData,
-          $$UserTableTableFilterComposer,
-          $$UserTableTableOrderingComposer,
-          $$UserTableTableAnnotationComposer,
-          $$UserTableTableCreateCompanionBuilder,
-          $$UserTableTableUpdateCompanionBuilder,
+          $PendingSyncQueueTableTable,
+          PendingSyncQueueTableData,
+          $$PendingSyncQueueTableTableFilterComposer,
+          $$PendingSyncQueueTableTableOrderingComposer,
+          $$PendingSyncQueueTableTableAnnotationComposer,
+          $$PendingSyncQueueTableTableCreateCompanionBuilder,
+          $$PendingSyncQueueTableTableUpdateCompanionBuilder,
           (
-            UserTableData,
-            BaseReferences<_$AppDatabase, $UserTableTable, UserTableData>,
-          ),
-          UserTableData,
-          PrefetchHooks Function()
-        > {
-  $$UserTableTableTableManager(_$AppDatabase db, $UserTableTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$UserTableTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$UserTableTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$UserTableTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String?> username = const Value.absent(),
-                Value<String> password = const Value.absent(),
-                Value<String> role = const Value.absent(),
-                Value<String?> nama = const Value.absent(),
-                Value<String?> email = const Value.absent(),
-                Value<int> tokoId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => UserTableCompanion(
-                id: id,
-                username: username,
-                password: password,
-                role: role,
-                nama: nama,
-                email: email,
-                tokoId: tokoId,
-                createdAt: createdAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String?> username = const Value.absent(),
-                required String password,
-                required String role,
-                Value<String?> nama = const Value.absent(),
-                Value<String?> email = const Value.absent(),
-                Value<int> tokoId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => UserTableCompanion.insert(
-                id: id,
-                username: username,
-                password: password,
-                role: role,
-                nama: nama,
-                email: email,
-                tokoId: tokoId,
-                createdAt: createdAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$UserTableTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $UserTableTable,
-      UserTableData,
-      $$UserTableTableFilterComposer,
-      $$UserTableTableOrderingComposer,
-      $$UserTableTableAnnotationComposer,
-      $$UserTableTableCreateCompanionBuilder,
-      $$UserTableTableUpdateCompanionBuilder,
-      (
-        UserTableData,
-        BaseReferences<_$AppDatabase, $UserTableTable, UserTableData>,
-      ),
-      UserTableData,
-      PrefetchHooks Function()
-    >;
-typedef $$SyncRecordTableTableCreateCompanionBuilder =
-    SyncRecordTableCompanion Function({
-      required String uuid,
-      required String tableEntity,
-      required int localId,
-      required int updatedAt,
-      Value<bool> isDeleted,
-      Value<String> syncStatus,
-      Value<int> tokoId,
-      Value<int> rowid,
-    });
-typedef $$SyncRecordTableTableUpdateCompanionBuilder =
-    SyncRecordTableCompanion Function({
-      Value<String> uuid,
-      Value<String> tableEntity,
-      Value<int> localId,
-      Value<int> updatedAt,
-      Value<bool> isDeleted,
-      Value<String> syncStatus,
-      Value<int> tokoId,
-      Value<int> rowid,
-    });
-
-class $$SyncRecordTableTableFilterComposer
-    extends Composer<_$AppDatabase, $SyncRecordTableTable> {
-  $$SyncRecordTableTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get tableEntity => $composableBuilder(
-    column: $table.tableEntity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isDeleted => $composableBuilder(
-    column: $table.isDeleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get tokoId => $composableBuilder(
-    column: $table.tokoId,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$SyncRecordTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $SyncRecordTableTable> {
-  $$SyncRecordTableTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get tableEntity => $composableBuilder(
-    column: $table.tableEntity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isDeleted => $composableBuilder(
-    column: $table.isDeleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get tokoId => $composableBuilder(
-    column: $table.tokoId,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$SyncRecordTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SyncRecordTableTable> {
-  $$SyncRecordTableTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get uuid =>
-      $composableBuilder(column: $table.uuid, builder: (column) => column);
-
-  GeneratedColumn<String> get tableEntity => $composableBuilder(
-    column: $table.tableEntity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
-
-  GeneratedColumn<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  GeneratedColumn<bool> get isDeleted =>
-      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get tokoId =>
-      $composableBuilder(column: $table.tokoId, builder: (column) => column);
-}
-
-class $$SyncRecordTableTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $SyncRecordTableTable,
-          SyncRecordTableData,
-          $$SyncRecordTableTableFilterComposer,
-          $$SyncRecordTableTableOrderingComposer,
-          $$SyncRecordTableTableAnnotationComposer,
-          $$SyncRecordTableTableCreateCompanionBuilder,
-          $$SyncRecordTableTableUpdateCompanionBuilder,
-          (
-            SyncRecordTableData,
+            PendingSyncQueueTableData,
             BaseReferences<
               _$AppDatabase,
-              $SyncRecordTableTable,
-              SyncRecordTableData
+              $PendingSyncQueueTableTable,
+              PendingSyncQueueTableData
             >,
           ),
-          SyncRecordTableData,
+          PendingSyncQueueTableData,
           PrefetchHooks Function()
         > {
-  $$SyncRecordTableTableTableManager(
+  $$PendingSyncQueueTableTableTableManager(
     _$AppDatabase db,
-    $SyncRecordTableTable table,
+    $PendingSyncQueueTableTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$SyncRecordTableTableFilterComposer($db: db, $table: table),
+              $$PendingSyncQueueTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
-              $$SyncRecordTableTableOrderingComposer($db: db, $table: table),
+              $$PendingSyncQueueTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
-              $$SyncRecordTableTableAnnotationComposer($db: db, $table: table),
+              $$PendingSyncQueueTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
           updateCompanionCallback:
               ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> tableEntity = const Value.absent(),
-                Value<int> localId = const Value.absent(),
-                Value<int> updatedAt = const Value.absent(),
-                Value<bool> isDeleted = const Value.absent(),
-                Value<String> syncStatus = const Value.absent(),
-                Value<int> tokoId = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => SyncRecordTableCompanion(
-                uuid: uuid,
-                tableEntity: tableEntity,
-                localId: localId,
-                updatedAt: updatedAt,
-                isDeleted: isDeleted,
-                syncStatus: syncStatus,
-                tokoId: tokoId,
-                rowid: rowid,
+                Value<int> id = const Value.absent(),
+                Value<String> targetTable = const Value.absent(),
+                Value<String> operation = const Value.absent(),
+                Value<String> recordId = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => PendingSyncQueueTableCompanion(
+                id: id,
+                targetTable: targetTable,
+                operation: operation,
+                recordId: recordId,
+                payload: payload,
+                createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
-                required String uuid,
-                required String tableEntity,
-                required int localId,
-                required int updatedAt,
-                Value<bool> isDeleted = const Value.absent(),
-                Value<String> syncStatus = const Value.absent(),
-                Value<int> tokoId = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => SyncRecordTableCompanion.insert(
-                uuid: uuid,
-                tableEntity: tableEntity,
-                localId: localId,
-                updatedAt: updatedAt,
-                isDeleted: isDeleted,
-                syncStatus: syncStatus,
-                tokoId: tokoId,
-                rowid: rowid,
+                Value<int> id = const Value.absent(),
+                required String targetTable,
+                required String operation,
+                required String recordId,
+                required String payload,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => PendingSyncQueueTableCompanion.insert(
+                id: id,
+                targetTable: targetTable,
+                operation: operation,
+                recordId: recordId,
+                payload: payload,
+                createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -11956,466 +13407,43 @@ class $$SyncRecordTableTableTableManager
       );
 }
 
-typedef $$SyncRecordTableTableProcessedTableManager =
+typedef $$PendingSyncQueueTableTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $SyncRecordTableTable,
-      SyncRecordTableData,
-      $$SyncRecordTableTableFilterComposer,
-      $$SyncRecordTableTableOrderingComposer,
-      $$SyncRecordTableTableAnnotationComposer,
-      $$SyncRecordTableTableCreateCompanionBuilder,
-      $$SyncRecordTableTableUpdateCompanionBuilder,
+      $PendingSyncQueueTableTable,
+      PendingSyncQueueTableData,
+      $$PendingSyncQueueTableTableFilterComposer,
+      $$PendingSyncQueueTableTableOrderingComposer,
+      $$PendingSyncQueueTableTableAnnotationComposer,
+      $$PendingSyncQueueTableTableCreateCompanionBuilder,
+      $$PendingSyncQueueTableTableUpdateCompanionBuilder,
       (
-        SyncRecordTableData,
+        PendingSyncQueueTableData,
         BaseReferences<
           _$AppDatabase,
-          $SyncRecordTableTable,
-          SyncRecordTableData
+          $PendingSyncQueueTableTable,
+          PendingSyncQueueTableData
         >,
       ),
-      SyncRecordTableData,
+      PendingSyncQueueTableData,
       PrefetchHooks Function()
-    >;
-typedef $$SupplierProductsTableTableCreateCompanionBuilder =
-    SupplierProductsTableCompanion Function({
-      Value<int> id,
-      required int supplierId,
-      required int produkId,
-      required double lastPrice,
-      required DateTime updatedAt,
-    });
-typedef $$SupplierProductsTableTableUpdateCompanionBuilder =
-    SupplierProductsTableCompanion Function({
-      Value<int> id,
-      Value<int> supplierId,
-      Value<int> produkId,
-      Value<double> lastPrice,
-      Value<DateTime> updatedAt,
-    });
-
-final class $$SupplierProductsTableTableReferences
-    extends
-        BaseReferences<
-          _$AppDatabase,
-          $SupplierProductsTableTable,
-          SupplierProductsTableData
-        > {
-  $$SupplierProductsTableTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $SupplierTableTable _supplierIdTable(_$AppDatabase db) =>
-      db.supplierTable.createAlias(
-        $_aliasNameGenerator(
-          db.supplierProductsTable.supplierId,
-          db.supplierTable.id,
-        ),
-      );
-
-  $$SupplierTableTableProcessedTableManager get supplierId {
-    final $_column = $_itemColumn<int>('supplier_id')!;
-
-    final manager = $$SupplierTableTableTableManager(
-      $_db,
-      $_db.supplierTable,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_supplierIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $ProdukTableTable _produkIdTable(_$AppDatabase db) =>
-      db.produkTable.createAlias(
-        $_aliasNameGenerator(
-          db.supplierProductsTable.produkId,
-          db.produkTable.id,
-        ),
-      );
-
-  $$ProdukTableTableProcessedTableManager get produkId {
-    final $_column = $_itemColumn<int>('produk_id')!;
-
-    final manager = $$ProdukTableTableTableManager(
-      $_db,
-      $_db.produkTable,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_produkIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$SupplierProductsTableTableFilterComposer
-    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
-  $$SupplierProductsTableTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get lastPrice => $composableBuilder(
-    column: $table.lastPrice,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$SupplierTableTableFilterComposer get supplierId {
-    final $$SupplierTableTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.supplierId,
-      referencedTable: $db.supplierTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SupplierTableTableFilterComposer(
-            $db: $db,
-            $table: $db.supplierTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ProdukTableTableFilterComposer get produkId {
-    final $$ProdukTableTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.produkId,
-      referencedTable: $db.produkTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ProdukTableTableFilterComposer(
-            $db: $db,
-            $table: $db.produkTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$SupplierProductsTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
-  $$SupplierProductsTableTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get lastPrice => $composableBuilder(
-    column: $table.lastPrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$SupplierTableTableOrderingComposer get supplierId {
-    final $$SupplierTableTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.supplierId,
-      referencedTable: $db.supplierTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SupplierTableTableOrderingComposer(
-            $db: $db,
-            $table: $db.supplierTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ProdukTableTableOrderingComposer get produkId {
-    final $$ProdukTableTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.produkId,
-      referencedTable: $db.produkTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ProdukTableTableOrderingComposer(
-            $db: $db,
-            $table: $db.produkTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$SupplierProductsTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SupplierProductsTableTable> {
-  $$SupplierProductsTableTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<double> get lastPrice =>
-      $composableBuilder(column: $table.lastPrice, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  $$SupplierTableTableAnnotationComposer get supplierId {
-    final $$SupplierTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.supplierId,
-      referencedTable: $db.supplierTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SupplierTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.supplierTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ProdukTableTableAnnotationComposer get produkId {
-    final $$ProdukTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.produkId,
-      referencedTable: $db.produkTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ProdukTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.produkTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$SupplierProductsTableTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $SupplierProductsTableTable,
-          SupplierProductsTableData,
-          $$SupplierProductsTableTableFilterComposer,
-          $$SupplierProductsTableTableOrderingComposer,
-          $$SupplierProductsTableTableAnnotationComposer,
-          $$SupplierProductsTableTableCreateCompanionBuilder,
-          $$SupplierProductsTableTableUpdateCompanionBuilder,
-          (SupplierProductsTableData, $$SupplierProductsTableTableReferences),
-          SupplierProductsTableData,
-          PrefetchHooks Function({bool supplierId, bool produkId})
-        > {
-  $$SupplierProductsTableTableTableManager(
-    _$AppDatabase db,
-    $SupplierProductsTableTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$SupplierProductsTableTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $$SupplierProductsTableTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $$SupplierProductsTableTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> supplierId = const Value.absent(),
-                Value<int> produkId = const Value.absent(),
-                Value<double> lastPrice = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-              }) => SupplierProductsTableCompanion(
-                id: id,
-                supplierId: supplierId,
-                produkId: produkId,
-                lastPrice: lastPrice,
-                updatedAt: updatedAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int supplierId,
-                required int produkId,
-                required double lastPrice,
-                required DateTime updatedAt,
-              }) => SupplierProductsTableCompanion.insert(
-                id: id,
-                supplierId: supplierId,
-                produkId: produkId,
-                lastPrice: lastPrice,
-                updatedAt: updatedAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SupplierProductsTableTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({supplierId = false, produkId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (supplierId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.supplierId,
-                                referencedTable:
-                                    $$SupplierProductsTableTableReferences
-                                        ._supplierIdTable(db),
-                                referencedColumn:
-                                    $$SupplierProductsTableTableReferences
-                                        ._supplierIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (produkId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.produkId,
-                                referencedTable:
-                                    $$SupplierProductsTableTableReferences
-                                        ._produkIdTable(db),
-                                referencedColumn:
-                                    $$SupplierProductsTableTableReferences
-                                        ._produkIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$SupplierProductsTableTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $SupplierProductsTableTable,
-      SupplierProductsTableData,
-      $$SupplierProductsTableTableFilterComposer,
-      $$SupplierProductsTableTableOrderingComposer,
-      $$SupplierProductsTableTableAnnotationComposer,
-      $$SupplierProductsTableTableCreateCompanionBuilder,
-      $$SupplierProductsTableTableUpdateCompanionBuilder,
-      (SupplierProductsTableData, $$SupplierProductsTableTableReferences),
-      SupplierProductsTableData,
-      PrefetchHooks Function({bool supplierId, bool produkId})
     >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$TokoTableTableTableManager get tokoTable =>
+      $$TokoTableTableTableManager(_db, _db.tokoTable);
+  $$UserTableTableTableManager get userTable =>
+      $$UserTableTableTableManager(_db, _db.userTable);
   $$ProdukTableTableTableManager get produkTable =>
       $$ProdukTableTableTableManager(_db, _db.produkTable);
   $$SatuanProdukTableTableTableManager get satuanProdukTable =>
       $$SatuanProdukTableTableTableManager(_db, _db.satuanProdukTable);
+  $$SupplierTableTableTableManager get supplierTable =>
+      $$SupplierTableTableTableManager(_db, _db.supplierTable);
+  $$SupplierProductsTableTableTableManager get supplierProductsTable =>
+      $$SupplierProductsTableTableTableManager(_db, _db.supplierProductsTable);
   $$TransaksiTableTableTableManager get transaksiTable =>
       $$TransaksiTableTableTableManager(_db, _db.transaksiTable);
   $$ItemTransaksiTableTableTableManager get itemTransaksiTable =>
@@ -12439,16 +13467,8 @@ class $AppDatabaseManager {
         _db,
         _db.pendingPembelianItemTable,
       );
-  $$SupplierTableTableTableManager get supplierTable =>
-      $$SupplierTableTableTableManager(_db, _db.supplierTable);
   $$NotifikasiTableTableTableManager get notifikasiTable =>
       $$NotifikasiTableTableTableManager(_db, _db.notifikasiTable);
-  $$TokoTableTableTableManager get tokoTable =>
-      $$TokoTableTableTableManager(_db, _db.tokoTable);
-  $$UserTableTableTableManager get userTable =>
-      $$UserTableTableTableManager(_db, _db.userTable);
-  $$SyncRecordTableTableTableManager get syncRecordTable =>
-      $$SyncRecordTableTableTableManager(_db, _db.syncRecordTable);
-  $$SupplierProductsTableTableTableManager get supplierProductsTable =>
-      $$SupplierProductsTableTableTableManager(_db, _db.supplierProductsTable);
+  $$PendingSyncQueueTableTableTableManager get pendingSyncQueueTable =>
+      $$PendingSyncQueueTableTableTableManager(_db, _db.pendingSyncQueueTable);
 }

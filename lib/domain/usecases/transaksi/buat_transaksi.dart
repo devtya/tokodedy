@@ -1,3 +1,4 @@
+import '../../../core/services/toko_service.dart';
 import '../../entities/hutang_piutang.dart';
 import '../../entities/item_transaksi.dart';
 import '../../entities/riwayat_stok.dart';
@@ -10,9 +11,10 @@ import '../../repositories/notifikasi_repository.dart';
 import '../../entities/notifikasi.dart';
 
 class CartItem {
-  final int produkId;
+  final String produkId;
   final String namaProduk;
   final double hargaJual;
+  final double hargaPokok; // harga beli / modal
   final int jumlah;
   final int diskonTipe;
   final double diskonValue;
@@ -21,6 +23,7 @@ class CartItem {
     required this.produkId,
     required this.namaProduk,
     required this.hargaJual,
+    this.hargaPokok = 0,
     required this.jumlah,
     this.diskonTipe = 0,
     this.diskonValue = 0,
@@ -39,6 +42,7 @@ class CartItem {
       produkId: produkId,
       namaProduk: namaProduk,
       hargaJual: hargaJual,
+      hargaPokok: hargaPokok,
       jumlah: jumlah ?? this.jumlah,
       diskonTipe: diskonTipe ?? this.diskonTipe,
       diskonValue: diskonValue ?? this.diskonValue,
@@ -52,6 +56,7 @@ class BuatTransaksi {
   final RiwayatStokRepository riwayatStokRepository;
   final HutangPiutangRepository hutangPiutangRepository;
   final NotifikasiRepository notifikasiRepository;
+  final TokoService tokoService;
 
   BuatTransaksi({
     required this.transaksiRepository,
@@ -59,13 +64,15 @@ class BuatTransaksi {
     required this.riwayatStokRepository,
     required this.hutangPiutangRepository,
     required this.notifikasiRepository,
+    required this.tokoService,
   });
 
-  Future<int> call({
+  Future<String> call({
     required List<CartItem> cartItems,
     required double jumlahBayar,
     String? namaPelanggan,
   }) async {
+    final activeTokoId = tokoService.tokoId ?? '';
     final totalHarga = cartItems.fold(
       0.0,
       (sum, item) => sum + item.totalSetelahDiskon,
@@ -74,6 +81,7 @@ class BuatTransaksi {
 
     final transaksiId = await transaksiRepository.addTransaksi(
       Transaksi(
+        tokoId: activeTokoId,
         totalHarga: totalHarga,
         jumlahBayar: jumlahBayar,
         kembalian: jumlahBayar - totalHarga,
@@ -84,6 +92,7 @@ class BuatTransaksi {
     for (final item in cartItems) {
       await transaksiRepository.addItemTransaksi(
         ItemTransaksi(
+          tokoId: activeTokoId,
           transaksiId: transaksiId,
           produkId: item.produkId,
           jumlah: item.jumlah,
@@ -100,6 +109,7 @@ class BuatTransaksi {
         if (newStok < 5) {
           await notifikasiRepository.addNotifikasi(
             Notifikasi(
+              tokoId: activeTokoId,
               judul: 'Stok Menipis - ${produk.nama}',
               pesan:
                   'Sisa stok ${produk.nama} saat ini adalah $newStok. Segera lakukan pembelian (restock).',
@@ -111,6 +121,7 @@ class BuatTransaksi {
 
       await riwayatStokRepository.addRiwayat(
         RiwayatStok(
+          tokoId: activeTokoId,
           produkId: item.produkId,
           tipe: 'penjualan',
           jumlah: -item.jumlah,
@@ -122,6 +133,7 @@ class BuatTransaksi {
     if (namaPelanggan != null) {
       await hutangPiutangRepository.addHutang(
         HutangPiutang(
+          tokoId: activeTokoId,
           transaksiId: transaksiId,
           namaPelanggan: namaPelanggan,
           jumlah: totalHarga,

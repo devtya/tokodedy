@@ -5,5 +5,5 @@ class AddProduk {
   final ProdukRepository repository;
   AddProduk(this.repository);
 
-  Future<int> call(Produk produk) => repository.addProduk(produk);
+  Future<String> call(Produk produk) => repository.addProduk(produk);
 }

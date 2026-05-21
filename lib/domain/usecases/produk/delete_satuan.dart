@@ -4,5 +4,5 @@ class DeleteSatuan {
   final ProdukRepository repository;
   DeleteSatuan(this.repository);
 
-  Future<void> call(int id) => repository.deleteSatuan(id);
+  Future<void> call(String id) => repository.deleteSatuan(id);
 }

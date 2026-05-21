@@ -53,7 +53,7 @@ class CashierReady extends CashierState {
 }
 
 class CashierSuccess extends CashierState {
-  final int transaksiId;
+  final String transaksiId;
   final bool isHutang;
   const CashierSuccess(this.transaksiId, {this.isHutang = false});
   @override

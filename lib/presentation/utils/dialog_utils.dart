@@ -15,10 +15,10 @@ class DialogUtils {
     required Produk produk,
     required bool isPembelian,
     required Function(
-      int produkId,
+      String produkId,
       String nama,
       double harga,
-      int? satuanId,
+      String? satuanId,
       double konversi,
     ) onSelected,
   }) {

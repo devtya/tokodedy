@@ -7,7 +7,7 @@ import '../../domain/repositories/pending_order_repository.dart';
 
 class PendingDialog extends StatefulWidget {
   final PendingOrderRepository repository;
-  final void Function(int id) onLoadPending;
+  final void Function(String id) onLoadPending;
 
   const PendingDialog({
     super.key,

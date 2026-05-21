@@ -29,7 +29,7 @@ class ProdukError extends ProdukState {
 
 class ProdukOperationSuccess extends ProdukState {
   final String message;
-  final int? newId;
+  final String? newId;
   const ProdukOperationSuccess(this.message, {this.newId});
   @override
   List<Object?> get props => [message, newId];

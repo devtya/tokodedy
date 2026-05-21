@@ -123,14 +123,15 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     emit(SyncInProgress(isOnline: online, logs: List.of(_logs)));
 
     try {
-      final pushResults = await _syncService.push(
-        onTablePushed: (table, count) {
-          _addLog(SyncLogEntry.tablePush(table, count));
-        },
-      );
-      _addLog(SyncLogEntry.pushDone(pushResults.length));
+      // Flush antrian operasi offline
+      final flushed = await _syncService.flushQueue();
+      if (flushed > 0) {
+        _addLog(SyncLogEntry.tablePush('queue', flushed));
+        _addLog(SyncLogEntry.pushDone(1));
+      }
       emit(SyncInProgress(isOnline: online, logs: List.of(_logs)));
 
+      // Pull perubahan dari Supabase
       final pullResults = await _syncService.pull(
         onTablePulled: (table, count) {
           _addLog(SyncLogEntry.tablePull(table, count));

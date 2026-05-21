@@ -1,19 +1,24 @@
 import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/sync_helper.dart';
+import '../../data/services/supabase_sync_service.dart';
+import '../../core/services/toko_service.dart';
 import '../../domain/entities/notifikasi.dart' as domain;
 import '../../domain/repositories/notifikasi_repository.dart';
 
 class NotifikasiRepositoryImpl implements NotifikasiRepository {
   final AppDatabase _db;
-  final SyncHelper _syncHelper;
+  final SupabaseSyncService _syncService;
+  final TokoService _tokoService;
 
-  NotifikasiRepositoryImpl(this._db, this._syncHelper);
+  NotifikasiRepositoryImpl(this._db, this._syncService, this._tokoService);
+
+  String get _tokoId => _tokoService.tokoId ?? '';
 
   domain.Notifikasi _mapToEntity(NotifikasiTableData data) {
     return domain.Notifikasi(
       id: data.id,
+      tokoId: data.tokoId,
       judul: data.judul,
       pesan: data.pesan,
       tipe: data.tipe,
@@ -24,22 +29,33 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
 
   @override
   Future<void> addNotifikasi(domain.Notifikasi notifikasi) async {
-    final newId = await _db
-        .into(_db.notifikasiTable)
-        .insert(
+    final id = notifikasi.id ?? _syncService.generateId();
+    await _db.into(_db.notifikasiTable).insert(
           NotifikasiTableCompanion.insert(
+            id: id,
+            tokoId: _tokoId,
             judul: notifikasi.judul,
             pesan: notifikasi.pesan,
             tipe: Value(notifikasi.tipe),
             isRead: Value(notifikasi.isRead),
           ),
         );
-    await _syncHelper.onInsert(tableEntity: 'notifikasi', localId: newId);
+
+    // Sync to Supabase
+    await _syncService.upsert('notifikasi', {
+      'id': id,
+      'toko_id': _tokoId,
+      'judul': notifikasi.judul,
+      'pesan': notifikasi.pesan,
+      'tipe': notifikasi.tipe,
+      'is_read': notifikasi.isRead,
+    });
   }
 
   @override
   Future<List<domain.Notifikasi>> getAllNotifikasi() async {
     final query = _db.select(_db.notifikasiTable)
+      ..where((t) => t.tokoId.equals(_tokoId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
@@ -50,7 +66,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Future<List<domain.Notifikasi>> getUnreadNotifikasi() async {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.isRead.equals(false))
+      ..where((t) => t.isRead.equals(false) & t.tokoId.equals(_tokoId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
@@ -59,16 +75,32 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   }
 
   @override
-  Future<void> markAsRead(int id) async {
-    await (_db.update(_db.notifikasiTable)..where((t) => t.id.equals(id)))
+  Future<void> markAsRead(String id) async {
+    final existing = await (_db.select(_db.notifikasiTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+        .getSingleOrNull();
+
+    await (_db.update(_db.notifikasiTable)
+      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
         .write(const NotifikasiTableCompanion(isRead: Value(true)));
-    await _syncHelper.onUpdate(tableEntity: 'notifikasi', localId: id);
+
+    // Sync to Supabase
+    if (existing != null) {
+      await _syncService.upsert('notifikasi', {
+        'id': id,
+        'toko_id': _tokoId,
+        'judul': existing.judul,
+        'pesan': existing.pesan,
+        'tipe': existing.tipe,
+        'is_read': true,
+      });
+    }
   }
 
   @override
   Future<List<domain.Notifikasi>> getNotifikasiByJudul(String search) async {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.judul.contains(search))
+      ..where((t) => t.judul.contains(search) & t.tokoId.equals(_tokoId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
@@ -79,7 +111,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Stream<int> watchUnreadCount() {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.isRead.equals(false));
+      ..where((t) => t.isRead.equals(false) & t.tokoId.equals(_tokoId));
     return query.watch().map((list) => list.length);
   }
 }

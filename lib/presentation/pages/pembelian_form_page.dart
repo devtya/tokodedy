@@ -32,10 +32,11 @@ import '../blocs/auth/auth_state.dart';
 import '../widgets/cari_produk_dialog.dart';
 import '../widgets/supplier_konfirmasi_dialog.dart';
 import 'pending_pembelian_page.dart';
+import '../../core/services/toko_service.dart';
 
 class PembelianFormPage extends StatefulWidget {
-  final int? pendingId;
-  final int? existingPembelianId;
+  final String? pendingId;
+  final String? existingPembelianId;
   const PembelianFormPage({
     super.key,
     this.pendingId,
@@ -63,10 +64,10 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   );
 
   bool _forcePop = false;
-  int? _pembelianId;
+  String? _pembelianId;
   bool _isSaving = false;
   List<_ItemPembelian>? _pendingSaveItems;
-  int? _pendingSaveSupplierId;
+  String? _pendingSaveSupplierId;
 
   @override
   void initState() {
@@ -78,7 +79,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     }
   }
 
-  Future<void> _loadPending(int id) async {
+  Future<void> _loadPending(String id) async {
     final pendingRepo = sl<PendingPembelianRepository>();
     final pending = await pendingRepo.getPendingById(id);
     if (pending != null) {
@@ -118,7 +119,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     }
   }
 
-  Future<void> _loadExisting(int id) async {
+  Future<void> _loadExisting(String id) async {
     final repo = sl<PembelianRepository>();
     final pembelian = await repo.getPembelianById(id);
     if (pembelian == null) return;
@@ -185,7 +186,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       ),
     );
 
-    if (result != null && result is List<int>) {
+    if (result != null && result is List<String>) {
       for (final id in result) {
         final p = await sl<GetProdukById>()(id);
         if (p != null && mounted) {
@@ -203,7 +204,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           });
         }
       }
-    } else if (result != null && result is int) {
+    } else if (result != null && result is String) {
       final p = await sl<GetProdukById>()(result);
       if (p != null && mounted) {
         setState(() {
@@ -259,7 +260,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             ),
           ),
         );
-        if (newId != null && newId is int) {
+        if (newId != null && newId is String) {
           final p = await sl<GetProdukById>()(newId);
           if (p != null && mounted) {
             setState(() {
@@ -520,6 +521,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       try {
         final pendingRepo = sl<PendingPembelianRepository>();
         final pending = PendingPembelian(
+          tokoId: sl<TokoService>().tokoId ?? '',
           supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
@@ -544,6 +546,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         final addNotifikasi = sl<AddNotifikasi>();
         await addNotifikasi(
           Notifikasi(
+            tokoId: sl<TokoService>().tokoId ?? '',
             judul: 'Pembelian Pending Baru',
             pesan:
                 'Kasir menambahkan draft pembelian baru dari ${_selectedSupplier?.nama ?? "Supplier tidak diketahui"}.',
@@ -576,7 +579,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
     if (_pembelianId == null) {
       final allProduk = await sl<GetAllProduk>().call();
-      final Map<int, Produk> produkMap = {for (var p in allProduk) p.id!: p};
+      final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
       final List<_ItemPembelian> changedItems = [];
 
       for (final item in _items) {
@@ -729,6 +732,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       try {
         final pendingRepo = sl<PendingPembelianRepository>();
         final pending = PendingPembelian(
+          tokoId: sl<TokoService>().tokoId ?? '',
           supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
@@ -778,9 +782,10 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           if (supplierId != null) {
             for (final item in items) {
               await dao.upsertSupplierProduct(
+                tokoId: sl<TokoService>().tokoId ?? '',
                 supplierId: supplierId,
                 produkId: item.produkId,
-                lastPrice: item.hargaBeliSatuan,
+                harga: item.hargaBeliSatuan,
               );
             }
           }
@@ -922,7 +927,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         searchProduk: sl(),
         isPembelian: true,
         supplierId: _selectedSupplier?.id,
-        onAddToCart: (id, nama, harga, qty, {int? satuanId, double konversi = 1.0}) {
+        onAddToCart: (id, nama, hargaJual, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
           setState(() {
             final existing = _items.indexWhere(
               (i) => i.produkId == id && i.satuanId == satuanId,
@@ -940,9 +945,9 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                   produkId: id,
                   namaProduk: nama,
                   jumlah: qty,
-                  hargaBeliSatuan: harga,
-                  hargaBeliLama: harga,
-                  totalHarga: qty * harga,
+                  hargaBeliSatuan: hargaBeli,
+                  hargaBeliLama: hargaBeli,
+                  totalHarga: qty * hargaBeli,
                   satuanId: satuanId,
                   konversi: konversi,
                 ),
@@ -1307,7 +1312,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 }
 
 class _ItemPembelian {
-  final int produkId;
+  final String produkId;
   final String namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
@@ -1316,7 +1321,7 @@ class _ItemPembelian {
   final int diskonTipe;
   final double diskonValue;
   // null = satuan dasar, non-null = SatuanProduk.id
-  final int? satuanId;
+  final String? satuanId;
   // 1.0 = satuan dasar, >1.0 = satuan konversi
   final double konversi;
 
@@ -1338,7 +1343,7 @@ class _ItemPembelian {
       diskonTipe == 1 ? subtotal * diskonValue / 100 : diskonValue;
 
   _ItemPembelian copyWith({
-    int? produkId,
+    String? produkId,
     String? namaProduk,
     int? jumlah,
     double? hargaBeliSatuan,
@@ -1346,7 +1351,7 @@ class _ItemPembelian {
     double? totalHarga,
     int? diskonTipe,
     double? diskonValue,
-    int? satuanId,
+    String? satuanId,
     double? konversi,
   }) {
     return _ItemPembelian(
@@ -1366,7 +1371,7 @@ class _ItemPembelian {
 
 class _PriceValidationDialog extends StatefulWidget {
   final List<_ItemPembelian> changedItems;
-  final Map<int, Produk> produkMap;
+  final Map<String, Produk> produkMap;
 
   const _PriceValidationDialog({
     required this.changedItems,
@@ -1383,7 +1388,7 @@ class _PriceValidationDialogState extends State<_PriceValidationDialog> {
     symbol: 'Rp',
     decimalDigits: 0,
   );
-  final Map<int, TextEditingController> _controllers = {};
+  final Map<String, TextEditingController> _controllers = {};
   bool _isSaving = false;
 
   @override
@@ -1445,6 +1450,7 @@ class _PriceValidationDialogState extends State<_PriceValidationDialog> {
         final isNaik = item.hargaBeliSatuan > item.hargaBeliLama;
         await addNotifikasi(
           Notifikasi(
+            tokoId: sl<TokoService>().tokoId ?? '',
             judul: 'Harga Beli Berubah - ${produk.nama}',
             pesan:
                 'Harga beli dari Rp${item.hargaBeliLama.toStringAsFixed(0)} menjadi Rp${item.hargaBeliSatuan.toStringAsFixed(0)}. Harga jual disesuaikan menjadi Rp${newJual.toStringAsFixed(0)}.',

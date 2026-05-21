@@ -18,18 +18,20 @@ class ScanBarcodeCashier extends CashierEvent {
 }
 
 class AddToCart extends CashierEvent {
-  final int produkId;
+  final String produkId;
   final String namaProduk;
   final double hargaJual;
+  final double hargaPokok;
   final int jumlah;
   const AddToCart({
     required this.produkId,
     required this.namaProduk,
     required this.hargaJual,
+    this.hargaPokok = 0,
     this.jumlah = 1,
   });
   @override
-  List<Object?> get props => [produkId, namaProduk, hargaJual, jumlah];
+  List<Object?> get props => [produkId, namaProduk, hargaJual, hargaPokok, jumlah];
 }
 
 class RemoveFromCart extends CashierEvent {

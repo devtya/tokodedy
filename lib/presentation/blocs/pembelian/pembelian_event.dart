@@ -10,7 +10,7 @@ class LoadPembelian extends PembelianEvent {}
 
 class AddPembelianEvent extends PembelianEvent {
   final String namaSupplier;
-  final int? supplierId;
+  final String? supplierId;
   final List<ItemPembelianData> items;
 
   const AddPembelianEvent({
@@ -24,7 +24,7 @@ class AddPembelianEvent extends PembelianEvent {
 }
 
 class UpdatePembelianEvent extends PembelianEvent {
-  final int pembelianId;
+  final String pembelianId;
   final String namaSupplier;
   final List<ItemPembelianData> items;
 
@@ -39,13 +39,13 @@ class UpdatePembelianEvent extends PembelianEvent {
 }
 
 class ItemPembelianData {
-  final int produkId;
+  final String produkId;
   final String namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
   final double subtotal;
   // null = satuan dasar, non-null = SatuanProduk.id
-  final int? satuanId;
+  final String? satuanId;
   // 1.0 = satuan dasar, >1.0 = satuan konversi (misal 1 karton = 10 pcs → konversi=10)
   final double konversi;
 

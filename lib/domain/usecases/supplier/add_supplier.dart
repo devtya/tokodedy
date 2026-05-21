@@ -6,5 +6,5 @@ class AddSupplier {
 
   AddSupplier(this.repository);
 
-  Future<int> call(Supplier supplier) => repository.addSupplier(supplier);
+  Future<String> call(Supplier supplier) => repository.addSupplier(supplier);
 }

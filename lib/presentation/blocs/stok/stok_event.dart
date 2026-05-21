@@ -7,14 +7,14 @@ abstract class StokEvent extends Equatable {
 }
 
 class LoadRiwayatStok extends StokEvent {
-  final int produkId;
+  final String produkId;
   const LoadRiwayatStok(this.produkId);
   @override
   List<Object?> get props => [produkId];
 }
 
 class TambahStokEvent extends StokEvent {
-  final int produkId;
+  final String produkId;
   final int jumlah;
   final String? keterangan;
   const TambahStokEvent({

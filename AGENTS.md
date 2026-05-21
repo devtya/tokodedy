@@ -225,7 +225,7 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 ### Fitur: Sinkronisasi Multi-Toko Supabase & Pemulihan Cloud
 - **Deskripsi**: Penyelarasan tokoId secara dinamis di level SQLite (Drift), sinkronisasi (Supabase), dan layer Dependency Injection (GetIt). Serta sistem login pemulihan cloud (*cloud recovery login*) otomatis untuk mengunduh seluruh data toko pasca install ulang aplikasi.
 - **Cara pakai**: (1) Daftarkan toko baru, seluruh data login dan barang otomatis sinkron ke Supabase remote di bawah `toko_id` milik toko tersebut. (2) Di perangkat baru/setelah install ulang, login dengan kredensial toko baru tersebut. Kredensial & info toko akan ditarik dari Supabase, database Drift di-seeding secara otomatis, dan dipicu initial sync untuk mengunduh seluruh data toko.
-- **Files**: `lib/data/services/sync_helper.dart`, `lib/data/services/supabase_sync_service.dart`, `lib/core/di/injection.dart`, `lib/data/repositories/auth_repository_impl.dart`
+- **Files**: `lib/data/services/supabase_sync_service.dart`, `lib/core/di/injection.dart`, `lib/data/repositories/auth_repository_impl.dart`
 - **Date**: 2026-05-21
 
 ### Bug: User Management — Kebocoran Manajemen Pengguna Lintas Toko
@@ -234,9 +234,39 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Files**: `lib/data/services/supabase_sync_service.dart`
 - **Date**: 2026-05-21
 
+### Bug: User Management — User dari toko lain masih tampil + bisa diubah passwordnya
+- **Root cause**: (1) Self-healing logic di `getAllUsers()` meng-inner-join semua `syncRecord` tanpa filter `tokoId`, sehingga user dari toko lain yang punya sync record bisa ter-assign ke toko aktif. (2) `updateUser()` dan `deleteUser()` tidak memvalidasi bahwa `tokoId` user yang dioperasi cocok dengan toko yang sedang login — admin toko lain bisa diubah/dihapus.
+- **Fix**: (1) Self-healing di `getAllUsers()` sekarang hanya join sync record yang punya `tokoId == currentTokoId`, dan hanya koreksi user yang punya sync record milik toko saat ini tapi tokoId-nya salah. (2) `updateUser()` sekarang cek `existing.tokoId != currentTokoId` dan throw jika beda. (3) `deleteUser()` idem — fetch user dulu, guard `tokoId`, baru hapus.
+- **Files**: `lib/data/repositories/auth_repository_impl.dart`
+- **Date**: 2026-05-21
+
 ### Fitur: Penamaan APK Rilis Dinamis 'hendkasir-v<version>.apk'
 - **Deskripsi**: Mengotomatiskan dan mendinamiskan penamaan file APK saat dirilis dan diunduh. Gradle lokal dikonfigurasi untuk otomatis memberi nama `hendkasir-v<versionName>.apk` saat proses kompilasi rilis, dan `UpdateService` disempurnakan agar secara dinamis menyaring aset rilis di GitHub yang berawalan `hendkasir` dan berakhiran `.apk` (serta fallback `app-release.apk`).
 - **Cara pakai**: Jalankan `flutter build apk --release` untuk otomatis menghasilkan file APK dengan nama khusus di folder lokal. Unggah berkas APK tersebut ke dashboard rilis GitHub Anda, dan aplikasi akan secara otomatis mendeteksi, mengunduh, serta memperbaruinya dengan andal.
 - **Files**: `android/app/build.gradle.kts`, `lib/core/services/update_service.dart`, `lib/presentation/pages/settings_page.dart`
 - **Date**: 2026-05-21
+
+### Fitur: Sinkronisasi Cloud Manual di Pengaturan
+- **Deskripsi**: Menambahkan menu "Sinkronisasi Cloud" interaktif di halaman Pengaturan untuk memicu sinkronisasi dua arah secara manual (push & pull). Hal ini memungkinkan pengguna mengunggah seluruh data lokal dari HP ke cloud Supabase secara instan agar bisa diakses oleh perangkat baru (recovery).
+- **Cara pakai**: Masuk ke Pengaturan → pilih "Sinkronisasi Cloud" → tunggu hingga proses selesai. Status keberhasilan atau kesalahan ditampilkan lewat SnackBar.
+- **Files**: `lib/presentation/pages/settings_page.dart`
+- **Date**: 2026-05-21
+
+### Fitur: Halaman Terpisah Undang Kasir
+- **Deskripsi**: Fungsi invite kasir dipindah dari dialog di `UserManagementPage` ke halaman terpisah (`InviteKasirPage`) dengan form validasi lengkap (email format, required). FAB di user management sekarang navigasi ke halaman baru.
+- **Cara pakai**: Buka Manajemen Pengguna → tap FAB (+) → isi email & nama (opsional) → "Undang Kasir".
+- **Files**: `lib/presentation/pages/invite_kasir_page.dart`, `lib/presentation/pages/user_management_page.dart`
+- **Date**: 2026-05-21
+
+### Fitur: RBAC Kasir — Harga Pokok & Margin Tersembunyi
+- **Deskripsi**: Halaman kasir sekarang membaca role dari `AuthBloc`. Jika pengguna adalah kasir (`role == 'kasir'`), `hargaPokok` yang dikirim ke `AddToCart` di-set ke 0, sehingga margin (`hargaJual - hargaPokok`) tidak tersimpan di state manapun.
+- **Cara pakai**: Login sebagai kasir → buka halaman Kasir → tambah produk → `hargaPokok` diset 0 secara otomatis.
+- **Files**: `lib/presentation/pages/cashier_page.dart`
+- **Date**: 2026-05-21
+
+### Cleanup: Hapus sync_helper.dart
+- **Deskripsi**: File `sync_helper.dart` sudah tidak ada (stub kosong, tidak dipakai). Referensi di AGENTS.md dihapus.
+- **Files**: `AGENTS.md`
+- **Date**: 2026-05-21
+
 

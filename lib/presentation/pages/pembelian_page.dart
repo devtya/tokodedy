@@ -431,7 +431,7 @@ class _PembelianPageState extends State<PembelianPage> {
                           color: AppTheme.primaryGreen,
                         ),
                       ),
-                      title: Text(p.namaSupplier),
+                      title: Text(p.namaSupplier ?? 'Supplier Tidak Diketahui'),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

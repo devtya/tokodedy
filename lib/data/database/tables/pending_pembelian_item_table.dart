@@ -1,13 +1,17 @@
 import 'package:drift/drift.dart';
 
 class PendingPembelianItemTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get pendingPembelianId => integer()();
-  IntColumn get produkId => integer()();
-  TextColumn get namaProduk => text()();
-  IntColumn get jumlah => integer()();
-  RealColumn get hargaBeliSatuan => real()();
-  RealColumn get hargaBeliLama => real()();
-  IntColumn get diskonTipe => integer().withDefault(const Constant(0))();
-  RealColumn get diskonValue => real().withDefault(const Constant(0))();
+  TextColumn get id                => text()(); // UUID
+  TextColumn get tokoId            => text()(); // UUID FK ke toko
+  TextColumn get pendingPembelianId => text()(); // UUID FK ke pending_pembelian
+  TextColumn get produkId          => text()(); // UUID FK ke produk
+  TextColumn get namaProduk        => text()();
+  IntColumn get jumlah             => integer().withDefault(const Constant(1))();
+  RealColumn get hargaBeliSatuan   => real().withDefault(const Constant(0))();
+  RealColumn get hargaBeliLama     => real().withDefault(const Constant(0))();
+  IntColumn get diskonTipe         => integer().withDefault(const Constant(0))();
+  RealColumn get diskonValue       => real().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }

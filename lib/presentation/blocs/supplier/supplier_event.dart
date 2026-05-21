@@ -36,7 +36,7 @@ class UpdateSupplierEvent extends SupplierEvent {
 }
 
 class DeleteSupplierEvent extends SupplierEvent {
-  final int id;
+  final String id;
   const DeleteSupplierEvent(this.id);
 
   @override

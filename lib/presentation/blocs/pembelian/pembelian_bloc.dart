@@ -6,6 +6,8 @@ import '../../../domain/usecases/stok/buat_pembelian.dart';
 import '../../../domain/usecases/stok/update_pembelian.dart';
 import 'pembelian_event.dart';
 import 'pembelian_state.dart';
+import '../../../core/di/injection.dart';
+import '../../../core/services/toko_service.dart';
 
 class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
   final PembelianRepository repository;
@@ -43,8 +45,9 @@ class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
       final items = event.items
           .map(
             (d) => ItemPembelian(
+              tokoId: sl<TokoService>().tokoId ?? '',
               produkId: d.produkId,
-              pembelianId: 0,
+              pembelianId: '',
               jumlah: d.jumlah,
               hargaBeliSatuan: d.hargaBeliSatuan,
               subtotal: d.subtotal,
@@ -70,6 +73,7 @@ class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
       final items = event.items
           .map(
             (d) => ItemPembelian(
+              tokoId: sl<TokoService>().tokoId ?? '',
               produkId: d.produkId,
               pembelianId: event.pembelianId,
               jumlah: d.jumlah,

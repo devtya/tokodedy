@@ -10,7 +10,7 @@ abstract class NotifikasiEvent extends Equatable {
 class LoadNotifikasi extends NotifikasiEvent {}
 
 class MarkNotifikasiAsRead extends NotifikasiEvent {
-  final int id;
+  final String id;
 
   const MarkNotifikasiAsRead(this.id);
 

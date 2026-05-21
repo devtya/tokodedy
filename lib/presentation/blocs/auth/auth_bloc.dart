@@ -22,7 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final user = await authRepository.getCurrentUser();
+      final user = authRepository.getCurrentUser();
       if (user != null) {
         emit(Authenticated(user));
       } else {

@@ -1,8 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 class PendingPembelian extends Equatable {
-  final int? id;
-  final int? supplierId;
+  final String? id; // UUID
+  final String tokoId; // UUID FK ke toko
+  final String? supplierId; // UUID FK ke supplier
   final String? namaSupplier;
   final DateTime? createdAt;
   final bool isPpnEnabled;
@@ -10,6 +11,7 @@ class PendingPembelian extends Equatable {
 
   const PendingPembelian({
     this.id,
+    required this.tokoId,
     this.supplierId,
     this.namaSupplier,
     this.createdAt,
@@ -19,11 +21,6 @@ class PendingPembelian extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    supplierId,
-    namaSupplier,
-    createdAt,
-    isPpnEnabled,
-    ppnPercent,
+    id, tokoId, supplierId, namaSupplier, createdAt, isPpnEnabled, ppnPercent,
   ];
 }

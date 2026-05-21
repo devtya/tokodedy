@@ -19,7 +19,7 @@ class ReceiptGenerator {
   });
 
   ReceiptData fromTransaction({
-    required int transaksiId,
+    required String transaksiId,
     required List<CartItem> cartItems,
     required double totalBayar,
     required double kembalian,

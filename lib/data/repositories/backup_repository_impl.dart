@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
@@ -233,6 +233,7 @@ class BackupRepositoryImpl implements BackupRepository {
           ? m['barcode'] as String
           : null;
       return domain.Produk(
+        tokoId: '',
         nama: m['nama'] as String,
         barcode: barcode,
         hargaBeli: (m['hargaBeli'] as num).toDouble(),
@@ -247,7 +248,8 @@ class BackupRepositoryImpl implements BackupRepository {
     parsed.satuanByNama.forEach((namaProduk, list) {
       satuanByNama[namaProduk] = list
           .map((m) => domain.SatuanProduk(
-                produkId: 0,
+                tokoId: '',
+                produkId: '',
                 nama: m['nama'] as String,
                 konversi: (m['konversi'] as num).toDouble(),
                 hargaBeli: (m['hargaBeli'] as num).toDouble(),

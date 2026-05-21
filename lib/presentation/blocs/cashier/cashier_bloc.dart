@@ -54,6 +54,7 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           produkId: produk.id!,
           namaProduk: produk.nama,
           hargaJual: produk.hargaJual,
+          hargaPokok: produk.hargaBeli,
         ),
       );
     }
@@ -77,6 +78,7 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           produkId: event.produkId,
           namaProduk: event.namaProduk,
           hargaJual: event.hargaJual,
+          hargaPokok: event.hargaPokok,
           jumlah: event.jumlah,
         ),
       );

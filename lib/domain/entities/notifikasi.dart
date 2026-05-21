@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 class Notifikasi extends Equatable {
-  final int? id;
+  final String? id; // UUID
+  final String tokoId; // UUID FK ke toko
   final String judul;
   final String pesan;
   final String tipe;
@@ -10,6 +11,7 @@ class Notifikasi extends Equatable {
 
   const Notifikasi({
     this.id,
+    required this.tokoId,
     required this.judul,
     required this.pesan,
     this.tipe = 'INFO',
@@ -18,7 +20,8 @@ class Notifikasi extends Equatable {
   });
 
   Notifikasi copyWith({
-    int? id,
+    String? id,
+    String? tokoId,
     String? judul,
     String? pesan,
     String? tipe,
@@ -27,6 +30,7 @@ class Notifikasi extends Equatable {
   }) {
     return Notifikasi(
       id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
       judul: judul ?? this.judul,
       pesan: pesan ?? this.pesan,
       tipe: tipe ?? this.tipe,
@@ -36,5 +40,5 @@ class Notifikasi extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, judul, pesan, tipe, isRead, createdAt];
+  List<Object?> get props => [id, tokoId, judul, pesan, tipe, isRead, createdAt];
 }

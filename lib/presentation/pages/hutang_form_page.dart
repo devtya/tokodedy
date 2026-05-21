@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/hutang_piutang.dart';
 import '../blocs/hutang/hutang_bloc.dart';
 import '../blocs/hutang/hutang_event.dart';
+import '../../core/di/injection.dart';
+import '../../core/services/toko_service.dart';
 
 class HutangFormPage extends StatefulWidget {
   const HutangFormPage({super.key});
@@ -96,6 +98,7 @@ class _HutangFormPageState extends State<HutangFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final hutang = HutangPiutang(
+      tokoId: sl<TokoService>().tokoId ?? '',
       namaPelanggan: _namaController.text.trim(),
       jumlah: double.parse(_jumlahController.text.trim()),
       tanggalJatuhTempo: _jatuhTempo,

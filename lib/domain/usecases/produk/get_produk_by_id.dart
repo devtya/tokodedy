@@ -6,7 +6,7 @@ class GetProdukById {
 
   GetProdukById(this.repository);
 
-  Future<Produk?> call(int id) {
+  Future<Produk?> call(String id) {
     return repository.getProdukById(id);
   }
 }

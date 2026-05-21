@@ -1,22 +1,28 @@
 import 'package:equatable/equatable.dart';
 
-import 'item_pembelian.dart';
-
 class Pembelian extends Equatable {
-  final int? id;
-  final String namaSupplier;
+  final String? id; // UUID
+  final String tokoId; // UUID FK ke toko
+  final String? supplierId; // UUID FK ke supplier
+  final String? namaSupplier;
   final double totalHarga;
+  final DateTime? updatedAt;
   final DateTime? createdAt;
-  final List<ItemPembelian>? items;
+  final List<dynamic>? items; // List<ItemPembelian>
 
   const Pembelian({
     this.id,
-    required this.namaSupplier,
+    required this.tokoId,
+    this.supplierId,
+    this.namaSupplier,
     required this.totalHarga,
+    this.updatedAt,
     this.createdAt,
     this.items,
   });
 
   @override
-  List<Object?> get props => [id, namaSupplier, totalHarga, createdAt, items];
+  List<Object?> get props => [
+    id, tokoId, supplierId, namaSupplier, totalHarga, updatedAt, createdAt,
+  ];
 }

@@ -2,15 +2,16 @@ import '../entities/pending_order.dart';
 
 abstract class PendingOrderRepository {
   Future<List<PendingOrder>> getAllPending();
-  Future<PendingOrder?> getPendingById(int id);
-  Future<int> addPending(PendingOrder pending);
-  Future<void> deletePending(int id);
-  Future<List<CartItemData>> getItemsByPendingId(int pendingId);
-  Future<void> addItem(int pendingId, CartItemData item);
+  Future<PendingOrder?> getPendingById(String id);
+  Future<String> addPending(PendingOrder pending);
+  Future<void> deletePending(String id);
+  Future<List<CartItemData>> getItemsByPendingId(String pendingId);
+  Future<void> addItem(String pendingId, CartItemData item);
 }
 
 class CartItemData {
-  final int produkId;
+  final String? id; // UUID
+  final String produkId; // UUID
   final String namaProduk;
   final double hargaJual;
   final int jumlah;
@@ -19,6 +20,7 @@ class CartItemData {
   final double subtotal;
 
   const CartItemData({
+    this.id,
     required this.produkId,
     required this.namaProduk,
     required this.hargaJual,

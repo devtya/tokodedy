@@ -16,14 +16,18 @@ class BuatPembelian {
     required this.riwayatStokRepository,
   });
 
-  Future<int> call({
+  Future<String> call({
     required String namaSupplier,
     required List<ItemPembelian> items,
   }) async {
     final totalHarga = items.fold(0.0, (sum, item) => sum + item.subtotal);
 
     final pembelianId = await pembelianRepository.addPembelian(
-      Pembelian(namaSupplier: namaSupplier, totalHarga: totalHarga),
+      Pembelian(
+        tokoId: items.isNotEmpty ? items.first.tokoId : '',
+        namaSupplier: namaSupplier,
+        totalHarga: totalHarga,
+      ),
     );
 
     for (final item in items) {
@@ -73,6 +77,7 @@ class BuatPembelian {
 
       await riwayatStokRepository.addRiwayat(
         RiwayatStok(
+          tokoId: item.tokoId,
           produkId: item.produkId,
           tipe: 'masuk',
           jumlah: item.jumlah,

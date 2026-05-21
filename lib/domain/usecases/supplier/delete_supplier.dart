@@ -5,5 +5,5 @@ class DeleteSupplier {
 
   DeleteSupplier(this.repository);
 
-  Future<void> call(int id) => repository.deleteSupplier(id);
+  Future<void> call(String id) => repository.deleteSupplier(id);
 }

@@ -99,7 +99,7 @@ class _ProdukPageState extends State<ProdukPage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         final isAdmin =
-            authState is Authenticated && authState.user.role == 'admin';
+            authState is Authenticated && authState.user.isOwner;
 
         return Scaffold(
           appBar: AppBar(
@@ -280,7 +280,7 @@ class _ProdukPageState extends State<ProdukPage> {
     );
   }
 
-  void _confirmDelete(int id) {
+  void _confirmDelete(String id) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

@@ -1,26 +1,28 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Service untuk menyimpan tokoId (UUID) aktif ke SharedPreferences.
+/// Dibaca oleh semua repository untuk filter data per toko.
 class TokoService {
   final SharedPreferences _prefs;
-  static const String _idKey = 'toko_id';
-  static const String _nameKey = 'toko_name';
+  static const _tokoIdKey  = 'toko_id_v2';  // UUID string
+  static const _tokoNameKey = 'toko_name';
 
   TokoService(this._prefs);
 
-  int? get tokoId => _prefs.getInt(_idKey);
-  String? get tokoName => _prefs.getString(_nameKey);
+  String? get tokoId   => _prefs.getString(_tokoIdKey);
+  String? get tokoName => _prefs.getString(_tokoNameKey);
 
-  Future<void> save(int id, String name) async {
-    await _prefs.setInt(_idKey, id);
-    await _prefs.setString(_nameKey, name);
+  Future<void> save(String id, String name) async {
+    await _prefs.setString(_tokoIdKey, id);
+    await _prefs.setString(_tokoNameKey, name);
   }
 
   Future<void> updateName(String name) async {
-    await _prefs.setString(_nameKey, name);
+    await _prefs.setString(_tokoNameKey, name);
   }
 
   Future<void> clear() async {
-    await _prefs.remove(_idKey);
-    await _prefs.remove(_nameKey);
+    await _prefs.remove(_tokoIdKey);
+    await _prefs.remove(_tokoNameKey);
   }
 }

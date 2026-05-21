@@ -10,7 +10,9 @@ import '../../core/theme/app_theme.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
 import '../blocs/theme/theme_cubit.dart';
+import '../blocs/sync/sync_bloc.dart';
 import 'login_page.dart';
+import 'pengaturan_toko_page.dart';
 import 'printer_settings_page.dart';
 import 'user_management_page.dart';
 
@@ -170,32 +172,42 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           // --- Toko Info ---
           Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.store, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Text(
-                        tokoService.tokoName ?? 'Toko Saya',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PengaturanTokoPage()),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.store, color: Colors.green),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            tokoService.tokoName ?? 'Toko Saya',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
+                        const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                      ],
+                    ),
+                    if (tokoService.tokoId != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID Toko: ${tokoService.tokoId}',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                     ],
-                  ),
-                  if (tokoService.tokoId != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'ID Toko: ${tokoService.tokoId}',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -282,6 +294,55 @@ class _SettingsPageState extends State<SettingsPage> {
                       context,
                       MaterialPageRoute(builder: (_) => const UserManagementPage()),
                     ),
+                  ),
+                  const Divider(height: 1),
+                  BlocConsumer<SyncBloc, SyncState>(
+                    listener: (context, state) {
+                      if (state is SyncSuccess) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Sinkronisasi data ke cloud BERHASIL!'),
+                            backgroundColor: AppTheme.primaryGreen,
+                          ),
+                        );
+                      } else if (state is SyncError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Sinkronisasi GAGAL: ${state.message}'),
+                            backgroundColor: AppTheme.warningRed,
+                          ),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      final isSyncing = state is SyncInProgress;
+                      return ListTile(
+                        leading: isSyncing
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              )
+                            : const Icon(Icons.cloud_sync, color: AppTheme.primaryGreen),
+                        title: const Text('Sinkronisasi Cloud'),
+                        subtitle: Text(
+                          isSyncing
+                              ? 'Sedang menyelaraskan data dengan cloud...'
+                              : 'Kirim data lokal & unduh data dari cloud',
+                        ),
+                        trailing: isSyncing
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.sync),
+                        onTap: isSyncing
+                            ? null
+                            : () {
+                                context.read<SyncBloc>().add(const SyncTriggered());
+                              },
+                      );
+                    },
                   ),
                 ],
               ),

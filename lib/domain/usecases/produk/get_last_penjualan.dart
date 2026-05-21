@@ -6,7 +6,7 @@ class GetLastPenjualanByProduk {
 
   GetLastPenjualanByProduk(this.repository);
 
-  Future<Transaksi?> call(int produkId) {
+  Future<Transaksi?> call(String produkId) {
     return repository.getLastTransaksiByProdukId(produkId);
   }
 }
