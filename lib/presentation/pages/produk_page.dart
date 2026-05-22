@@ -98,8 +98,8 @@ class _ProdukPageState extends State<ProdukPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
-        final isAdmin =
-            authState is Authenticated && authState.user.isOwner;
+        final isAdmin = (authState is Authenticated && authState.user.isOwner) ||
+            (authState is StoreRegistered && authState.user.isOwner);
 
         return Scaffold(
           appBar: AppBar(

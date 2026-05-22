@@ -73,6 +73,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         nama: event.nama,
       );
       emit(StoreRegistered(user));
+      // Emit Authenticated setelah StoreRegistered agar semua page yang
+      // mengecek `authState is Authenticated` langsung mendapat role yang benar.
+      emit(Authenticated(user));
     } catch (e) {
       emit(AuthError(e.toString()));
     }

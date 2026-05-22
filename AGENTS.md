@@ -305,4 +305,8 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Files**: `lib/presentation/pages/home_page_mobile.dart`
 - **Date**: 2026-05-22
 
-
+### Bug: Role owner tidak terbaca setelah buat toko baru (akses tambah produk hilang)
+- **Root cause**: Setelah `registerStore()` berhasil, `AuthBloc` emit `StoreRegistered` (bukan `Authenticated`). `produk_page.dart` hanya mengecek `authState is Authenticated && authState.user.isOwner`, sehingga saat state adalah `StoreRegistered`, `isAdmin` selalu `false` — FAB tambah produk tidak muncul. Logout → Login mengubah state ke `Authenticated` sehingga role terbaca benar.
+- **Fix**: (1) Di `auth_bloc.dart`, emit `Authenticated(user)` segera setelah `StoreRegistered(user)` agar state akhir selalu `Authenticated`. (2) Di `produk_page.dart`, `isAdmin` juga handle `StoreRegistered` state sebagai fallback.
+- **Files**: `lib/presentation/blocs/auth/auth_bloc.dart`, `lib/presentation/pages/produk_page.dart`
+- **Date**: 2026-05-22
