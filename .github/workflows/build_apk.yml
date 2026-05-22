@@ -42,8 +42,6 @@ jobs:
 
       - name: Build APK
         env:
-          # Signing config — keystore sudah ada di repo (android/app/keystore/release.keystore)
-          # Path relatif terhadap android/app/ directory
           KEYSTORE_PATH: keystore/release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -53,22 +51,23 @@ jobs:
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
             --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
-      - name: Locate APK
-        id: apk
+      - name: Rename APK
         run: |
-          # Gradle sudah rename APK ke hendkasir-v<versionName>.apk
-          APK_FILE=$(find build/app/outputs/flutter-apk/ -name "hendkasir-v*.apk" | head -1)
-          if [ -z "$APK_FILE" ]; then
-            # Fallback: coba app-release.apk
-            APK_FILE="build/app/outputs/flutter-apk/app-release.apk"
-          fi
-          echo "APK_FILE=$APK_FILE" >> $GITHUB_OUTPUT
-          echo "Found APK: $APK_FILE"
-          ls -la build/app/outputs/flutter-apk/
+          VERSION="${{ steps.version.outputs.VERSION_NAME }}"
+          OUTPUT_DIR="build/app/outputs/flutter-apk"
+          echo "=== APK files in output dir ==="
+          ls -la "$OUTPUT_DIR/"
+          # Cari APK apapun (bisa app-release.apk atau yang sudah di-rename Gradle)
+          SRC=$(find "$OUTPUT_DIR" -name "*.apk" | grep -v "unsigned" | head -1)
+          DEST="HendKasir-v${VERSION}.apk"
+          cp "$SRC" "$DEST"
+          echo "Renamed: $SRC -> $DEST"
+          echo "APK_NAME=$DEST" >> $GITHUB_OUTPUT
+        id: rename
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.apk.outputs.APK_FILE }}
+          files: ${{ steps.rename.outputs.APK_NAME }}
           generate_release_notes: true
           name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"
