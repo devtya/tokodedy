@@ -46,10 +46,11 @@ class UpdateService {
       String? downloadUrl;
       String? foundAssetName;
 
-      // Cari aset dengan nama hendkasir*.apk
+      // Cari aset dengan nama hend*kasir*.apk (bisa pakai underscore atau tidak)
       for (final asset in assets) {
         final name = asset['name'] as String? ?? '';
-        if (name.toLowerCase().startsWith('hendkasir') && name.toLowerCase().endsWith('.apk')) {
+        final lowerName = name.toLowerCase();
+        if (lowerName.startsWith('hend') && lowerName.endsWith('.apk')) {
           downloadUrl = asset['browser_download_url'] as String?;
           foundAssetName = name;
           break;
