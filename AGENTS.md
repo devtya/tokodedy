@@ -310,3 +310,9 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Fix**: (1) Di `auth_bloc.dart`, emit `Authenticated(user)` segera setelah `StoreRegistered(user)` agar state akhir selalu `Authenticated`. (2) Di `produk_page.dart`, `isAdmin` juga handle `StoreRegistered` state sebagai fallback.
 - **Files**: `lib/presentation/blocs/auth/auth_bloc.dart`, `lib/presentation/pages/produk_page.dart`
 - **Date**: 2026-05-22
+
+### Bug: Pembelian — Harga nett (dengan PPN/diskon global) tidak tersimpan ke database
+- **Root cause**: Saat melakukan _submit_ pada form pembelian, `ItemPembelianData` yang dikirim ke Bloc masih menggunakan `hargaBeliSatuan` awal (belum ditambah distribusi beban PPN dan dikurangi distribusi diskon global). Akibatnya harga pokok produk di database (`ProdukTable.hargaBeli`) tidak mencerminkan harga riil HPP.
+- **Fix**: Di `_submit` sebelum memanggil `AddPembelianEvent` atau `UpdatePembelianEvent`, hitung alokasi proporsional diskon global & PPN ke setiap item untuk mendapatkan `nettHargaBeliSatuan` dan `nettSubtotal`. Item dengan nilai nett inilah yang dikirim ke Bloc dan diteruskan hingga update stok/HPP.
+- **Files**: `lib/presentation/pages/pembelian_form_page.dart`
+- **Date**: 2026-05-22

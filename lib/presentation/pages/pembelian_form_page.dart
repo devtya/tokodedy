@@ -616,6 +616,30 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
     final bloc = context.read<PembelianBloc>();
 
+    final totalDiskonItem = _items.fold(0.0, (s, i) => s + i.diskonRp);
+    final totalSetelahDiskonItem = _total - totalDiskonItem;
+    final dppMultiplier = totalSetelahDiskonItem > 0 
+        ? ((totalSetelahDiskonItem - _totalDiskonGlobal) / totalSetelahDiskonItem) 
+        : 1.0;
+    final ppnMultiplier = _isPpnEnabled ? (1 + _ppnPercent / 100) : 1.0;
+
+    final List<ItemPembelianData> itemsData = _items.map((i) {
+      final dppItem = i.subtotal - i.diskonRp;
+      final dppItemFinal = dppItem * dppMultiplier;
+      final nettSubtotal = dppItemFinal * ppnMultiplier;
+      final nettHargaBeliSatuan = i.jumlah > 0 ? nettSubtotal / i.jumlah : 0.0;
+
+      return ItemPembelianData(
+        produkId: i.produkId,
+        namaProduk: i.namaProduk,
+        jumlah: i.jumlah,
+        hargaBeliSatuan: nettHargaBeliSatuan,
+        subtotal: nettSubtotal,
+        satuanId: i.satuanId,
+        konversi: i.konversi,
+      );
+    }).toList();
+
     if (_pembelianId == null) {
       final allProduk = await sl<GetAllProduk>().call();
       final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
@@ -648,19 +672,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         AddPembelianEvent(
           namaSupplier: _selectedSupplier!.nama,
           supplierId: _pendingSaveSupplierId,
-          items: _items
-              .map(
-                (i) => ItemPembelianData(
-                  produkId: i.produkId,
-                  namaProduk: i.namaProduk,
-                  jumlah: i.jumlah,
-                  hargaBeliSatuan: i.hargaBeliSatuan,
-                  subtotal: i.subtotal,
-                  satuanId: i.satuanId,
-                  konversi: i.konversi,
-                ),
-              )
-              .toList(),
+          items: itemsData,
         ),
       );
     } else {
@@ -693,19 +705,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         UpdatePembelianEvent(
           pembelianId: _pembelianId!,
           namaSupplier: _selectedSupplier!.nama,
-          items: _items
-              .map(
-                (i) => ItemPembelianData(
-                  produkId: i.produkId,
-                  namaProduk: i.namaProduk,
-                  jumlah: i.jumlah,
-                  hargaBeliSatuan: i.hargaBeliSatuan,
-                  subtotal: i.subtotal,
-                  satuanId: i.satuanId,
-                  konversi: i.konversi,
-                ),
-              )
-              .toList(),
+          items: itemsData,
         ),
       );
     }
