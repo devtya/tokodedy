@@ -133,6 +133,13 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           });
         }
       }
+    } catch (e, stackTrace) {
+      debugPrint('Error loading pending: $e\n$stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading pending: $e'), duration: const Duration(seconds: 5)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoadingPending = false);
     }

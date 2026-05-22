@@ -12,40 +12,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
+
       - name: Install dependencies
         run: flutter pub get
 
-      # ✅ Tambah step ini
       - name: Get version from pubspec.yaml
         id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          # Ambil hanya versionName (sebelum '+')
+          VERSION_NAME=${VERSION%%+*}
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Build version: $VERSION_NAME"
 
       - name: Generate Drift code
         run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Build APK
+        env:
+          # Signing config — keystore sudah ada di repo (android/app/keystore/release.keystore)
+          # Path relatif terhadap android/app/ directory
+          KEYSTORE_PATH: keystore/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           flutter build apk --release \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
             --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
-      # ✅ Ganti nama file pakai versi
-      - name: Copy APK to root
-        run: cp build/app/outputs/flutter-apk/app-release.apk hend_kasir-v${{ steps.version.outputs.VERSION }}.apk
+      - name: Locate APK
+        id: apk
+        run: |
+          # Gradle sudah rename APK ke hendkasir-v<versionName>.apk
+          APK_FILE=$(find build/app/outputs/flutter-apk/ -name "hendkasir-v*.apk" | head -1)
+          if [ -z "$APK_FILE" ]; then
+            # Fallback: coba app-release.apk
+            APK_FILE="build/app/outputs/flutter-apk/app-release.apk"
+          fi
+          echo "APK_FILE=$APK_FILE" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK_FILE"
+          ls -la build/app/outputs/flutter-apk/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: hend_kasir-v${{ steps.version.outputs.VERSION }}.apk
+          files: ${{ steps.apk.outputs.APK_FILE }}
           generate_release_notes: true
+          name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"

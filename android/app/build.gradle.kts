@@ -29,10 +29,16 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("keystore/release.keystore")
-            storePassword = "HendKasir2024"
-            keyAlias = "release"
-            keyPassword = "HendKasir2024"
+            // Baca dari env variable (CI), fallback ke nilai default (lokal)
+            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "keystore/release.keystore"
+            val keystorePass = System.getenv("KEYSTORE_PASSWORD") ?: "HendKasir2024"
+            val keyAliasName = System.getenv("KEY_ALIAS") ?: "release"
+            val keyPass = System.getenv("KEY_PASSWORD") ?: "HendKasir2024"
+
+            storeFile = file(keystorePath)
+            storePassword = keystorePass
+            keyAlias = keyAliasName
+            keyPassword = keyPass
         }
     }
 

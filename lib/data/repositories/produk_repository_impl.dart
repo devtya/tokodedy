@@ -134,6 +134,23 @@ class ProdukRepositoryImpl implements ProdukRepository {
 
   @override
   Future<void> updateProduk(domain.Produk produk) async {
+    // Check old prices to record history
+    final existing = await getProdukById(produk.id!);
+    if (existing != null && (existing.hargaBeli != produk.hargaBeli || existing.hargaJual != produk.hargaJual)) {
+      final riwayatId = _syncService.generateId();
+      await _db.into(_db.riwayatHargaTable).insert(
+        RiwayatHargaTableCompanion.insert(
+          id: riwayatId,
+          tokoId: _tokoId,
+          produkId: produk.id!,
+          hargaBeliLama: existing.hargaBeli,
+          hargaBeliBaru: produk.hargaBeli,
+          hargaJualLama: existing.hargaJual,
+          hargaJualBaru: produk.hargaJual,
+        )
+      );
+    }
+
     await (_db.update(_db.produkTable)
       ..where((tbl) => tbl.id.equals(produk.id!) & tbl.tokoId.equals(_tokoId)))
         .write(

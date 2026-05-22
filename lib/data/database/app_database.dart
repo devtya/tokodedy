@@ -15,6 +15,7 @@ import 'tables/pending_order_item_table.dart';
 import 'tables/pending_order_table.dart';
 import 'tables/pending_sync_queue_table.dart';
 import 'tables/produk_table.dart';
+import 'tables/riwayat_harga_table.dart';
 import 'tables/riwayat_stok_table.dart';
 import 'tables/satuan_produk_table.dart';
 import 'tables/supplier_table.dart';
@@ -46,13 +47,14 @@ part 'app_database.g.dart';
     PendingPembelianItemTable,
     NotifikasiTable,
     PendingSyncQueueTable,
+    RiwayatHargaTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,18 +63,30 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
-        await m.addColumn(
-          pendingPembelianTable,
-          pendingPembelianTable.diskonTipe,
-        );
-        await m.addColumn(
-          pendingPembelianTable,
-          pendingPembelianTable.diskonPersen,
-        );
-        await m.addColumn(
-          pendingPembelianTable,
-          pendingPembelianTable.diskonNominal,
-        );
+        try {
+          await m.addColumn(pendingPembelianTable, pendingPembelianTable.diskonTipe);
+          await m.addColumn(pendingPembelianTable, pendingPembelianTable.diskonPersen);
+          await m.addColumn(pendingPembelianTable, pendingPembelianTable.diskonNominal);
+        } catch (_) {}
+      }
+      
+      if (from < 15) {
+        // Coba tambahkan kolom yang mungkin hilang di tabel item (jika user upgrade dari v1/v2)
+        try {
+          await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.diskonTipe);
+        } catch (_) {}
+        try {
+          await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.diskonValue);
+        } catch (_) {}
+        try {
+          await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.hargaBeliLama);
+        } catch (_) {}
+      }
+      
+      if (from < 14) {
+        try {
+          await m.createTable(riwayatHargaTable);
+        } catch (_) {}
       }
     },
     beforeOpen: (details) async {

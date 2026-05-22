@@ -34,6 +34,7 @@ import 'settings_page.dart';
 import 'supplier_page.dart';
 import 'transaksi_page.dart';
 import 'user_management_page.dart';
+import '../../core/services/toko_service.dart';
 
 class HomeMobilePage extends StatelessWidget {
   const HomeMobilePage({super.key});
@@ -411,7 +412,10 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('hend_kasir', style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              title: const Text('HendKasir', style: TextStyle(fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
               centerTitle: false,
               actions: [
                 BlocBuilder<NotifikasiBloc, NotifikasiState>(
@@ -483,20 +487,46 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // Greeting
-                        Text(
-                          'Halo, $username!',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Selamat datang kembali di dashboard utama.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Halo, $username! 👋',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(9999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.primaryGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    sl<TokoService>().tokoName ?? 'Toko',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.primaryGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 24),
 
@@ -511,25 +541,18 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                 symbol: 'Rp ',
                                 decimalDigits: 0,
                               );
+                              final isDark = Theme.of(context).brightness == Brightness.dark;
                               return Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [
-                                      AppTheme.primaryGreen.withValues(alpha: 0.9),
-                                      AppTheme.darkGreen,
-                                    ],
+                                    colors: isDark 
+                                      ? [const Color(0xFF1a4d2e), const Color(0xFF0f3320), const Color(0xFF0d0e0e)]
+                                      : [const Color(0xFF22c55e), const Color(0xFF16a34a), const Color(0xFF14532d)],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,10 +575,11 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                     const SizedBox(height: 8),
                                     Text(
                                       formatCurrency.format(state.metrics.omzet),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: isDark ? 36 : 32,
+                                        fontWeight: isDark ? FontWeight.w700 : FontWeight.w800,
+                                        letterSpacing: -1,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -694,26 +718,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         ),
 
                         // Quick Actions
-                        Row(
-                          children: [
-                            const Text(
-                              'Aksi Cepat',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            Material(
-                              color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                              shape: const CircleBorder(),
-                              child: InkWell(
-                                customBorder: const CircleBorder(),
-                                onTap: _showAddQuickActionDialog,
-                                child: const Padding(
-                                  padding: EdgeInsets.all(6),
-                                  child: Icon(Icons.add, size: 20, color: AppTheme.primaryGreen),
-                                ),
-                              ),
-                            ),
-                          ],
+                        const Text(
+                          'Aksi Cepat',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -801,6 +808,197 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        
+                        // Stok Menipis & Transaksi Terakhir (from DashboardBloc)
+                        BlocBuilder<DashboardBloc, DashboardState>(
+                          builder: (context, state) {
+                            if (state is DashboardLoaded) {
+                              final isDark = Theme.of(context).brightness == Brightness.dark;
+                              final borderColor = isDark ? Theme.of(context).colorScheme.outline : const Color(0xFFE5EAE5);
+                              final cardRadius = isDark ? 20.0 : 14.0;
+                              final borderWidth = isDark ? 1.0 : 1.5;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Stok Menipis
+                                  if (state.metrics.stokMenipis.isNotEmpty) ...[
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Stok Menipis',
+                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            _navigateAndReload(
+                                              BlocProvider.value(
+                                                value: sl<ProdukBloc>(),
+                                                child: const ProdukPage(),
+                                              ),
+                                            );
+                                          },
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: const Text('Lihat semua', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Theme.of(context).colorScheme.surfaceContainer : Colors.white,
+                                        borderRadius: BorderRadius.circular(cardRadius),
+                                        border: Border.all(color: borderColor, width: borderWidth),
+                                      ),
+                                      child: ListView.separated(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: state.metrics.stokMenipis.length,
+                                        separatorBuilder: (context, index) => Divider(
+                                          height: 1, 
+                                          thickness: isDark ? 1 : 1.5,
+                                          color: isDark ? Theme.of(context).colorScheme.surfaceContainerLow : const Color(0xFFEEEEEE),
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          final item = state.metrics.stokMenipis[index];
+                                          final rowColor = isDark 
+                                            ? (index.isOdd ? Theme.of(context).colorScheme.surfaceContainerLow : Colors.transparent)
+                                            : Colors.transparent;
+                                          return Container(
+                                            color: rowColor,
+                                            child: ListTile(
+                                              leading: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: isDark ? const Color(0xFF93000a) : const Color(0xFFef4444).withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Icon(Icons.warning_rounded, color: isDark ? const Color(0xFFffb4ab) : const Color(0xFFef4444)),
+                                              ),
+                                              title: Text(item.nama, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                              trailing: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: isDark ? const Color(0xFFffb4ab) : const Color(0xFFef4444),
+                                                  borderRadius: BorderRadius.circular(isDark ? 9999 : 8),
+                                                ),
+                                                child: Text(
+                                                  'Sisa ${item.stok}',
+                                                  style: TextStyle(
+                                                    color: isDark ? const Color(0xFF93000a) : Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                  ],
+
+                                  // Update Harga Barang
+                                  if (state.metrics.updateHargaTerakhir.isNotEmpty) ...[
+                                    const Text(
+                                      'Update Harga Barang',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Theme.of(context).colorScheme.surfaceContainer : Colors.white,
+                                        borderRadius: BorderRadius.circular(cardRadius),
+                                        border: Border.all(color: borderColor, width: borderWidth),
+                                      ),
+                                      child: ListView.separated(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: state.metrics.updateHargaTerakhir.length,
+                                        separatorBuilder: (context, index) => Divider(
+                                          height: 1, 
+                                          thickness: isDark ? 1 : 1.5,
+                                          color: isDark ? Theme.of(context).colorScheme.surfaceContainerLow : const Color(0xFFEEEEEE),
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          final riwayat = state.metrics.updateHargaTerakhir[index];
+                                          final formatCurrency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+                                          final time = DateFormat('HH:mm').format(riwayat.createdAt);
+                                          
+                                          // Determine if price went up or down (we check hargaJual primary)
+                                          final isHargaJualNaik = riwayat.hargaJualBaru > riwayat.hargaJualLama;
+                                          final isHargaJualTurun = riwayat.hargaJualBaru < riwayat.hargaJualLama;
+                                          final isHargaBeliNaik = riwayat.hargaBeliBaru > riwayat.hargaBeliLama;
+                                          final isHargaBeliTurun = riwayat.hargaBeliBaru < riwayat.hargaBeliLama;
+
+                                          bool isNaik = isHargaJualNaik || (!isHargaJualTurun && isHargaBeliNaik);
+                                          bool isTurun = isHargaJualTurun || (!isHargaJualNaik && isHargaBeliTurun);
+                                          
+                                          Color iconColor = Colors.blue;
+                                          IconData iconData = Icons.price_change;
+                                          if (isNaik) {
+                                            iconColor = AppTheme.error;
+                                            iconData = Icons.trending_up; 
+                                          } else if (isTurun) {
+                                            iconColor = AppTheme.primaryGreen;
+                                            iconData = Icons.trending_down;
+                                          }
+
+                                          return ListTile(
+                                            leading: Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: iconColor.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(iconData, color: iconColor),
+                                            ),
+                                            title: Text(
+                                              riwayat.produkNama ?? 'Produk Dihapus',
+                                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                            ),
+                                            subtitle: Text(time, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                            trailing: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  formatCurrency.format(riwayat.hargaJualBaru),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  formatCurrency.format(riwayat.hargaJualLama),
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey,
+                                                    decoration: TextDecoration.lineThrough,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                  ],
+                                ],
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        
                         const SizedBox(height: 80), // padding for bottom nav
                       ]),
                     ),
@@ -909,37 +1107,41 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: isDark ? color.withValues(alpha: 0.12) : color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark ? color.withValues(alpha: 0.2) : color.withValues(alpha: 0.25), 
+                width: 1,
               ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
+            child: Center(
+              child: Icon(icon, color: color, size: 24),
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isDark ? const Color(0xFF737373) : const Color(0xFF666666),
+              letterSpacing: 0.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

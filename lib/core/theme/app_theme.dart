@@ -7,35 +7,35 @@ class AppTheme {
   // ═══════════════════════════════════════════════════════════════════
 
   // ── Neutral ──────────────────────────────────────────────────────
-  static const Color background = Color(0xFF0D0D0D);
-  static const Color surface = Color(0xFF1E1E1E);
-  static const Color border = Color(0xFF2A2A2A);
-  static const Color divider = Color(0xFF333333);
-  static const Color grey = Color(0xFF666666);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color white06 = Color(0x0FFFFFFF); // white 6%
-  static const Color white03 = Color(0x08FFFFFF); // white 3%
-  static const Color white02 = Color(0x05FFFFFF); // white 2%
+  static const Color background = Color(0xFF0A0A0A);
+  static const Color surface = Color(0xFF141414);
+  static const Color border = Color(0xFF262626);
+  static const Color divider = Color(0xFF262626);
+  static const Color grey = Color(0xFF737373);
+  static const Color white = Color(0xFFF5F5F5); // Changed to off-white from spec
+  static const Color white06 = Color(0x0FFFFFFF);
+  static const Color white03 = Color(0x08FFFFFF);
+  static const Color white02 = Color(0x05FFFFFF);
 
   // ── Primary (Green) ──────────────────────────────────────────────
-  static const Color primary = Color(0xFF2ECC71);
-  static const Color onPrimary = Color(0xFF0A2E17);
-  static const Color primaryContainer = Color(0xFF0F4C2A);
-  static const Color primaryContainerLight = Color(0xFF1A6B3A);
-  static const Color primarySoft = Color(0x1F2ECC71); // 12% opacity
-  static const Color primaryBorder = Color(0x33FFFFFF); // green border variant
+  static const Color primary = Color(0xFF22C55E);
+  static const Color onPrimary = Color(0xFF052E14); // Dark text on primary
+  static const Color primaryContainer = Color(0xFF14532D);
+  static const Color primaryContainerLight = Color(0xFF16A34A);
+  static const Color primarySoft = Color(0x1422C55E); // 8% opacity
+  static const Color primaryBorder = Color(0x2622C55E); // 15% opacity
 
   // ── Status ───────────────────────────────────────────────────────
-  static const Color error = Color(0xFFE74C3C);
-  static const Color errorSoft = Color(0x14E74C3C); // 8% opacity
-  static const Color errorBorder = Color(0x4DE74C3C); // 30% opacity
-  static const Color warning = Color(0xFFFF9800);
-  static const Color info = Color(0xFF3498DB);
-  static const Color success = Color(0xFF2ECC71);
+  static const Color error = Color(0xFFEF4444);
+  static const Color errorSoft = Color(0x1AEF4444); // 10% opacity
+  static const Color errorBorder = Color(0x33EF4444); // 20% opacity
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color info = Color(0xFF3B82F6);
+  static const Color success = Color(0xFF22C55E);
 
   // ── Surface variants ─────────────────────────────────────────────
-  static const Color surfaceContainerLow = Color(0xFF141414);
-  static const Color surfaceInput = Color(0xFF1E1E1E);
+  static const Color surfaceContainerLow = Color(0xFF0A0A0A);
+  static const Color surfaceInput = Color(0xFF1C1C1C);
 
   // ═══════════════════════════════════════════════════════════════════
   //  LIGHT PALETTE — override untuk light theme

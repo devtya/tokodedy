@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/pending_pembelian.dart';
 import '../../domain/repositories/pending_pembelian_repository.dart';
+import '../blocs/pembelian/pembelian_bloc.dart';
+import '../blocs/produk/produk_bloc.dart';
 import 'pembelian_form_page.dart';
 
 class PendingPembelianPage extends StatefulWidget {
@@ -27,12 +30,21 @@ class _PendingPembelianPageState extends State<PendingPembelianPage> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final list = await _repository.getAllPending();
-    if (mounted) {
-      setState(() {
-        _pendingList = list;
-        _isLoading = false;
-      });
+    try {
+      final list = await _repository.getAllPending();
+      if (mounted) {
+        setState(() {
+          _pendingList = list;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat pending: $e')),
+        );
+      }
     }
   }
 
@@ -45,7 +57,13 @@ class _PendingPembelianPageState extends State<PendingPembelianPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PembelianFormPage(pendingId: pending.id),
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<PembelianBloc>()),
+            BlocProvider.value(value: sl<ProdukBloc>()),
+          ],
+          child: PembelianFormPage(pendingId: pending.id),
+        ),
       ),
     );
     _loadData();

@@ -8831,6 +8831,536 @@ class PendingSyncQueueTableCompanion
   }
 }
 
+class $RiwayatHargaTableTable extends RiwayatHargaTable
+    with TableInfo<$RiwayatHargaTableTable, RiwayatHargaTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RiwayatHargaTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _produkIdMeta = const VerificationMeta(
+    'produkId',
+  );
+  @override
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
+    'produk_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaBeliLamaMeta = const VerificationMeta(
+    'hargaBeliLama',
+  );
+  @override
+  late final GeneratedColumn<double> hargaBeliLama = GeneratedColumn<double>(
+    'harga_beli_lama',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaBeliBaruMeta = const VerificationMeta(
+    'hargaBeliBaru',
+  );
+  @override
+  late final GeneratedColumn<double> hargaBeliBaru = GeneratedColumn<double>(
+    'harga_beli_baru',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaJualLamaMeta = const VerificationMeta(
+    'hargaJualLama',
+  );
+  @override
+  late final GeneratedColumn<double> hargaJualLama = GeneratedColumn<double>(
+    'harga_jual_lama',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaJualBaruMeta = const VerificationMeta(
+    'hargaJualBaru',
+  );
+  @override
+  late final GeneratedColumn<double> hargaJualBaru = GeneratedColumn<double>(
+    'harga_jual_baru',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    produkId,
+    hargaBeliLama,
+    hargaBeliBaru,
+    hargaJualLama,
+    hargaJualBaru,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'riwayat_harga_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RiwayatHargaTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('produk_id')) {
+      context.handle(
+        _produkIdMeta,
+        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('harga_beli_lama')) {
+      context.handle(
+        _hargaBeliLamaMeta,
+        hargaBeliLama.isAcceptableOrUnknown(
+          data['harga_beli_lama']!,
+          _hargaBeliLamaMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_hargaBeliLamaMeta);
+    }
+    if (data.containsKey('harga_beli_baru')) {
+      context.handle(
+        _hargaBeliBaruMeta,
+        hargaBeliBaru.isAcceptableOrUnknown(
+          data['harga_beli_baru']!,
+          _hargaBeliBaruMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_hargaBeliBaruMeta);
+    }
+    if (data.containsKey('harga_jual_lama')) {
+      context.handle(
+        _hargaJualLamaMeta,
+        hargaJualLama.isAcceptableOrUnknown(
+          data['harga_jual_lama']!,
+          _hargaJualLamaMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_hargaJualLamaMeta);
+    }
+    if (data.containsKey('harga_jual_baru')) {
+      context.handle(
+        _hargaJualBaruMeta,
+        hargaJualBaru.isAcceptableOrUnknown(
+          data['harga_jual_baru']!,
+          _hargaJualBaruMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_hargaJualBaruMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RiwayatHargaTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RiwayatHargaTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      produkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}produk_id'],
+      )!,
+      hargaBeliLama: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_beli_lama'],
+      )!,
+      hargaBeliBaru: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_beli_baru'],
+      )!,
+      hargaJualLama: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_jual_lama'],
+      )!,
+      hargaJualBaru: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_jual_baru'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RiwayatHargaTableTable createAlias(String alias) {
+    return $RiwayatHargaTableTable(attachedDatabase, alias);
+  }
+}
+
+class RiwayatHargaTableData extends DataClass
+    implements Insertable<RiwayatHargaTableData> {
+  final String id;
+  final String tokoId;
+  final String produkId;
+  final double hargaBeliLama;
+  final double hargaBeliBaru;
+  final double hargaJualLama;
+  final double hargaJualBaru;
+  final DateTime createdAt;
+  const RiwayatHargaTableData({
+    required this.id,
+    required this.tokoId,
+    required this.produkId,
+    required this.hargaBeliLama,
+    required this.hargaBeliBaru,
+    required this.hargaJualLama,
+    required this.hargaJualBaru,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['produk_id'] = Variable<String>(produkId);
+    map['harga_beli_lama'] = Variable<double>(hargaBeliLama);
+    map['harga_beli_baru'] = Variable<double>(hargaBeliBaru);
+    map['harga_jual_lama'] = Variable<double>(hargaJualLama);
+    map['harga_jual_baru'] = Variable<double>(hargaJualBaru);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  RiwayatHargaTableCompanion toCompanion(bool nullToAbsent) {
+    return RiwayatHargaTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      produkId: Value(produkId),
+      hargaBeliLama: Value(hargaBeliLama),
+      hargaBeliBaru: Value(hargaBeliBaru),
+      hargaJualLama: Value(hargaJualLama),
+      hargaJualBaru: Value(hargaJualBaru),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory RiwayatHargaTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RiwayatHargaTableData(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
+      hargaBeliLama: serializer.fromJson<double>(json['hargaBeliLama']),
+      hargaBeliBaru: serializer.fromJson<double>(json['hargaBeliBaru']),
+      hargaJualLama: serializer.fromJson<double>(json['hargaJualLama']),
+      hargaJualBaru: serializer.fromJson<double>(json['hargaJualBaru']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'produkId': serializer.toJson<String>(produkId),
+      'hargaBeliLama': serializer.toJson<double>(hargaBeliLama),
+      'hargaBeliBaru': serializer.toJson<double>(hargaBeliBaru),
+      'hargaJualLama': serializer.toJson<double>(hargaJualLama),
+      'hargaJualBaru': serializer.toJson<double>(hargaJualBaru),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  RiwayatHargaTableData copyWith({
+    String? id,
+    String? tokoId,
+    String? produkId,
+    double? hargaBeliLama,
+    double? hargaBeliBaru,
+    double? hargaJualLama,
+    double? hargaJualBaru,
+    DateTime? createdAt,
+  }) => RiwayatHargaTableData(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    produkId: produkId ?? this.produkId,
+    hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,
+    hargaBeliBaru: hargaBeliBaru ?? this.hargaBeliBaru,
+    hargaJualLama: hargaJualLama ?? this.hargaJualLama,
+    hargaJualBaru: hargaJualBaru ?? this.hargaJualBaru,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  RiwayatHargaTableData copyWithCompanion(RiwayatHargaTableCompanion data) {
+    return RiwayatHargaTableData(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      hargaBeliLama: data.hargaBeliLama.present
+          ? data.hargaBeliLama.value
+          : this.hargaBeliLama,
+      hargaBeliBaru: data.hargaBeliBaru.present
+          ? data.hargaBeliBaru.value
+          : this.hargaBeliBaru,
+      hargaJualLama: data.hargaJualLama.present
+          ? data.hargaJualLama.value
+          : this.hargaJualLama,
+      hargaJualBaru: data.hargaJualBaru.present
+          ? data.hargaJualBaru.value
+          : this.hargaJualBaru,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiwayatHargaTableData(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('produkId: $produkId, ')
+          ..write('hargaBeliLama: $hargaBeliLama, ')
+          ..write('hargaBeliBaru: $hargaBeliBaru, ')
+          ..write('hargaJualLama: $hargaJualLama, ')
+          ..write('hargaJualBaru: $hargaJualBaru, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    produkId,
+    hargaBeliLama,
+    hargaBeliBaru,
+    hargaJualLama,
+    hargaJualBaru,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RiwayatHargaTableData &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.produkId == this.produkId &&
+          other.hargaBeliLama == this.hargaBeliLama &&
+          other.hargaBeliBaru == this.hargaBeliBaru &&
+          other.hargaJualLama == this.hargaJualLama &&
+          other.hargaJualBaru == this.hargaJualBaru &&
+          other.createdAt == this.createdAt);
+}
+
+class RiwayatHargaTableCompanion
+    extends UpdateCompanion<RiwayatHargaTableData> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> produkId;
+  final Value<double> hargaBeliLama;
+  final Value<double> hargaBeliBaru;
+  final Value<double> hargaJualLama;
+  final Value<double> hargaJualBaru;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const RiwayatHargaTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.hargaBeliLama = const Value.absent(),
+    this.hargaBeliBaru = const Value.absent(),
+    this.hargaJualLama = const Value.absent(),
+    this.hargaJualBaru = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RiwayatHargaTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    required String produkId,
+    required double hargaBeliLama,
+    required double hargaBeliBaru,
+    required double hargaJualLama,
+    required double hargaJualBaru,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       produkId = Value(produkId),
+       hargaBeliLama = Value(hargaBeliLama),
+       hargaBeliBaru = Value(hargaBeliBaru),
+       hargaJualLama = Value(hargaJualLama),
+       hargaJualBaru = Value(hargaJualBaru);
+  static Insertable<RiwayatHargaTableData> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? produkId,
+    Expression<double>? hargaBeliLama,
+    Expression<double>? hargaBeliBaru,
+    Expression<double>? hargaJualLama,
+    Expression<double>? hargaJualBaru,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (produkId != null) 'produk_id': produkId,
+      if (hargaBeliLama != null) 'harga_beli_lama': hargaBeliLama,
+      if (hargaBeliBaru != null) 'harga_beli_baru': hargaBeliBaru,
+      if (hargaJualLama != null) 'harga_jual_lama': hargaJualLama,
+      if (hargaJualBaru != null) 'harga_jual_baru': hargaJualBaru,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RiwayatHargaTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? produkId,
+    Value<double>? hargaBeliLama,
+    Value<double>? hargaBeliBaru,
+    Value<double>? hargaJualLama,
+    Value<double>? hargaJualBaru,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return RiwayatHargaTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      produkId: produkId ?? this.produkId,
+      hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,
+      hargaBeliBaru: hargaBeliBaru ?? this.hargaBeliBaru,
+      hargaJualLama: hargaJualLama ?? this.hargaJualLama,
+      hargaJualBaru: hargaJualBaru ?? this.hargaJualBaru,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (produkId.present) {
+      map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (hargaBeliLama.present) {
+      map['harga_beli_lama'] = Variable<double>(hargaBeliLama.value);
+    }
+    if (hargaBeliBaru.present) {
+      map['harga_beli_baru'] = Variable<double>(hargaBeliBaru.value);
+    }
+    if (hargaJualLama.present) {
+      map['harga_jual_lama'] = Variable<double>(hargaJualLama.value);
+    }
+    if (hargaJualBaru.present) {
+      map['harga_jual_baru'] = Variable<double>(hargaJualBaru.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiwayatHargaTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('produkId: $produkId, ')
+          ..write('hargaBeliLama: $hargaBeliLama, ')
+          ..write('hargaBeliBaru: $hargaBeliBaru, ')
+          ..write('hargaJualLama: $hargaJualLama, ')
+          ..write('hargaJualBaru: $hargaJualBaru, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8866,6 +9396,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $PendingSyncQueueTableTable pendingSyncQueueTable =
       $PendingSyncQueueTableTable(this);
+  late final $RiwayatHargaTableTable riwayatHargaTable =
+      $RiwayatHargaTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8889,6 +9421,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pendingPembelianItemTable,
     notifikasiTable,
     pendingSyncQueueTable,
+    riwayatHargaTable,
   ];
 }
 
@@ -13641,6 +14174,284 @@ typedef $$PendingSyncQueueTableTableProcessedTableManager =
       PendingSyncQueueTableData,
       PrefetchHooks Function()
     >;
+typedef $$RiwayatHargaTableTableCreateCompanionBuilder =
+    RiwayatHargaTableCompanion Function({
+      required String id,
+      required String tokoId,
+      required String produkId,
+      required double hargaBeliLama,
+      required double hargaBeliBaru,
+      required double hargaJualLama,
+      required double hargaJualBaru,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$RiwayatHargaTableTableUpdateCompanionBuilder =
+    RiwayatHargaTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> produkId,
+      Value<double> hargaBeliLama,
+      Value<double> hargaBeliBaru,
+      Value<double> hargaJualLama,
+      Value<double> hargaJualBaru,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$RiwayatHargaTableTableFilterComposer
+    extends Composer<_$AppDatabase, $RiwayatHargaTableTable> {
+  $$RiwayatHargaTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaBeliLama => $composableBuilder(
+    column: $table.hargaBeliLama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaBeliBaru => $composableBuilder(
+    column: $table.hargaBeliBaru,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaJualLama => $composableBuilder(
+    column: $table.hargaJualLama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaJualBaru => $composableBuilder(
+    column: $table.hargaJualBaru,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RiwayatHargaTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $RiwayatHargaTableTable> {
+  $$RiwayatHargaTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tokoId => $composableBuilder(
+    column: $table.tokoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaBeliLama => $composableBuilder(
+    column: $table.hargaBeliLama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaBeliBaru => $composableBuilder(
+    column: $table.hargaBeliBaru,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaJualLama => $composableBuilder(
+    column: $table.hargaJualLama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaJualBaru => $composableBuilder(
+    column: $table.hargaJualBaru,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RiwayatHargaTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RiwayatHargaTableTable> {
+  $$RiwayatHargaTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get tokoId =>
+      $composableBuilder(column: $table.tokoId, builder: (column) => column);
+
+  GeneratedColumn<String> get produkId =>
+      $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<double> get hargaBeliLama => $composableBuilder(
+    column: $table.hargaBeliLama,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hargaBeliBaru => $composableBuilder(
+    column: $table.hargaBeliBaru,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hargaJualLama => $composableBuilder(
+    column: $table.hargaJualLama,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hargaJualBaru => $composableBuilder(
+    column: $table.hargaJualBaru,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$RiwayatHargaTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RiwayatHargaTableTable,
+          RiwayatHargaTableData,
+          $$RiwayatHargaTableTableFilterComposer,
+          $$RiwayatHargaTableTableOrderingComposer,
+          $$RiwayatHargaTableTableAnnotationComposer,
+          $$RiwayatHargaTableTableCreateCompanionBuilder,
+          $$RiwayatHargaTableTableUpdateCompanionBuilder,
+          (
+            RiwayatHargaTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $RiwayatHargaTableTable,
+              RiwayatHargaTableData
+            >,
+          ),
+          RiwayatHargaTableData,
+          PrefetchHooks Function()
+        > {
+  $$RiwayatHargaTableTableTableManager(
+    _$AppDatabase db,
+    $RiwayatHargaTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RiwayatHargaTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RiwayatHargaTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RiwayatHargaTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
+                Value<double> hargaBeliLama = const Value.absent(),
+                Value<double> hargaBeliBaru = const Value.absent(),
+                Value<double> hargaJualLama = const Value.absent(),
+                Value<double> hargaJualBaru = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RiwayatHargaTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                produkId: produkId,
+                hargaBeliLama: hargaBeliLama,
+                hargaBeliBaru: hargaBeliBaru,
+                hargaJualLama: hargaJualLama,
+                hargaJualBaru: hargaJualBaru,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                required String produkId,
+                required double hargaBeliLama,
+                required double hargaBeliBaru,
+                required double hargaJualLama,
+                required double hargaJualBaru,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RiwayatHargaTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                produkId: produkId,
+                hargaBeliLama: hargaBeliLama,
+                hargaBeliBaru: hargaBeliBaru,
+                hargaJualLama: hargaJualLama,
+                hargaJualBaru: hargaJualBaru,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RiwayatHargaTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RiwayatHargaTableTable,
+      RiwayatHargaTableData,
+      $$RiwayatHargaTableTableFilterComposer,
+      $$RiwayatHargaTableTableOrderingComposer,
+      $$RiwayatHargaTableTableAnnotationComposer,
+      $$RiwayatHargaTableTableCreateCompanionBuilder,
+      $$RiwayatHargaTableTableUpdateCompanionBuilder,
+      (
+        RiwayatHargaTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $RiwayatHargaTableTable,
+          RiwayatHargaTableData
+        >,
+      ),
+      RiwayatHargaTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -13684,4 +14495,6 @@ class $AppDatabaseManager {
       $$NotifikasiTableTableTableManager(_db, _db.notifikasiTable);
   $$PendingSyncQueueTableTableTableManager get pendingSyncQueueTable =>
       $$PendingSyncQueueTableTableTableManager(_db, _db.pendingSyncQueueTable);
+  $$RiwayatHargaTableTableTableManager get riwayatHargaTable =>
+      $$RiwayatHargaTableTableTableManager(_db, _db.riwayatHargaTable);
 }

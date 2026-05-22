@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 prompt_edit_pembelian.md
+# Test/debug scripts
+test_db.dart
+test_item.dart
