@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/theme/app_theme.dart';
@@ -63,6 +64,35 @@ class _HomeMobileView extends StatefulWidget {
 class _HomeMobileViewState extends State<_HomeMobileView> {
   bool _emailPromptShown = false;
   final List<_QuickActionDef> _customQuickActions = [];
+  static const _prefsKey = 'custom_quick_actions';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomQuickActions();
+  }
+
+  Future<void> _loadCustomQuickActions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_prefsKey) ?? [];
+    setState(() {
+      _customQuickActions.clear();
+      for (final label in saved) {
+        final match = _availableQuickActions.where((a) => a.label == label);
+        if (match.isNotEmpty) {
+          _customQuickActions.add(match.first);
+        }
+      }
+    });
+  }
+
+  Future<void> _saveCustomQuickActions() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _prefsKey,
+      _customQuickActions.map((a) => a.label).toList(),
+    );
+  }
 
   static final List<_QuickActionDef> _availableQuickActions = [
     _QuickActionDef('Pembelian', Icons.shopping_bag, Colors.teal),
@@ -119,6 +149,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
               onTap: () {
                 Navigator.pop(ctx);
                 setState(() => _customQuickActions.add(available[i]));
+                _saveCustomQuickActions();
               },
             ),
           ),

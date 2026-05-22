@@ -1104,14 +1104,15 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                                     child: Text(
                                       _currency.format(item.hargaBeliSatuan),
                                       style: TextStyle(
-                                        color: AppTheme.primaryGreen,
+                                        color: _isPpnEnabled
+                                            ? AppTheme.neutralGrey
+                                            : AppTheme.primaryGreen,
                                         fontSize: 13,
                                         decoration: _isPpnEnabled
                                             ? TextDecoration.lineThrough
                                             : null,
                                         decorationColor: AppTheme.neutralGrey,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

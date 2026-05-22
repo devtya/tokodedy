@@ -299,4 +299,10 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Files**: `lib/core/services/update_service.dart`
 - **Date**: 2026-05-22
 
+### Fitur: Aksi Cepat Kustom + Hapus Profil + Ganti Judul
+- **Deskripsi**: (1) Hapus logo profil/CircleAvatar dari AppBar mobile. (2) Ganti judul "POS Terminal" jadi "hend_kasir". (3) Tambah tombol "+" di header Aksi Cepat + card "TAMBAH" di akhir scroll untuk menambah menu dari Lainnya (Pembelian, Supplier, Hutang) ke baris Aksi Cepat. (4) Manajemen Pengguna pindah ke bottom sheet Lainnya.
+- **Cara pakai**: Tap tombol "+" atau kartu TAMBAH di Aksi Cepat → pilih menu → muncul di baris.
+- **Files**: `lib/presentation/pages/home_page_mobile.dart`
+- **Date**: 2026-05-22
+
 
