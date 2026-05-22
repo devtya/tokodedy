@@ -63,8 +63,17 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     text: '11',
   );
 
+  bool _isLoadingPending = false;
+
+  int _diskonTipe = 0; // 0=tidak, 1=persen, 2=nominal
+  double _diskonPersen = 0;
+  double _diskonNominal = 0;
+  final TextEditingController _diskonPersenController = TextEditingController();
+  final TextEditingController _diskonNominalController = TextEditingController();
+
   bool _forcePop = false;
   String? _pembelianId;
+  String? _loadedPendingId;
   bool _isSaving = false;
   List<_ItemPembelian>? _pendingSaveItems;
   String? _pendingSaveSupplierId;
@@ -80,42 +89,52 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   }
 
   Future<void> _loadPending(String id) async {
-    final pendingRepo = sl<PendingPembelianRepository>();
-    final pending = await pendingRepo.getPendingById(id);
-    if (pending != null) {
-      final items = await pendingRepo.getItemsByPendingId(id);
+    setState(() => _isLoadingPending = true);
+    try {
+      final pendingRepo = sl<PendingPembelianRepository>();
+      final pending = await pendingRepo.getPendingById(id);
+      if (pending != null) {
+        final items = await pendingRepo.getItemsByPendingId(id);
 
-      Supplier? supplier;
-      if (pending.supplierId != null) {
-        final supplierRepo = sl<SupplierRepository>();
-        supplier = await supplierRepo.getSupplierById(pending.supplierId!);
+        Supplier? supplier;
+        if (pending.supplierId != null) {
+          final supplierRepo = sl<SupplierRepository>();
+          supplier = await supplierRepo.getSupplierById(pending.supplierId!);
+        }
+
+        if (mounted) {
+          setState(() {
+            _loadedPendingId = id;
+            _selectedSupplier = supplier;
+            _isPpnEnabled = pending.isPpnEnabled;
+            _ppnPercent = pending.ppnPercent;
+            _ppnController.text = _ppnPercent.toStringAsFixed(0);
+            _diskonTipe = pending.diskonTipe;
+            _diskonPersen = pending.diskonPersen;
+            _diskonNominal = pending.diskonNominal;
+            _diskonPersenController.text = _diskonPersen > 0 ? _diskonPersen.toStringAsFixed(0) : '';
+            _diskonNominalController.text = _diskonNominal > 0 ? _diskonNominal.toStringAsFixed(0) : '';
+
+            _items.clear();
+            for (final item in items) {
+              _items.add(
+                _ItemPembelian(
+                  produkId: item.produkId,
+                  namaProduk: item.namaProduk,
+                  jumlah: item.jumlah,
+                  hargaBeliSatuan: item.hargaBeliSatuan,
+                  hargaBeliLama: item.hargaBeliLama,
+                  totalHarga: item.jumlah * item.hargaBeliSatuan,
+                  diskonTipe: item.diskonTipe,
+                  diskonValue: item.diskonValue,
+                ),
+              );
+            }
+          });
+        }
       }
-
-      if (mounted) {
-        setState(() {
-          _selectedSupplier = supplier;
-          _isPpnEnabled = pending.isPpnEnabled;
-          _ppnPercent = pending.ppnPercent;
-          _ppnController.text = _ppnPercent.toStringAsFixed(0);
-
-          _items.clear();
-          for (final item in items) {
-            _items.add(
-              _ItemPembelian(
-                produkId: item.produkId,
-                namaProduk: item.namaProduk,
-                jumlah: item.jumlah,
-                hargaBeliSatuan: item.hargaBeliSatuan,
-                hargaBeliLama: item.hargaBeliLama,
-                totalHarga: item.jumlah * item.hargaBeliSatuan,
-                diskonTipe: item.diskonTipe,
-                diskonValue: item.diskonValue,
-              ),
-            );
-          }
-        });
-      }
-      await pendingRepo.deletePending(id);
+    } finally {
+      if (mounted) setState(() => _isLoadingPending = false);
     }
   }
 
@@ -158,15 +177,20 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   @override
   void dispose() {
     _ppnController.dispose();
+    _diskonPersenController.dispose();
+    _diskonNominalController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   double get _total => _items.fold(0.0, (s, i) => s + i.subtotal);
   double get _totalDiskon => _items.fold(0.0, (s, i) => s + i.diskonRp);
+  double get _totalDiskonGlobal =>
+      _diskonTipe == 1 ? (_total - _totalDiskon) * _diskonPersen / 100 :
+      _diskonTipe == 2 ? _diskonNominal : 0;
   double get _totalPpn =>
-      _isPpnEnabled ? ((_total - _totalDiskon) * _ppnPercent / 100) : 0.0;
-  double get _totalFinal => (_total - _totalDiskon) + _totalPpn;
+      _isPpnEnabled ? ((_total - _totalDiskon - _totalDiskonGlobal) * _ppnPercent / 100) : 0.0;
+  double get _totalFinal => (_total - _totalDiskon - _totalDiskonGlobal) + _totalPpn;
   bool get _isFormValid => _items.isNotEmpty;
 
 
@@ -520,12 +544,20 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     if (isKasir) {
       try {
         final pendingRepo = sl<PendingPembelianRepository>();
+
+        if (_loadedPendingId != null) {
+          await pendingRepo.deletePending(_loadedPendingId!);
+        }
+
         final pending = PendingPembelian(
           tokoId: sl<TokoService>().tokoId ?? '',
           supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
           ppnPercent: _ppnPercent,
+          diskonTipe: _diskonTipe,
+          diskonPersen: _diskonPersen,
+          diskonNominal: _diskonNominal,
         );
         final pendingId = await pendingRepo.addPending(pending);
         for (final item in _items) {
@@ -731,12 +763,20 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     } else if (act == 'simpan') {
       try {
         final pendingRepo = sl<PendingPembelianRepository>();
+
+        if (_loadedPendingId != null) {
+          await pendingRepo.deletePending(_loadedPendingId!);
+        }
+
         final pending = PendingPembelian(
           tokoId: sl<TokoService>().tokoId ?? '',
           supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
           ppnPercent: _ppnPercent,
+          diskonTipe: _diskonTipe,
+          diskonPersen: _diskonPersen,
+          diskonNominal: _diskonNominal,
         );
         final pendingId = await pendingRepo.addPending(pending);
         for (final item in _items) {
@@ -776,6 +816,13 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         if (!_isSaving) return;
         if (state is PembelianSuccess) {
           _isSaving = false;
+
+          if (_loadedPendingId != null) {
+            final pendingRepo = sl<PendingPembelianRepository>();
+            await pendingRepo.deletePending(_loadedPendingId!);
+            _loadedPendingId = null;
+          }
+
           final dao = sl<SupplierProductsDao>();
           final items = _pendingSaveItems ?? [];
           final supplierId = _pendingSaveSupplierId;
@@ -837,16 +884,18 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            _buildSupplierSection(),
-            _buildSearchSection(),
-            Expanded(
-              child: SingleChildScrollView(child: _buildCartList()),
-            ),
-            _buildBottomPanel(),
-          ],
-        ),
+        body: _isLoadingPending
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  _buildSupplierSection(),
+                  _buildSearchSection(),
+                  Expanded(
+                    child: SingleChildScrollView(child: _buildCartList()),
+                  ),
+                  _buildBottomPanel(),
+                ],
+              ),
       ),
     ),
   );
@@ -1040,24 +1089,45 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                             horizontal: 4,
                             vertical: 2,
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.edit,
-                                size: 12,
-                                color: AppTheme.neutralGrey,
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.edit,
+                                    size: 12,
+                                    color: AppTheme.neutralGrey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      _currency.format(item.hargaBeliSatuan),
+                                      style: TextStyle(
+                                        color: AppTheme.primaryGreen,
+                                        fontSize: 13,
+                                        decoration: _isPpnEnabled
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        decorationColor: AppTheme.neutralGrey,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  _currency.format(item.hargaBeliSatuan),
+                              if (_isPpnEnabled)
+                                Text(
+                                  _currency.format(
+                                    item.hargaBeliSatuan *
+                                        (1 + _ppnPercent / 100),
+                                  ),
                                   style: const TextStyle(
                                     color: AppTheme.primaryGreen,
                                     fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -1202,7 +1272,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Diskon:',
+                    'Diskon Item:',
                     style: TextStyle(color: AppTheme.warningRed),
                   ),
                   Text(
@@ -1212,6 +1282,96 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 ],
               ),
             ),
+          // Global Diskon
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                const Text(
+                  'Diskon',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 28,
+                  child: SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('Tdk', style: TextStyle(fontSize: 11))),
+                      ButtonSegment(value: 1, label: Text('%', style: TextStyle(fontSize: 11))),
+                      ButtonSegment(value: 2, label: Text('Rp', style: TextStyle(fontSize: 11))),
+                    ],
+                    selected: {_diskonTipe},
+                    onSelectionChanged: (v) {
+                      setState(() {
+                        _diskonTipe = v.first;
+                        if (_diskonTipe == 0) {
+                          _diskonPersen = 0;
+                          _diskonNominal = 0;
+                        }
+                      });
+                    },
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+                if (_diskonTipe == 1)
+                  Container(
+                    width: 50,
+                    height: 28,
+                    margin: const EdgeInsets.only(left: 4),
+                    child: TextField(
+                      controller: _diskonPersenController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.zero,
+                        suffixText: '%',
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _diskonPersen = double.tryParse(val) ?? 0;
+                        });
+                      },
+                    ),
+                  ),
+                if (_diskonTipe == 2)
+                  Container(
+                    width: 70,
+                    height: 28,
+                    margin: const EdgeInsets.only(left: 4),
+                    child: TextField(
+                      controller: _diskonNominalController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.zero,
+                        prefixText: 'Rp ',
+                        prefixStyle: TextStyle(fontSize: 10),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _diskonNominal = double.tryParse(val) ?? 0;
+                        });
+                      },
+                    ),
+                  ),
+                const Spacer(),
+                if (_diskonTipe > 0)
+                  Text(
+                    '- ${_currency.format(_totalDiskonGlobal)}',
+                    style: const TextStyle(
+                      color: AppTheme.warningRed,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // PPN
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1284,7 +1444,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                     authState is Authenticated &&
                     authState.user.role == 'kasir';
                 return ElevatedButton(
-                  onPressed: _submit,
+                  onPressed: (_isFormValid && !_isSaving) ? _submit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _isFormValid
                         ? AppTheme.primary
@@ -1298,9 +1458,20 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    isKasir ? 'Simpan ke Pending (Kasir)' : 'Simpan Pembelian',
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          isKasir
+                              ? 'Simpan ke Pending (Kasir)'
+                              : 'Simpan Pembelian',
+                        ),
                 );
               },
             ),

@@ -7,6 +7,9 @@ class PendingPembelianTable extends Table {
   TextColumn? get namaSupplier => text().nullable()();
   BoolColumn get isPpnEnabled => boolean().withDefault(const Constant(false))();
   RealColumn get ppnPercent   => real().withDefault(const Constant(11.0))();
+  IntColumn get diskonTipe    => integer().withDefault(const Constant(0))();
+  RealColumn get diskonPersen => real().withDefault(const Constant(0))();
+  RealColumn get diskonNominal => real().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override

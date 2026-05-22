@@ -6785,6 +6785,42 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     requiredDuringInsert: false,
     defaultValue: const Constant(11.0),
   );
+  static const VerificationMeta _diskonTipeMeta = const VerificationMeta(
+    'diskonTipe',
+  );
+  @override
+  late final GeneratedColumn<int> diskonTipe = GeneratedColumn<int>(
+    'diskon_tipe',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _diskonPersenMeta = const VerificationMeta(
+    'diskonPersen',
+  );
+  @override
+  late final GeneratedColumn<double> diskonPersen = GeneratedColumn<double>(
+    'diskon_persen',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _diskonNominalMeta = const VerificationMeta(
+    'diskonNominal',
+  );
+  @override
+  late final GeneratedColumn<double> diskonNominal = GeneratedColumn<double>(
+    'diskon_nominal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -6805,6 +6841,9 @@ class $PendingPembelianTableTable extends PendingPembelianTable
     namaSupplier,
     isPpnEnabled,
     ppnPercent,
+    diskonTipe,
+    diskonPersen,
+    diskonNominal,
     createdAt,
   ];
   @override
@@ -6862,6 +6901,30 @@ class $PendingPembelianTableTable extends PendingPembelianTable
         ppnPercent.isAcceptableOrUnknown(data['ppn_percent']!, _ppnPercentMeta),
       );
     }
+    if (data.containsKey('diskon_tipe')) {
+      context.handle(
+        _diskonTipeMeta,
+        diskonTipe.isAcceptableOrUnknown(data['diskon_tipe']!, _diskonTipeMeta),
+      );
+    }
+    if (data.containsKey('diskon_persen')) {
+      context.handle(
+        _diskonPersenMeta,
+        diskonPersen.isAcceptableOrUnknown(
+          data['diskon_persen']!,
+          _diskonPersenMeta,
+        ),
+      );
+    }
+    if (data.containsKey('diskon_nominal')) {
+      context.handle(
+        _diskonNominalMeta,
+        diskonNominal.isAcceptableOrUnknown(
+          data['diskon_nominal']!,
+          _diskonNominalMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -6904,6 +6967,18 @@ class $PendingPembelianTableTable extends PendingPembelianTable
         DriftSqlType.double,
         data['${effectivePrefix}ppn_percent'],
       )!,
+      diskonTipe: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}diskon_tipe'],
+      )!,
+      diskonPersen: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}diskon_persen'],
+      )!,
+      diskonNominal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}diskon_nominal'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -6925,6 +7000,9 @@ class PendingPembelianTableData extends DataClass
   final String? namaSupplier;
   final bool isPpnEnabled;
   final double ppnPercent;
+  final int diskonTipe;
+  final double diskonPersen;
+  final double diskonNominal;
   final DateTime createdAt;
   const PendingPembelianTableData({
     required this.id,
@@ -6933,6 +7011,9 @@ class PendingPembelianTableData extends DataClass
     this.namaSupplier,
     required this.isPpnEnabled,
     required this.ppnPercent,
+    required this.diskonTipe,
+    required this.diskonPersen,
+    required this.diskonNominal,
     required this.createdAt,
   });
   @override
@@ -6948,6 +7029,9 @@ class PendingPembelianTableData extends DataClass
     }
     map['is_ppn_enabled'] = Variable<bool>(isPpnEnabled);
     map['ppn_percent'] = Variable<double>(ppnPercent);
+    map['diskon_tipe'] = Variable<int>(diskonTipe);
+    map['diskon_persen'] = Variable<double>(diskonPersen);
+    map['diskon_nominal'] = Variable<double>(diskonNominal);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -6964,6 +7048,9 @@ class PendingPembelianTableData extends DataClass
           : Value(namaSupplier),
       isPpnEnabled: Value(isPpnEnabled),
       ppnPercent: Value(ppnPercent),
+      diskonTipe: Value(diskonTipe),
+      diskonPersen: Value(diskonPersen),
+      diskonNominal: Value(diskonNominal),
       createdAt: Value(createdAt),
     );
   }
@@ -6980,6 +7067,9 @@ class PendingPembelianTableData extends DataClass
       namaSupplier: serializer.fromJson<String?>(json['namaSupplier']),
       isPpnEnabled: serializer.fromJson<bool>(json['isPpnEnabled']),
       ppnPercent: serializer.fromJson<double>(json['ppnPercent']),
+      diskonTipe: serializer.fromJson<int>(json['diskonTipe']),
+      diskonPersen: serializer.fromJson<double>(json['diskonPersen']),
+      diskonNominal: serializer.fromJson<double>(json['diskonNominal']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -6993,6 +7083,9 @@ class PendingPembelianTableData extends DataClass
       'namaSupplier': serializer.toJson<String?>(namaSupplier),
       'isPpnEnabled': serializer.toJson<bool>(isPpnEnabled),
       'ppnPercent': serializer.toJson<double>(ppnPercent),
+      'diskonTipe': serializer.toJson<int>(diskonTipe),
+      'diskonPersen': serializer.toJson<double>(diskonPersen),
+      'diskonNominal': serializer.toJson<double>(diskonNominal),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -7004,6 +7097,9 @@ class PendingPembelianTableData extends DataClass
     Value<String?> namaSupplier = const Value.absent(),
     bool? isPpnEnabled,
     double? ppnPercent,
+    int? diskonTipe,
+    double? diskonPersen,
+    double? diskonNominal,
     DateTime? createdAt,
   }) => PendingPembelianTableData(
     id: id ?? this.id,
@@ -7012,6 +7108,9 @@ class PendingPembelianTableData extends DataClass
     namaSupplier: namaSupplier.present ? namaSupplier.value : this.namaSupplier,
     isPpnEnabled: isPpnEnabled ?? this.isPpnEnabled,
     ppnPercent: ppnPercent ?? this.ppnPercent,
+    diskonTipe: diskonTipe ?? this.diskonTipe,
+    diskonPersen: diskonPersen ?? this.diskonPersen,
+    diskonNominal: diskonNominal ?? this.diskonNominal,
     createdAt: createdAt ?? this.createdAt,
   );
   PendingPembelianTableData copyWithCompanion(
@@ -7032,6 +7131,15 @@ class PendingPembelianTableData extends DataClass
       ppnPercent: data.ppnPercent.present
           ? data.ppnPercent.value
           : this.ppnPercent,
+      diskonTipe: data.diskonTipe.present
+          ? data.diskonTipe.value
+          : this.diskonTipe,
+      diskonPersen: data.diskonPersen.present
+          ? data.diskonPersen.value
+          : this.diskonPersen,
+      diskonNominal: data.diskonNominal.present
+          ? data.diskonNominal.value
+          : this.diskonNominal,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -7045,6 +7153,9 @@ class PendingPembelianTableData extends DataClass
           ..write('namaSupplier: $namaSupplier, ')
           ..write('isPpnEnabled: $isPpnEnabled, ')
           ..write('ppnPercent: $ppnPercent, ')
+          ..write('diskonTipe: $diskonTipe, ')
+          ..write('diskonPersen: $diskonPersen, ')
+          ..write('diskonNominal: $diskonNominal, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -7058,6 +7169,9 @@ class PendingPembelianTableData extends DataClass
     namaSupplier,
     isPpnEnabled,
     ppnPercent,
+    diskonTipe,
+    diskonPersen,
+    diskonNominal,
     createdAt,
   );
   @override
@@ -7070,6 +7184,9 @@ class PendingPembelianTableData extends DataClass
           other.namaSupplier == this.namaSupplier &&
           other.isPpnEnabled == this.isPpnEnabled &&
           other.ppnPercent == this.ppnPercent &&
+          other.diskonTipe == this.diskonTipe &&
+          other.diskonPersen == this.diskonPersen &&
+          other.diskonNominal == this.diskonNominal &&
           other.createdAt == this.createdAt);
 }
 
@@ -7081,6 +7198,9 @@ class PendingPembelianTableCompanion
   final Value<String?> namaSupplier;
   final Value<bool> isPpnEnabled;
   final Value<double> ppnPercent;
+  final Value<int> diskonTipe;
+  final Value<double> diskonPersen;
+  final Value<double> diskonNominal;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const PendingPembelianTableCompanion({
@@ -7090,6 +7210,9 @@ class PendingPembelianTableCompanion
     this.namaSupplier = const Value.absent(),
     this.isPpnEnabled = const Value.absent(),
     this.ppnPercent = const Value.absent(),
+    this.diskonTipe = const Value.absent(),
+    this.diskonPersen = const Value.absent(),
+    this.diskonNominal = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7100,6 +7223,9 @@ class PendingPembelianTableCompanion
     this.namaSupplier = const Value.absent(),
     this.isPpnEnabled = const Value.absent(),
     this.ppnPercent = const Value.absent(),
+    this.diskonTipe = const Value.absent(),
+    this.diskonPersen = const Value.absent(),
+    this.diskonNominal = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -7111,6 +7237,9 @@ class PendingPembelianTableCompanion
     Expression<String>? namaSupplier,
     Expression<bool>? isPpnEnabled,
     Expression<double>? ppnPercent,
+    Expression<int>? diskonTipe,
+    Expression<double>? diskonPersen,
+    Expression<double>? diskonNominal,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -7121,6 +7250,9 @@ class PendingPembelianTableCompanion
       if (namaSupplier != null) 'nama_supplier': namaSupplier,
       if (isPpnEnabled != null) 'is_ppn_enabled': isPpnEnabled,
       if (ppnPercent != null) 'ppn_percent': ppnPercent,
+      if (diskonTipe != null) 'diskon_tipe': diskonTipe,
+      if (diskonPersen != null) 'diskon_persen': diskonPersen,
+      if (diskonNominal != null) 'diskon_nominal': diskonNominal,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7133,6 +7265,9 @@ class PendingPembelianTableCompanion
     Value<String?>? namaSupplier,
     Value<bool>? isPpnEnabled,
     Value<double>? ppnPercent,
+    Value<int>? diskonTipe,
+    Value<double>? diskonPersen,
+    Value<double>? diskonNominal,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -7143,6 +7278,9 @@ class PendingPembelianTableCompanion
       namaSupplier: namaSupplier ?? this.namaSupplier,
       isPpnEnabled: isPpnEnabled ?? this.isPpnEnabled,
       ppnPercent: ppnPercent ?? this.ppnPercent,
+      diskonTipe: diskonTipe ?? this.diskonTipe,
+      diskonPersen: diskonPersen ?? this.diskonPersen,
+      diskonNominal: diskonNominal ?? this.diskonNominal,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -7169,6 +7307,15 @@ class PendingPembelianTableCompanion
     if (ppnPercent.present) {
       map['ppn_percent'] = Variable<double>(ppnPercent.value);
     }
+    if (diskonTipe.present) {
+      map['diskon_tipe'] = Variable<int>(diskonTipe.value);
+    }
+    if (diskonPersen.present) {
+      map['diskon_persen'] = Variable<double>(diskonPersen.value);
+    }
+    if (diskonNominal.present) {
+      map['diskon_nominal'] = Variable<double>(diskonNominal.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -7187,6 +7334,9 @@ class PendingPembelianTableCompanion
           ..write('namaSupplier: $namaSupplier, ')
           ..write('isPpnEnabled: $isPpnEnabled, ')
           ..write('ppnPercent: $ppnPercent, ')
+          ..write('diskonTipe: $diskonTipe, ')
+          ..write('diskonPersen: $diskonPersen, ')
+          ..write('diskonNominal: $diskonNominal, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -12363,6 +12513,9 @@ typedef $$PendingPembelianTableTableCreateCompanionBuilder =
       Value<String?> namaSupplier,
       Value<bool> isPpnEnabled,
       Value<double> ppnPercent,
+      Value<int> diskonTipe,
+      Value<double> diskonPersen,
+      Value<double> diskonNominal,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -12374,6 +12527,9 @@ typedef $$PendingPembelianTableTableUpdateCompanionBuilder =
       Value<String?> namaSupplier,
       Value<bool> isPpnEnabled,
       Value<double> ppnPercent,
+      Value<int> diskonTipe,
+      Value<double> diskonPersen,
+      Value<double> diskonNominal,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -12414,6 +12570,21 @@ class $$PendingPembelianTableTableFilterComposer
 
   ColumnFilters<double> get ppnPercent => $composableBuilder(
     column: $table.ppnPercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get diskonTipe => $composableBuilder(
+    column: $table.diskonTipe,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get diskonPersen => $composableBuilder(
+    column: $table.diskonPersen,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get diskonNominal => $composableBuilder(
+    column: $table.diskonNominal,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12462,6 +12633,21 @@ class $$PendingPembelianTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get diskonTipe => $composableBuilder(
+    column: $table.diskonTipe,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get diskonPersen => $composableBuilder(
+    column: $table.diskonPersen,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get diskonNominal => $composableBuilder(
+    column: $table.diskonNominal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -12500,6 +12686,21 @@ class $$PendingPembelianTableTableAnnotationComposer
 
   GeneratedColumn<double> get ppnPercent => $composableBuilder(
     column: $table.ppnPercent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get diskonTipe => $composableBuilder(
+    column: $table.diskonTipe,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get diskonPersen => $composableBuilder(
+    column: $table.diskonPersen,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get diskonNominal => $composableBuilder(
+    column: $table.diskonNominal,
     builder: (column) => column,
   );
 
@@ -12559,6 +12760,9 @@ class $$PendingPembelianTableTableTableManager
                 Value<String?> namaSupplier = const Value.absent(),
                 Value<bool> isPpnEnabled = const Value.absent(),
                 Value<double> ppnPercent = const Value.absent(),
+                Value<int> diskonTipe = const Value.absent(),
+                Value<double> diskonPersen = const Value.absent(),
+                Value<double> diskonNominal = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PendingPembelianTableCompanion(
@@ -12568,6 +12772,9 @@ class $$PendingPembelianTableTableTableManager
                 namaSupplier: namaSupplier,
                 isPpnEnabled: isPpnEnabled,
                 ppnPercent: ppnPercent,
+                diskonTipe: diskonTipe,
+                diskonPersen: diskonPersen,
+                diskonNominal: diskonNominal,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -12579,6 +12786,9 @@ class $$PendingPembelianTableTableTableManager
                 Value<String?> namaSupplier = const Value.absent(),
                 Value<bool> isPpnEnabled = const Value.absent(),
                 Value<double> ppnPercent = const Value.absent(),
+                Value<int> diskonTipe = const Value.absent(),
+                Value<double> diskonPersen = const Value.absent(),
+                Value<double> diskonNominal = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PendingPembelianTableCompanion.insert(
@@ -12588,6 +12798,9 @@ class $$PendingPembelianTableTableTableManager
                 namaSupplier: namaSupplier,
                 isPpnEnabled: isPpnEnabled,
                 ppnPercent: ppnPercent,
+                diskonTipe: diskonTipe,
+                diskonPersen: diskonPersen,
+                diskonNominal: diskonNominal,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

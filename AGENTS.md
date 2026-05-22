@@ -269,4 +269,28 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Files**: `AGENTS.md`
 - **Date**: 2026-05-21
 
+### Bug: Pending Pembelian — Blank screen saat tap + auto-delete saat back
+- **Root cause**: (1) `_openPending` di `pending_pembelian_page.dart` pakai `pushReplacement` sehingga user tidak bisa kembali. (2) `_loadPending` di `pembelian_form_page.dart` langsung `deletePending()` setelah load tanpa loading indicator. (3) Akibatnya layar tampil kosong (abu-abu) saat data masih loading, dan jika user back pending sudah terhapus.
+- **Fix**: (1) Ganti `pushReplacement` jadi `push` + reload list saat kembali. (2) Tambah `_isLoadingPending` + `CircularProgressIndicator`. (3) Simpan `_loadedPendingId` dan hanya delete saat form sukses disimpan (di BlocListener) atau saat explicit cancel (kasir path).
+- **Files**: `lib/presentation/pages/pending_pembelian_page.dart`, `lib/presentation/pages/pembelian_form_page.dart`
+- **Date**: 2026-05-22
+
+### Fitur: Diskon Global + PPN di Harga Modal (Pembelian Form)
+- **Deskripsi**: (1) Tambah global discount di bottom panel (samping PPN) dengan SegmentedButton (Tidak/%/Rp) + input field. Diskon global diaplikasikan setelah diskon per-item, sebelum PPN. (2) Jika PPN aktif, harga beli satuan di cart list tampil dengan strikethrough abu-abu (harga sebelum PPN) dan di bawahnya muncul harga nett setelah PPN. (3) Field diskon tersimpan di DB via migrasi schema 1→2 (tambah `diskonTipe`, `diskonPersen`, `diskonNominal` ke `PendingPembelianTable`).
+- **Cara pakai**: Buka Pembelian Baru → di bottom panel, atur Diskon (Tdk/%/Rp) → aktifkan PPN jika perlu → harga item di cart otomatis tampilkan harga nett PPN.
+- **Files**: `lib/presentation/pages/pembelian_form_page.dart`, `lib/domain/entities/pending_pembelian.dart`, `lib/data/database/tables/pending_pembelian_table.dart`, `lib/data/database/app_database.dart`, `lib/data/repositories/pending_pembelian_repository_impl.dart`
+- **Date**: 2026-05-22
+
+### Fitur: Profil Dashboard — Popup Menu (Settings, Manajemen Pengguna, Catatan)
+- **Deskripsi**: Logo profil/CircleAvatar di halaman dashboard sekarang bisa diklik dan menampilkan popup menu berisi: Pengaturan, Manajemen Pengguna (admin only), dan Catatan & Peringatan (NotifikasiPage). Berlaku untuk mobile (AppBar) dan desktop (Sidebar).
+- **Cara pakai**: Tap logo profil di dashboard → pilih menu.
+- **Files**: `lib/presentation/pages/home_page_mobile.dart`, `lib/presentation/pages/home_page_desktop.dart`
+- **Date**: 2026-05-22
+
+### Fitur: Loading Indicator di Tombol Simpan (Anti Double-Input)
+- **Deskripsi**: Tambah loading spinner di tombol Simpan pada ProdukFormPage, PembelianFormPage, dan CashierPage untuk mencegah double input akibat delay save (local DB + cloud sync). Tombol disable + spinner selama proses berlangsung.
+- **Cara pakai**: Setelah tap Simpan/Bayar, tombol menampilkan spinner dan tidak bisa diklik lagi sampai proses selesai.
+- **Files**: `lib/presentation/pages/produk_form_page.dart`, `lib/presentation/pages/pembelian_form_page.dart`, `lib/presentation/pages/cashier_page.dart`
+- **Date**: 2026-05-22
+
 

@@ -41,13 +41,14 @@ class _PendingPembelianPageState extends State<PendingPembelianPage> {
     _loadData();
   }
 
-  void _openPending(PendingPembelian pending) {
-    Navigator.pushReplacement(
+  void _openPending(PendingPembelian pending) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PembelianFormPage(pendingId: pending.id),
       ),
     );
+    _loadData();
   }
 
   @override

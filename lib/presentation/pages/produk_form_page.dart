@@ -55,6 +55,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── State ──
   bool _saved = false;
+  bool _isSaving = false;
   final List<String> _addedIds = [];
 
   // ── Unit list (multi-satuan) ──
@@ -264,6 +265,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── Submit ──
   void _submit() {
+    if (_isSaving) return;
     if (_namaCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -321,6 +323,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       satuanList: satuanList,
     );
 
+    setState(() => _isSaving = true);
     if (_isEditing) {
       context.read<ProdukBloc>().add(UpdateProdukEvent(produk));
     } else {
@@ -340,7 +343,10 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       body: BlocListener<ProdukBloc, ProdukState>(
         listener: (context, state) {
           if (state is ProdukOperationSuccess && _saved) {
-            setState(() => _saved = false);
+            setState(() {
+              _saved = false;
+              _isSaving = false;
+            });
             if (state.newId != null) {
               _addedIds.add(state.newId!);
             }
@@ -379,6 +385,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 ],
               ),
             );
+          }
+          if (state is ProdukError) {
+            setState(() => _isSaving = false);
           }
         },
         child: Column(
@@ -831,7 +840,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _submit,
+              onPressed: _isSaving ? null : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -840,14 +849,23 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 ),
                 elevation: 0,
               ),
-              child: Text(
-                _saved ? '✓ Tersimpan!' : 'Simpan',
-                style: const TextStyle(
-                  color: AppTheme.onPrimary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      _saved ? '✓ Tersimpan!' : 'Simpan',
+                      style: const TextStyle(
+                        color: AppTheme.onPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
             ),
           ),
         ],

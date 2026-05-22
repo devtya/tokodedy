@@ -24,6 +24,9 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
       createdAt: data.createdAt,
       isPpnEnabled: data.isPpnEnabled,
       ppnPercent: data.ppnPercent,
+      diskonTipe: data.diskonTipe,
+      diskonPersen: data.diskonPersen,
+      diskonNominal: data.diskonNominal,
     );
   }
 
@@ -53,6 +56,9 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
             namaSupplier: Value(pending.namaSupplier),
             isPpnEnabled: Value(pending.isPpnEnabled),
             ppnPercent: Value(pending.ppnPercent),
+            diskonTipe: Value(pending.diskonTipe),
+            diskonPersen: Value(pending.diskonPersen),
+            diskonNominal: Value(pending.diskonNominal),
           ),
         );
 
@@ -64,6 +70,9 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
       'nama_supplier': pending.namaSupplier,
       'is_ppn_enabled': pending.isPpnEnabled,
       'ppn_percent': pending.ppnPercent,
+      'diskon_tipe': pending.diskonTipe,
+      'diskon_persen': pending.diskonPersen,
+      'diskon_nominal': pending.diskonNominal,
     });
 
     return id;

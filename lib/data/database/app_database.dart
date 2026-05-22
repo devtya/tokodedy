@@ -52,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,8 +60,20 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      // Schema v1 adalah fresh start — tidak ada migrasi dari versi lama.
-      // Versi lama (1–13) menggunakan DB file berbeda atau harus uninstall app.
+      if (from < 2) {
+        await m.addColumn(
+          pendingPembelianTable,
+          pendingPembelianTable.diskonTipe,
+        );
+        await m.addColumn(
+          pendingPembelianTable,
+          pendingPembelianTable.diskonPersen,
+        );
+        await m.addColumn(
+          pendingPembelianTable,
+          pendingPembelianTable.diskonNominal,
+        );
+      }
     },
     beforeOpen: (details) async {
       // Aktifkan foreign key enforcement di SQLite

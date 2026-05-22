@@ -32,6 +32,7 @@ import 'produk_page.dart';
 import 'settings_page.dart';
 import 'supplier_page.dart';
 import 'transaksi_page.dart';
+import 'user_management_page.dart';
 
 class HomeMobilePage extends StatelessWidget {
   const HomeMobilePage({super.key});
@@ -358,11 +359,60 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                     );
                   },
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-                  child: CircleAvatar(
-                    backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'settings':
+                        _navigateAndReload(const SettingsPage());
+                      case 'users':
+                        if (isAdmin) {
+                          _navigateAndReload(const UserManagementPage());
+                        }
+                      case 'notes':
+                        _navigateAndReload(
+                          BlocProvider.value(
+                            value: context.read<NotifikasiBloc>(),
+                            child: const NotifikasiPage(),
+                          ),
+                        );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'settings',
+                      child: ListTile(
+                        leading: Icon(Icons.settings),
+                        title: Text('Pengaturan'),
+                        contentPadding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                    if (isAdmin)
+                      const PopupMenuItem(
+                        value: 'users',
+                        child: ListTile(
+                          leading: Icon(Icons.people),
+                          title: Text('Manajemen Pengguna'),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    const PopupMenuItem(
+                      value: 'notes',
+                      child: ListTile(
+                        leading: Icon(Icons.warning_amber),
+                        title: Text('Catatan & Peringatan'),
+                        contentPadding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+                    child: CircleAvatar(
+                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                      child: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                    ),
                   ),
                 ),
               ],

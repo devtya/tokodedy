@@ -50,6 +50,7 @@ class _CashierPageState extends State<CashierPage> {
   double _lastTotalBayar = 0;
   double _lastKembalian = 0;
   bool _isPrinting = false;
+  bool _isProcessing = false;
 
   // Printer connection state
   bool _printerConnected = false;
@@ -69,6 +70,7 @@ class _CashierPageState extends State<CashierPage> {
   }
 
   Future<void> _showBayarConfirmation(CashierReady data) async {
+    if (_isProcessing) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -95,6 +97,7 @@ class _CashierPageState extends State<CashierPage> {
       ),
     );
     if (confirmed == true) {
+      setState(() => _isProcessing = true);
       _lastCartItems = List.from(data.cart);
       _lastTotalBayar = data.jumlahBayar;
       _lastKembalian = data.kembalian;
@@ -849,6 +852,7 @@ class _CashierPageState extends State<CashierPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<CashierBloc, CashierState>(
       listener: (context, state) async {
+        setState(() => _isProcessing = false);
         if (state is CashierSuccess) {
           _bayarController.clear();
           await _checkPrinterConnection();

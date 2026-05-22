@@ -29,6 +29,7 @@ import 'produk_page.dart';
 import 'settings_page.dart';
 import 'supplier_page.dart';
 import 'transaksi_page.dart';
+import 'user_management_page.dart';
 
 class _NavItem {
   final IconData icon;
@@ -428,7 +429,64 @@ class _Sidebar extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: onSettingsTap,
+                onTap: () {
+                  final navigator = Navigator.of(context);
+                  showMenu<String>(
+                    context: context,
+                    position: RelativeRect.fromLTRB(200, 600, 400, 700),
+                    items: [
+                      const PopupMenuItem(
+                        value: 'settings',
+                        child: ListTile(
+                          leading: Icon(Icons.settings, size: 20),
+                          title: Text('Pengaturan'),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      if (isAdmin)
+                        const PopupMenuItem(
+                          value: 'users',
+                          child: ListTile(
+                            leading: Icon(Icons.people, size: 20),
+                            title: Text('Manajemen Pengguna'),
+                            contentPadding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      const PopupMenuItem(
+                        value: 'notes',
+                        child: ListTile(
+                          leading: Icon(Icons.warning_amber, size: 20),
+                          title: Text('Catatan & Peringatan'),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
+                  ).then((value) {
+                    if (value == null) return;
+                    switch (value) {
+                      case 'settings':
+                        onSettingsTap();
+                      case 'users':
+                        navigator.push(
+                          MaterialPageRoute(
+                            builder: (_) => const UserManagementPage(),
+                          ),
+                        );
+                      case 'notes':
+                        navigator.push(
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<NotifikasiBloc>(),
+                              child: const NotifikasiPage(),
+                            ),
+                          ),
+                        );
+                    }
+                  });
+                },
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
