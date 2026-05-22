@@ -293,4 +293,10 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Files**: `lib/presentation/pages/produk_form_page.dart`, `lib/presentation/pages/pembelian_form_page.dart`, `lib/presentation/pages/cashier_page.dart`
 - **Date**: 2026-05-22
 
+### Bug: Periksa Pembaruan — Tidak pernah mendeteksi update dari CI
+- **Root cause**: Filter asset name di `UpdateService.checkForUpdate()` menggunakan `startsWith('hendkasir')` (tanpa underscore), tapi CI workflow menghasilkan file `hend_kasir-v<version>.apk` (dengan underscore + build number). Filter tidak pernah match.
+- **Fix**: Ubah filter jadi `startsWith('hend')` agar mencakup `hendkasir*` dan `hend_kasir*`.
+- **Files**: `lib/core/services/update_service.dart`
+- **Date**: 2026-05-22
+
 

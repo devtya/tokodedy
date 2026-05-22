@@ -62,6 +62,76 @@ class _HomeMobileView extends StatefulWidget {
 
 class _HomeMobileViewState extends State<_HomeMobileView> {
   bool _emailPromptShown = false;
+  final List<_QuickActionDef> _customQuickActions = [];
+
+  static final List<_QuickActionDef> _availableQuickActions = [
+    _QuickActionDef('Pembelian', Icons.shopping_bag, Colors.teal),
+    _QuickActionDef('Supplier', Icons.business, Colors.brown),
+    _QuickActionDef('Hutang', Icons.account_balance_wallet, AppTheme.warningOrange),
+  ];
+
+  Widget _buildQuickActionPage(String label) {
+    switch (label) {
+      case 'Pembelian':
+        return BlocProvider.value(
+          value: sl<PembelianBloc>(),
+          child: const PembelianPage(),
+        );
+      case 'Supplier':
+        return BlocProvider.value(
+          value: sl<SupplierBloc>(),
+          child: const SupplierPage(),
+        );
+      case 'Hutang':
+        return BlocProvider.value(
+          value: sl<HutangBloc>(),
+          child: const HutangPage(),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void _showAddQuickActionDialog() {
+    final available = _availableQuickActions.where(
+      (a) => !_customQuickActions.any((c) => c.label == a.label),
+    ).toList();
+
+    if (available.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua menu sudah ditambahkan')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tambah Aksi Cepat'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: available.length,
+            itemBuilder: (ctx, i) => ListTile(
+              leading: Icon(available[i].icon, color: available[i].color),
+              title: Text(available[i].label),
+              onTap: () {
+                Navigator.pop(ctx);
+                setState(() => _customQuickActions.add(available[i]));
+              },
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _reloadDashboardAndNotif() {
     if (mounted) {
@@ -241,6 +311,16 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                       );
                     },
                   ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.manage_accounts,
+                    label: 'Pengguna',
+                    color: Colors.brown,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(const UserManagementPage());
+                    },
+                  ),
                 _LainnyaGridItem(
                   icon: Icons.settings,
                   label: 'Pengaturan',
@@ -300,7 +380,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('POS Terminal', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text('hend_kasir', style: TextStyle(fontWeight: FontWeight.bold)),
               centerTitle: false,
               actions: [
                 BlocBuilder<NotifikasiBloc, NotifikasiState>(
@@ -358,62 +438,6 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                       ],
                     );
                   },
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'settings':
-                        _navigateAndReload(const SettingsPage());
-                      case 'users':
-                        if (isAdmin) {
-                          _navigateAndReload(const UserManagementPage());
-                        }
-                      case 'notes':
-                        _navigateAndReload(
-                          BlocProvider.value(
-                            value: context.read<NotifikasiBloc>(),
-                            child: const NotifikasiPage(),
-                          ),
-                        );
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'settings',
-                      child: ListTile(
-                        leading: Icon(Icons.settings),
-                        title: Text('Pengaturan'),
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                    if (isAdmin)
-                      const PopupMenuItem(
-                        value: 'users',
-                        child: ListTile(
-                          leading: Icon(Icons.people),
-                          title: Text('Manajemen Pengguna'),
-                          contentPadding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    const PopupMenuItem(
-                      value: 'notes',
-                      child: ListTile(
-                        leading: Icon(Icons.warning_amber),
-                        title: Text('Catatan & Peringatan'),
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  ],
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-                    child: CircleAvatar(
-                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                      child: const Icon(Icons.person, color: AppTheme.primaryGreen),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -639,65 +663,112 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         ),
 
                         // Quick Actions
-                        const Text(
-                          'Aksi Cepat',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
                         Row(
                           children: [
-                            Expanded(
-                              child: _QuickActionCard(
-                                icon: Icons.point_of_sale,
-                                label: 'BUKA KASIR',
-                                color: AppTheme.primaryGreen,
-                                onTap: () {
-                                  _navigateAndReload(
-                                    BlocProvider.value(
-                                      value: sl<CashierBloc>(),
-                                      child: const CashierPage(),
-                                    ),
-                                  );
-                                },
-                              ),
+                            const Text(
+                              'Aksi Cepat',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _QuickActionCard(
-                                icon: Icons.print,
-                                label: 'LAPORAN',
-                                color: Colors.purple,
-                                onTap: isAdmin ? () {
-                                  _navigateAndReload(
-                                    BlocProvider.value(
-                                      value: sl<LaporanBloc>(),
-                                      child: const LaporanPage(),
-                                    ),
-                                  );
-                                } : () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Hanya owner yang bisa akses Laporan')),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _QuickActionCard(
-                                icon: Icons.add_box,
-                                label: 'INPUT STOK',
-                                color: Colors.blue,
-                                onTap: () {
-                                  _navigateAndReload(
-                                    BlocProvider.value(
-                                      value: sl<ProdukBloc>(),
-                                      child: const ProdukPage(),
-                                    ),
-                                  );
-                                },
+                            const Spacer(),
+                            Material(
+                              color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                              shape: const CircleBorder(),
+                              child: InkWell(
+                                customBorder: const CircleBorder(),
+                                onTap: _showAddQuickActionDialog,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: Icon(Icons.add, size: 20, color: AppTheme.primaryGreen),
+                                ),
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 100,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.only(left: 4, right: 4),
+                            children: [
+                              SizedBox(
+                                width: 90,
+                                child: _QuickActionCard(
+                                  icon: Icons.point_of_sale,
+                                  label: 'KASIR',
+                                  color: AppTheme.primaryGreen,
+                                  onTap: () {
+                                    _navigateAndReload(
+                                      BlocProvider.value(
+                                        value: sl<CashierBloc>(),
+                                        child: const CashierPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 90,
+                                child: _QuickActionCard(
+                                  icon: Icons.print,
+                                  label: 'LAPORAN',
+                                  color: Colors.purple,
+                                  onTap: isAdmin ? () {
+                                    _navigateAndReload(
+                                      BlocProvider.value(
+                                        value: sl<LaporanBloc>(),
+                                        child: const LaporanPage(),
+                                      ),
+                                    );
+                                  } : () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Hanya owner yang bisa akses Laporan')),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 90,
+                                child: _QuickActionCard(
+                                  icon: Icons.add_box,
+                                  label: 'STOK',
+                                  color: Colors.blue,
+                                  onTap: () {
+                                    _navigateAndReload(
+                                      BlocProvider.value(
+                                        value: sl<ProdukBloc>(),
+                                        child: const ProdukPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              ..._customQuickActions.map((a) => Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: SizedBox(
+                                  width: 90,
+                                  child: _QuickActionCard(
+                                    icon: a.icon,
+                                    label: a.label,
+                                    color: a.color,
+                                    onTap: () => _navigateAndReload(_buildQuickActionPage(a.label)),
+                                  ),
+                                ),
+                              )),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 90,
+                                child: _QuickActionCard(
+                                  icon: Icons.add,
+                                  label: 'TAMBAH',
+                                  color: AppTheme.neutralGrey,
+                                  onTap: _showAddQuickActionDialog,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 80), // padding for bottom nav
                       ]),
@@ -783,6 +854,13 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
       ),
     );
   }
+}
+
+class _QuickActionDef {
+  final String label;
+  final IconData icon;
+  final Color color;
+  const _QuickActionDef(this.label, this.icon, this.color);
 }
 
 class _QuickActionCard extends StatelessWidget {
