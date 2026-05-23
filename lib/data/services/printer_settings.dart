@@ -1,5 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/di/injection.dart';
+import '../../core/services/toko_service.dart';
+
 class PrinterSettings {
   static const _keyType = 'printer_type';
   static const _keyUrl = 'printer_url';
@@ -29,7 +32,15 @@ class PrinterSettings {
   int get lebarKertas => prefs.getInt(_keyLebarKertas) ?? 58;
   set lebarKertas(int v) => prefs.setInt(_keyLebarKertas, v);
 
-  String get namaToko => prefs.getString(_keyNamaToko) ?? 'Toko';
+  String get namaToko {
+    final saved = prefs.getString(_keyNamaToko);
+    if (saved != null && saved.isNotEmpty) return saved;
+    try {
+      final tokoName = sl<TokoService>().tokoName;
+      if (tokoName != null && tokoName.isNotEmpty) return tokoName;
+    } catch (_) {}
+    return 'Toko';
+  }
   set namaToko(String v) => prefs.setString(_keyNamaToko, v);
 
   String get alamatToko => prefs.getString(_keyAlamatToko) ?? '';
