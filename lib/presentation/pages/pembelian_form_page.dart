@@ -645,9 +645,11 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
       final List<_ItemPembelian> changedItems = [];
 
-      for (final item in _items) {
-        if (item.hargaBeliSatuan != item.hargaBeliLama) {
-          changedItems.add(item);
+      for (int i = 0; i < _items.length; i++) {
+        final item = _items[i];
+        final itemData = itemsData[i];
+        if ((itemData.hargaBeliSatuan - item.hargaBeliLama).abs() > 0.01) {
+          changedItems.add(item.copyWith(hargaBeliSatuan: itemData.hargaBeliSatuan));
         }
       }
 
@@ -665,7 +667,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
       if (!mounted) return;
 
-      _pendingSaveItems = List.from(_items);
+      _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
       _pendingSaveSupplierId = _selectedSupplier!.id!;
       setState(() => _isSaving = true);
       bloc.add(
@@ -698,7 +700,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       if (confirm != true) return;
       if (!mounted) return;
 
-      _pendingSaveItems = List.from(_items);
+      _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
       _pendingSaveSupplierId = _selectedSupplier!.id!;
       setState(() => _isSaving = true);
       bloc.add(
@@ -1594,7 +1596,6 @@ class _PriceValidationDialogState extends State<_PriceValidationDialog> {
     setState(() => _isSaving = true);
     try {
       final updateProduk = sl<UpdateProduk>();
-      final addNotifikasi = sl<AddNotifikasi>();
       for (var item in widget.changedItems) {
         final produk = widget.produkMap[item.produkId]!;
         final controller = _controllers[item.produkId]!;
@@ -1625,17 +1626,6 @@ class _PriceValidationDialogState extends State<_PriceValidationDialog> {
           );
           await updateProduk(updatedProduk);
         }
-
-        final isNaik = item.hargaBeliSatuan > item.hargaBeliLama;
-        await addNotifikasi(
-          Notifikasi(
-            tokoId: sl<TokoService>().tokoId ?? '',
-            judul: 'Harga Beli Berubah - ${produk.nama}',
-            pesan:
-                'Harga beli dari Rp${item.hargaBeliLama.toStringAsFixed(0)} menjadi Rp${item.hargaBeliSatuan.toStringAsFixed(0)}. Harga jual disesuaikan menjadi Rp${newJual.toStringAsFixed(0)}.',
-            tipe: isNaik ? 'WARNING' : 'INFO',
-          ),
-        );
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {

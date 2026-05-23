@@ -741,22 +741,7 @@ class _DashboardBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BlocBuilder<NotifikasiBloc, NotifikasiState>(
-            builder: (context, state) {
-              if (state is NotifikasiLoaded &&
-                  state.unreadNotifikasi.isNotEmpty) {
-                final notif = state.unreadNotifikasi.first;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: _AlertBanner(
-                    title: notif.judul,
-                    message: notif.pesan,
-                  ),
-                );
-              }
-              return const SizedBox();
-            },
-          ),
+
 
           _SectionLabel(label: 'Menu Cepat'),
           const SizedBox(height: 12),

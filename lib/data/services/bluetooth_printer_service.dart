@@ -106,6 +106,9 @@ class BluetoothPrinterService implements PrinterService {
               if (settings.url != device.remoteId.toString()) {
                 settings.url = device.remoteId.toString();
               }
+              if (settings.type != 'bluetooth') {
+                settings.type = 'bluetooth';
+              }
             } catch (_) {}
 
             // Listen for disconnection to auto-reconnect

@@ -90,12 +90,9 @@ lib/
 - **Bottom panel** (`_buildBottomPanel`): Contains subtotal, discount, PPN toggle+input, total final, and submit button
 - **NO floating action buttons** — submit button is always at the bottom of the form
 
-## ⛔ Status: Project Windows Discontinued
-
-Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development sekarang **hanya di Android**.
-
 ## Windows Platform
 
+- **Status**: Aktif dikembangkan kembali.
 - **Barcode input**: `mobile_scanner` tidak support Windows. Gunakan `showBarcodeScannerDialog(context)` di `lib/presentation/widgets/barcode_scanner_widget.dart`. Di Windows nampilin `TextField` manual (kompatibel USB keyboard-wedge scanner), di Android pakai kamera `MobileScanner`.
 - **Theme**: System theme otomatis aktif di Windows. Bisa diganti manual lewat Settings page.
 - **Build prerequisites**: Visual Studio (Desktop C++ workload) + Windows Developer Mode (Settings → Privacy & Security → For Developers).
@@ -316,3 +313,9 @@ Project Windows **DISCONTINUE** sampai ada instruksi lanjut. Fokus development s
 - **Fix**: Di `_submit` sebelum memanggil `AddPembelianEvent` atau `UpdatePembelianEvent`, hitung alokasi proporsional diskon global & PPN ke setiap item untuk mendapatkan `nettHargaBeliSatuan` dan `nettSubtotal`. Item dengan nilai nett inilah yang dikirim ke Bloc dan diteruskan hingga update stok/HPP.
 - **Files**: `lib/presentation/pages/pembelian_form_page.dart`
 - **Date**: 2026-05-22
+
+### Bug: Pembelian — Validasi harga beli tidak memasukkan PPN/diskon global
+- **Root cause**: Dialog validasi `_PriceValidationDialog` menampilkan dan meneruskan `item.hargaBeliSatuan` dari cart, bukan `nettHargaBeliSatuan` yang sudah dikalkulasi dengan PPN dan diskon global. Begitu juga data yang diteruskan ke `_pendingSaveItems` untuk `SupplierProductsTable`.
+- **Fix**: Menggunakan `itemsData[i].hargaBeliSatuan` yang mengandung nilai nett untuk dikirim ke list `changedItems` yang memicu dialog validasi. Serta memperbarui `_pendingSaveItems` untuk memakai nilai harga nett ketika disimpan agar sinkron dengan `ProdukTable`.
+- **Files**: `lib/presentation/pages/pembelian_form_page.dart`
+- **Date**: 2026-05-23

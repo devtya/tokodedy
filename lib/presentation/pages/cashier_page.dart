@@ -29,6 +29,8 @@ import '../utils/dialog_utils.dart';
 import '../widgets/cari_produk_dialog.dart';
 import '../widgets/pending_dialog.dart';
 import 'transaksi_page.dart';
+import 'cashier_desktop_view.dart';
+import 'share_receipt_page.dart';
 
 class CashierPage extends StatefulWidget {
   const CashierPage({super.key});
@@ -433,75 +435,7 @@ class _CashierPageState extends State<CashierPage> {
     );
   }
 
-  Widget _buildReceiptPreview({
-    required String transaksiId,
-    required List<CartItem> cartItems,
-    required double totalBayar,
-    required double kembalian,
-  }) {
-    final settings = sl<PrinterSettings>();
-    final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
-    final lebar = 40;
 
-    String line() => '─' * lebar;
-    String center(String s) {
-      final pad = (lebar - s.length) ~/ 2;
-      return '${' ' * pad}$s';
-    }
-
-    final buffer = StringBuffer();
-    buffer.writeln(center(settings.namaToko));
-    if (settings.alamatToko.isNotEmpty) {
-      buffer.writeln(center(settings.alamatToko));
-    }
-    buffer.writeln(line());
-    buffer.writeln('#$transaksiId');
-    buffer.writeln('Tgl: $tanggal');
-    buffer.writeln(line());
-
-    for (final item in cartItems) {
-      final nama = item.namaProduk.length > lebar - 4
-          ? '${item.namaProduk.substring(0, lebar - 4)}..'
-          : item.namaProduk;
-      final hargaStr = _currency.format(item.hargaJual);
-      final subtotalStr = _currency.format(item.subtotal);
-      buffer.writeln(nama);
-      buffer.writeln('  ${item.jumlah}x $hargaStr  $subtotalStr');
-      if (item.totalDiskon > 0) {
-        buffer.writeln('  Diskon: -${_currency.format(item.totalDiskon)}');
-      }
-    }
-
-    buffer.writeln(line());
-    buffer.writeln('Subtotal  ${_currency.format(totalBayar + kembalian)}');
-    buffer.writeln('TOTAL     ${_currency.format(totalBayar)}');
-    buffer.writeln('Dibayar   ${_currency.format(totalBayar)}');
-    if (kembalian > 0) {
-      buffer.writeln('Kembali   ${_currency.format(kembalian)}');
-    }
-    buffer.writeln(line());
-    buffer.writeln(center('Terima kasih!'));
-
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 400),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: SingleChildScrollView(
-        child: Text(
-          buffer.toString(),
-          style: const TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 10,
-            color: Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   void dispose() {
@@ -857,66 +791,25 @@ class _CashierPageState extends State<CashierPage> {
           _bayarController.clear();
           await _checkPrinterConnection();
 
-          final shouldPrint = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Transaksi Berhasil'),
-              content: state.isHutang
-                  ? Text('Transaksi #${state.transaksiId} dicatat sebagai hutang')
-                  : SizedBox(
-                      width: double.maxFinite,
-                      child: _buildReceiptPreview(
-                        transaksiId: state.transaksiId,
-                        cartItems: _lastCartItems ?? [],
-                        totalBayar: _lastTotalBayar,
-                        kembalian: _lastKembalian,
-                      ),
-                    ),
-              actions: [
-                if (!state.isHutang) ...[
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: _printerConnected
-                        ? () => Navigator.pop(ctx, true)
-                        : null,
-                    child: const Text('Cetak Nota'),
-                  ),
-                  if (!_printerConnected)
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx, false);
-                        _showPrinterBottomSheet();
-                      },
-                      child: const Text(
-                        'Printer disconnect — tap untuk konek',
-                        style: TextStyle(
-                          color: AppTheme.warningRed,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                ],
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(state.isHutang ? 'Tutup' : 'Tidak'),
-                ),
-              ],
-            ),
+          final settings = sl<PrinterSettings>();
+          final generator = ReceiptGenerator(
+            namaToko: settings.namaToko,
+            alamatToko: settings.alamatToko,
+            kasir: '', 
+          );
+          final receipt = generator.fromTransaction(
+            transaksiId: state.transaksiId,
+            cartItems: _lastCartItems ?? [],
+            totalBayar: _lastTotalBayar,
+            kembalian: _lastKembalian,
           );
 
-          if (shouldPrint == true &&
-              _lastCartItems != null &&
-              context.mounted) {
-            _printReceipt(
-              transaksiId: state.transaksiId,
-              cartItems: _lastCartItems!,
-              totalBayar: _lastTotalBayar,
-              kembalian: _lastKembalian,
+          if (context.mounted) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ShareReceiptPage(receipt: receipt),
+              ),
             );
           }
 
@@ -997,6 +890,23 @@ class _CashierPageState extends State<CashierPage> {
               }
 
               final data = _resolveCashierData(state);
+
+              if (Platform.isWindows) {
+                return CashierDesktopView(
+                  state: state,
+                  data: data,
+                  bayarController: _bayarController,
+                  isPrinting: _isPrinting,
+                  onOpenCariProduk: _openCariProduk,
+                  onOpenScanner: _openScanner,
+                  onOpenPendingDialog: _openPendingDialog,
+                  onShowDiskonDialog: _showDiskonDialog,
+                  onShowEditJumlahDialog: _showEditJumlahDialog,
+                  onShowHutangDialog: _showHutangDialog,
+                  onSavePending: _savePending,
+                  onShowBayarConfirmation: _showBayarConfirmation,
+                );
+              }
 
               return Column(
                 children: [

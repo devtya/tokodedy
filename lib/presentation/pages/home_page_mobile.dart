@@ -651,71 +651,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         ),
                         const SizedBox(height: 24),
 
-                        // System Alerts
-                        BlocBuilder<NotifikasiBloc, NotifikasiState>(
-                          builder: (context, state) {
-                            if (state is NotifikasiLoaded && state.unreadNotifikasi.isNotEmpty) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Peringatan Sistem',
-                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ...state.unreadNotifikasi.take(2).map((notif) {
-                                    return Card(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      color: AppTheme.warningOrange.withValues(alpha: 0.1),
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(color: AppTheme.warningOrange.withValues(alpha: 0.3)),
-                                      ),
-                                      child: ListTile(
-                                        leading: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.warningOrange.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: const Icon(Icons.inventory_2, color: AppTheme.warningOrange),
-                                        ),
-                                        title: Text(
-                                          notif.judul,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                        ),
-                                        subtitle: Text(
-                                          notif.pesan,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                        trailing: const Icon(Icons.chevron_right),
-                                        onTap: () {
-                                          _navigateAndReload(
-                                            BlocProvider.value(
-                                              value: context.read<NotifikasiBloc>(),
-                                              child: const NotifikasiPage(),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(height: 16),
-                                ],
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
+
 
                         // Quick Actions
                         const Text(

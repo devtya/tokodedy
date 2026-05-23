@@ -10,6 +10,7 @@ import '../../data/services/printer_settings.dart';
 import '../blocs/transaksi/transaksi_bloc.dart';
 import '../blocs/transaksi/transaksi_event.dart';
 import '../blocs/transaksi/transaksi_state.dart';
+import 'share_receipt_page.dart';
 
 class TransaksiDetailPage extends StatefulWidget {
   final String transaksiId;
@@ -128,6 +129,48 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
                 : const Icon(Icons.print),
             tooltip: 'Cetak Nota',
             onPressed: _isPrinting ? null : _printReceipt,
+          ),
+          BlocBuilder<TransaksiBloc, TransaksiState>(
+            builder: (context, state) {
+              if (state is TransaksiDetailLoaded) {
+                return IconButton(
+                  icon: const Icon(Icons.share),
+                  tooltip: 'Bagikan Nota',
+                  onPressed: () {
+                    final t = state.transaksi;
+                    final items = t.items ?? [];
+                    final settings = sl<PrinterSettings>();
+                    final receiptItems = items
+                        .map((item) => ReceiptItem(
+                              nama: item.namaProduk ?? 'Produk #${item.produkId}',
+                              jumlah: item.jumlah,
+                              harga: item.hargaSatuan,
+                            ))
+                        .toList();
+                    final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt ?? DateTime.now());
+                    final receipt = ReceiptData(
+                      namaToko: settings.namaToko,
+                      alamatToko: settings.alamatToko,
+                      transaksiId: t.id ?? widget.transaksiId,
+                      tanggal: tanggal,
+                      items: receiptItems,
+                      subtotal: t.totalHarga,
+                      totalBayar: t.jumlahBayar,
+                      kembalian: t.kembalian,
+                      lebarKertas: settings.lebarKertas,
+                      fontSize: settings.fontSize,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ShareReceiptPage(receipt: receipt),
+                      ),
+                    );
+                  },
+                );
+              }
+              return const SizedBox();
+            },
           ),
         ],
       ),
