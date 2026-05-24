@@ -10,6 +10,7 @@ class ProdukTable extends Table {
   IntColumn get stok      => integer().withDefault(const Constant(0))();
   TextColumn? get kategori => text().nullable()();
   TextColumn get satuan   => text().withDefault(const Constant('pcs'))();
+  IntColumn? get stokMinimum => integer().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 

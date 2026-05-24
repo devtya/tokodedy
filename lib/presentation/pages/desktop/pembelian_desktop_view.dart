@@ -1,0 +1,719 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/theme/app_theme.dart';
+import '../../../core/di/injection.dart';
+import '../../../domain/entities/produk.dart';
+import '../../../domain/entities/supplier.dart';
+import '../../../domain/usecases/produk/get_all_produk.dart';
+import '../shared/pembelian_form_page.dart'; // for ItemPembelianForm
+
+class PembelianDesktopView extends StatefulWidget {
+  final List<ItemPembelianForm> items;
+  final Supplier? selectedSupplier;
+  final bool isSaving;
+  final VoidCallback onOpenCariProduk;
+  final VoidCallback onOpenScanner;
+  final void Function(int index, ItemPembelianForm item) onShowDiskonDialog;
+  final void Function(int index, ItemPembelianForm item) onShowEditItemDialog;
+  final void Function(int index) onDeleteItem;
+  final VoidCallback onSave;
+  final VoidCallback onSelectSupplier;
+  final void Function(Produk produk, int qty) onAddToCart;
+  final double totalSetelahDiskon;
+
+  const PembelianDesktopView({
+    super.key,
+    required this.items,
+    required this.selectedSupplier,
+    required this.isSaving,
+    required this.onOpenCariProduk,
+    required this.onOpenScanner,
+    required this.onShowDiskonDialog,
+    required this.onShowEditItemDialog,
+    required this.onDeleteItem,
+    required this.onSave,
+    required this.onSelectSupplier,
+    required this.onAddToCart,
+    required this.totalSetelahDiskon,
+  });
+
+  @override
+  State<PembelianDesktopView> createState() => _PembelianDesktopViewState();
+}
+
+class _PembelianDesktopViewState extends State<PembelianDesktopView> {
+  final _barcodeCtrl = TextEditingController();
+  final _qtyCtrl = TextEditingController(text: '1');
+
+  final _barcodeFocus = FocusNode();
+  final _qtyFocus = FocusNode();
+
+  List<Produk> _allProducts = [];
+  List<Produk> _filteredProducts = [];
+  int _selectedIndex = 0;
+  bool _loading = true;
+
+  final currency = NumberFormat.currency(
+    locale: 'id',
+    symbol: 'Rp',
+    decimalDigits: 0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _barcodeCtrl.dispose();
+    _qtyCtrl.dispose();
+    _barcodeFocus.dispose();
+    _qtyFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final products = await sl<GetAllProduk>().call();
+      if (mounted) {
+        setState(() {
+          _allProducts = products;
+          _filteredProducts = List.from(products);
+          _loading = false;
+        });
+        _barcodeFocus.requestFocus();
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _filterProducts(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredProducts = List.from(_allProducts);
+        _selectedIndex = 0;
+      });
+      return;
+    }
+    final lower = query.toLowerCase();
+    setState(() {
+      _filteredProducts = _allProducts.where((p) {
+        return p.nama.toLowerCase().contains(lower) ||
+            (p.barcode != null && p.barcode!.toLowerCase().contains(lower));
+      }).toList();
+      _selectedIndex = 0;
+    });
+  }
+
+  void _handleBarcodeSubmit(String value) {
+    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
+
+    if (value.trim().isEmpty) {
+      _qtyFocus.requestFocus();
+      return;
+    }
+
+    final exactMatch = _allProducts
+        .where((p) => p.barcode == value.trim())
+        .toList();
+    if (exactMatch.isNotEmpty) {
+      widget.onAddToCart(exactMatch.first, qty);
+      _resetInput();
+      return;
+    }
+
+    if (_filteredProducts.isNotEmpty &&
+        _selectedIndex >= 0 &&
+        _selectedIndex < _filteredProducts.length) {
+      widget.onAddToCart(_filteredProducts[_selectedIndex], qty);
+      _resetInput();
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Produk tidak ditemukan')));
+  }
+
+  void _handleQtySubmit(String value) {
+    _barcodeFocus.requestFocus();
+  }
+
+  void _resetInput() {
+    _barcodeCtrl.clear();
+    _qtyCtrl.text = '1';
+    _filterProducts('');
+
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted) {
+        _barcodeFocus.requestFocus();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Shortcuts(
+        shortcuts: <LogicalKeySet, Intent>{
+          LogicalKeySet(LogicalKeyboardKey.f3): const _PembelianIntent('F3'),
+          LogicalKeySet(LogicalKeyboardKey.end): const _PembelianIntent('END'),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _PembelianIntent: CallbackAction<_PembelianIntent>(
+              onInvoke: (_PembelianIntent intent) {
+                switch (intent.keyId) {
+                  case 'F3':
+                    widget.onOpenCariProduk();
+                    break;
+                  case 'END':
+                    if (widget.items.isNotEmpty) widget.onSave();
+                    break;
+                }
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Row(
+              children: [
+                // KIRI: Pencarian & Daftar Barang (40%)
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: Column(
+                      children: [
+                        // Header & Input
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          color: Theme.of(context).cardColor,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: KeyboardListener(
+                                      focusNode: FocusNode(),
+                                      onKeyEvent: (event) {
+                                        if (event is KeyDownEvent) {
+                                          if (event.logicalKey ==
+                                              LogicalKeyboardKey.arrowDown) {
+                                            if (_selectedIndex <
+                                                _filteredProducts.length - 1) {
+                                              setState(() => _selectedIndex++);
+                                            }
+                                          } else if (event.logicalKey ==
+                                              LogicalKeyboardKey.arrowUp) {
+                                            if (_selectedIndex > 0) {
+                                              setState(() => _selectedIndex--);
+                                            }
+                                          }
+                                        }
+                                      },
+                                      child: TextField(
+                                        controller: _barcodeCtrl,
+                                        focusNode: _barcodeFocus,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Scan barcode atau cari nama produk...',
+                                          prefixIcon: const Icon(Icons.search),
+                                          suffixIcon: IconButton(
+                                            icon: const Icon(
+                                              Icons.qr_code_scanner,
+                                            ),
+                                            onPressed: widget.onOpenScanner,
+                                          ),
+                                        ),
+                                        onChanged: _filterProducts,
+                                        onSubmitted: _handleBarcodeSubmit,
+                                        textInputAction: TextInputAction.next,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  SizedBox(
+                                    width: 80,
+                                    child: TextField(
+                                      controller: _qtyCtrl,
+                                      focusNode: _qtyFocus,
+                                      keyboardType: TextInputType.number,
+                                      textAlign: TextAlign.center,
+                                      decoration: const InputDecoration(
+                                        labelText: 'QTY',
+                                      ),
+                                      onSubmitted: _handleQtySubmit,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Grid Produk
+                        Expanded(
+                          child: _loading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _filteredProducts.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Barang tidak ditemukan',
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _filteredProducts.length,
+                                  itemBuilder: (context, index) {
+                                    final p = _filteredProducts[index];
+                                    final isSelected = index == _selectedIndex;
+                                    return InkWell(
+                                      onTap: () {
+                                        setState(() => _selectedIndex = index);
+                                        final qty =
+                                            int.tryParse(
+                                              _qtyCtrl.text.trim(),
+                                            ) ??
+                                            1;
+                                        widget.onAddToCart(p, qty);
+                                        _resetInput();
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).cardColor,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppTheme.primaryGreen
+                                                : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.03,
+                                              ),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    p.nama,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 14,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  if (p.barcode != null) ...[
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      p.barcode!,
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  currency.format(p.hargaBeli),
+                                                  style: const TextStyle(
+                                                    color:
+                                                        AppTheme.primaryGreen,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                VerticalDivider(
+                  width: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+
+                // KANAN: Keranjang & Pembayaran (60%)
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: Column(
+                      children: [
+                        // Header Total Pembayaran
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 20,
+                          ),
+                          color: Theme.of(context).cardColor,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'TOTAL PEMBELIAN',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                currency.format(widget.totalSetelahDiskon),
+                                style: const TextStyle(
+                                  fontSize: 72,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // List Keranjang
+                        Expanded(
+                          child: widget.items.isEmpty
+                              ? const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.shopping_cart_outlined,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Keranjang Kosong',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.separated(
+                                  itemCount: widget.items.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (context, index) {
+                                    final item = widget.items[index];
+                                    return _PembelianItemRow(
+                                      index: index,
+                                      item: item,
+                                      currency: currency,
+                                      onShowDiskonDialog:
+                                          widget.onShowDiskonDialog,
+                                      onShowEditDialog:
+                                          widget.onShowEditItemDialog,
+                                      onDelete: () =>
+                                          widget.onDeleteItem(index),
+                                    );
+                                  },
+                                ),
+                        ),
+
+                        // Summary & Payment
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, -2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _SupplierDropdownButton(
+                                      selectedSupplier: widget.selectedSupplier,
+                                      onTap: widget.onSelectSupplier,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed:
+                                          widget.items.isEmpty ||
+                                              widget.isSaving
+                                          ? null
+                                          : widget.onSave,
+                                      icon: widget.isSaving
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Icon(Icons.save),
+                                      label: Text(
+                                        widget.isSaving
+                                            ? 'Menyimpan...'
+                                            : 'SIMPAN (END)',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.primaryGreen,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SupplierDropdownButton extends StatelessWidget {
+  final Supplier? selectedSupplier;
+  final VoidCallback onTap;
+
+  const _SupplierDropdownButton({
+    required this.selectedSupplier,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppTheme.primaryGreen),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'SUPPLIER',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    selectedSupplier?.nama ?? 'Pilih Supplier',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const Icon(Icons.arrow_drop_up, color: AppTheme.primaryGreen),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PembelianIntent extends Intent {
+  final String keyId;
+  const _PembelianIntent(this.keyId);
+}
+
+class _PembelianItemRow extends StatelessWidget {
+  final int index;
+  final ItemPembelianForm item;
+  final NumberFormat currency;
+  final void Function(int index, ItemPembelianForm item) onShowDiskonDialog;
+  final void Function(int index, ItemPembelianForm item) onShowEditDialog;
+  final VoidCallback onDelete;
+
+  const _PembelianItemRow({
+    required this.index,
+    required this.item,
+    required this.currency,
+    required this.onShowDiskonDialog,
+    required this.onShowEditDialog,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = index.isEven
+        ? Colors.transparent
+        : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200);
+
+    return InkWell(
+      onTap: () => onShowEditDialog(index, item),
+      child: Container(
+        color: bgColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 4,
+              child: Text(
+                item.namaProduk,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 80,
+              child: Text(
+                currency.format(item.hargaBeliSatuan),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('x', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 40,
+              child: Text(
+                item.jumlah.toString(),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('=', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 3,
+              child: Text(
+                currency.format(item.subtotal),
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 48,
+              child: InkWell(
+                onTap: () => onShowDiskonDialog(index, item),
+                child: Text(
+                  item.diskonTipe == 0
+                      ? '-'
+                      : item.diskonTipe == 1
+                      ? '${item.diskonValue}%'
+                      : currency.format(item.diskonValue),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: item.diskonTipe != 0
+                        ? AppTheme.warningRed
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 40,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: AppTheme.warningRed,
+                ),
+                onPressed: onDelete,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

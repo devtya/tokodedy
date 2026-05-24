@@ -10,6 +10,7 @@ class Produk extends Equatable {
   final double hargaBeli;
   final double hargaJual;
   final int stok;
+  final int? stokMinimum;
   final String? kategori;
   final String? satuan;
   final DateTime? updatedAt;
@@ -24,6 +25,7 @@ class Produk extends Equatable {
     required this.hargaBeli,
     required this.hargaJual,
     this.stok = 0,
+    this.stokMinimum,
     this.kategori,
     this.satuan = 'pcs',
     this.updatedAt,
@@ -39,6 +41,7 @@ class Produk extends Equatable {
     double? hargaBeli,
     double? hargaJual,
     int? stok,
+    int? stokMinimum,
     String? kategori,
     String? satuan,
     DateTime? updatedAt,
@@ -53,6 +56,7 @@ class Produk extends Equatable {
       hargaBeli: hargaBeli ?? this.hargaBeli,
       hargaJual: hargaJual ?? this.hargaJual,
       stok: stok ?? this.stok,
+      stokMinimum: stokMinimum ?? this.stokMinimum,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -64,6 +68,6 @@ class Produk extends Equatable {
   @override
   List<Object?> get props => [
     id, tokoId, nama, barcode, hargaBeli, hargaJual,
-    stok, kategori, satuan, updatedAt, createdAt, satuanList,
+    stok, stokMinimum, kategori, satuan, updatedAt, createdAt, satuanList,
   ];
 }

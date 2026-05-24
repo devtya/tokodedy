@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../blocs/sync/sync_bloc.dart';
-import '../pages/sync_log_page.dart';
+import '../pages/shared/sync_log_page.dart';
 
 class SyncIndicator extends StatelessWidget {
   const SyncIndicator({super.key});

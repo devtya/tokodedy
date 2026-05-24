@@ -15,10 +15,10 @@ import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/auth/auth_state.dart';
 import 'presentation/blocs/sync/sync_bloc.dart';
 import 'presentation/blocs/theme/theme_cubit.dart';
-import 'presentation/pages/home_page.dart';
-import 'presentation/pages/initial_sync_page.dart';
-import 'presentation/pages/login_page.dart';
-import 'presentation/pages/reset_password_page.dart';
+import 'presentation/pages/shared/home_page.dart';
+import 'presentation/pages/shared/initial_sync_page.dart';
+import 'presentation/pages/shared/login_page.dart';
+import 'presentation/pages/shared/reset_password_page.dart';
 
 Future<void> _checkUpdate() async {
   try {

@@ -66,7 +66,8 @@ class AuthRepositoryImpl implements AuthRepository {
         .eq('id', user.tokoId)
         .maybeSingle();
     final tokoName = tokoData?['nama'] as String? ?? '';
-    await _tokoService.save(user.tokoId, tokoName);
+    final stokMin = tokoData?['stok_minimum_global'] as int? ?? 0;
+    await _tokoService.save(user.tokoId, tokoName, stokMin);
 
     return user;
   }
@@ -120,7 +121,8 @@ class AuthRepositoryImpl implements AuthRepository {
         .eq('id', user.tokoId)
         .maybeSingle();
     final tokoName = tokoData?['nama'] as String? ?? '';
-    await _tokoService.save(user.tokoId, tokoName);
+    final stokMin = tokoData?['stok_minimum_global'] as int? ?? 0;
+    await _tokoService.save(user.tokoId, tokoName, stokMin);
 
     return user;
   }
@@ -165,7 +167,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'owner_id': authUser.id,
       });
       debugPrint('[registerStore] insert toko BERHASIL');
-      await _tokoService.save(tokoId, namaToko);
+      await _tokoService.save(tokoId, namaToko, 0);
     } catch (e) {
       debugPrint('[registerStore] insert toko GAGAL: $e');
       rethrow;
@@ -358,7 +360,10 @@ class AuthRepositoryImpl implements AuthRepository {
       nama: Value(toko.nama),
       alamat: Value(toko.alamat),
       telepon: Value(toko.telepon),
+      stokMinimumGlobal: Value(toko.stokMinimumGlobal),
     ));
+
+    await _tokoService.updateStokMinimumGlobal(toko.stokMinimumGlobal);
   }
 
   // ───────────── LOCAL HELPERS ─────────────
@@ -406,6 +411,7 @@ class AuthRepositoryImpl implements AuthRepository {
       alamat: Value(alamat),
       telepon: Value(telepon),
       ownerId: Value(ownerId),
+      stokMinimumGlobal: const Value(0),
     ));
   }
 }

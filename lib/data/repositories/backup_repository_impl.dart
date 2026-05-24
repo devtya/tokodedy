@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../data/models/backup_result.dart';
+import '../models/backup_result.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/satuan_produk.dart' as domain;
 import '../../domain/repositories/backup_repository.dart';

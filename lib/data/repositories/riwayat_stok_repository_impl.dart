@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import '../../data/database/app_database.dart';
-import '../../data/services/supabase_sync_service.dart';
+import '../database/app_database.dart';
+import '../services/supabase_sync_service.dart';
 import '../../core/services/toko_service.dart';
 import '../../domain/entities/riwayat_stok.dart' as domain;
 import '../../domain/repositories/riwayat_stok_repository.dart';

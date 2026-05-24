@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +86,15 @@ class AppDatabase extends _$AppDatabase {
       if (from < 14) {
         try {
           await m.createTable(riwayatHargaTable);
+        } catch (_) {}
+      }
+      
+      if (from < 16) {
+        try {
+          await m.addColumn(produkTable, produkTable.stokMinimum);
+        } catch (_) {}
+        try {
+          await m.addColumn(tokoTable, tokoTable.stokMinimumGlobal);
         } catch (_) {}
       }
     },

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import '../../data/database/app_database.dart';
-import '../../data/services/supabase_sync_service.dart';
+import '../database/app_database.dart';
+import '../services/supabase_sync_service.dart';
 import '../../core/services/toko_service.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/satuan_produk.dart' as domain;
@@ -25,6 +25,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
       hargaBeli: data.hargaBeli,
       hargaJual: data.hargaJual,
       stok: data.stok,
+      stokMinimum: data.stokMinimum,
       kategori: data.kategori,
       satuan: data.satuan,
       createdAt: data.createdAt,
@@ -111,6 +112,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
       hargaBeli: Value(produk.hargaBeli),
       hargaJual: Value(produk.hargaJual),
       stok: Value(produk.stok),
+      stokMinimum: Value(produk.stokMinimum),
       kategori: Value(produk.kategori),
       satuan: Value(produk.satuan ?? 'pcs'),
     );
@@ -125,6 +127,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
       'harga_beli': produk.hargaBeli,
       'harga_jual': produk.hargaJual,
       'stok': produk.stok,
+      'stok_minimum': produk.stokMinimum,
       'kategori': produk.kategori,
       'satuan': produk.satuan ?? 'pcs',
     });
@@ -159,6 +162,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
         barcode: Value(produk.barcode),
         hargaBeli: Value(produk.hargaBeli),
         hargaJual: Value(produk.hargaJual),
+        stokMinimum: Value(produk.stokMinimum),
         kategori: Value(produk.kategori),
         satuan: Value(produk.satuan ?? 'pcs'),
       ),
@@ -173,6 +177,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
       'harga_beli': produk.hargaBeli,
       'harga_jual': produk.hargaJual,
       'stok': produk.stok,
+      'stok_minimum': produk.stokMinimum,
       'kategori': produk.kategori,
       'satuan': produk.satuan ?? 'pcs',
     });
@@ -205,6 +210,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
         'harga_beli': data.hargaBeli,
         'harga_jual': data.hargaJual,
         'stok': jumlah,
+        'stok_minimum': data.stokMinimum,
         'kategori': data.kategori,
         'satuan': data.satuan ?? 'pcs',
       });
@@ -321,6 +327,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
                 hargaBeli: Value(produk.hargaBeli),
                 hargaJual: Value(produk.hargaJual),
                 stok: Value(produk.stok),
+                stokMinimum: Value(produk.stokMinimum),
                 kategori: Value(produk.kategori),
                 satuan: Value(produk.satuan ?? 'pcs'),
               ),
@@ -335,6 +342,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
           'harga_beli': produk.hargaBeli,
           'harga_jual': produk.hargaJual,
           'stok': produk.stok,
+          'stok_minimum': produk.stokMinimum,
           'kategori': produk.kategori,
           'satuan': produk.satuan ?? 'pcs',
         });

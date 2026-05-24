@@ -58,6 +58,18 @@ class $TokoTableTable extends TokoTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _stokMinimumGlobalMeta = const VerificationMeta(
+    'stokMinimumGlobal',
+  );
+  @override
+  late final GeneratedColumn<int> stokMinimumGlobal = GeneratedColumn<int>(
+    'stok_minimum_global',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -77,6 +89,7 @@ class $TokoTableTable extends TokoTable
     alamat,
     telepon,
     ownerId,
+    stokMinimumGlobal,
     createdAt,
   ];
   @override
@@ -122,6 +135,15 @@ class $TokoTableTable extends TokoTable
         ownerId.isAcceptableOrUnknown(data['owner_id']!, _ownerIdMeta),
       );
     }
+    if (data.containsKey('stok_minimum_global')) {
+      context.handle(
+        _stokMinimumGlobalMeta,
+        stokMinimumGlobal.isAcceptableOrUnknown(
+          data['stok_minimum_global']!,
+          _stokMinimumGlobalMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -157,6 +179,10 @@ class $TokoTableTable extends TokoTable
         DriftSqlType.string,
         data['${effectivePrefix}owner_id'],
       ),
+      stokMinimumGlobal: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}stok_minimum_global'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -176,6 +202,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
   final String? alamat;
   final String? telepon;
   final String? ownerId;
+  final int stokMinimumGlobal;
   final DateTime createdAt;
   const TokoTableData({
     required this.id,
@@ -183,6 +210,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
     this.alamat,
     this.telepon,
     this.ownerId,
+    required this.stokMinimumGlobal,
     required this.createdAt,
   });
   @override
@@ -199,6 +227,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
     if (!nullToAbsent || ownerId != null) {
       map['owner_id'] = Variable<String>(ownerId);
     }
+    map['stok_minimum_global'] = Variable<int>(stokMinimumGlobal);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -216,6 +245,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
       ownerId: ownerId == null && nullToAbsent
           ? const Value.absent()
           : Value(ownerId),
+      stokMinimumGlobal: Value(stokMinimumGlobal),
       createdAt: Value(createdAt),
     );
   }
@@ -231,6 +261,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
       alamat: serializer.fromJson<String?>(json['alamat']),
       telepon: serializer.fromJson<String?>(json['telepon']),
       ownerId: serializer.fromJson<String?>(json['ownerId']),
+      stokMinimumGlobal: serializer.fromJson<int>(json['stokMinimumGlobal']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -243,6 +274,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
       'alamat': serializer.toJson<String?>(alamat),
       'telepon': serializer.toJson<String?>(telepon),
       'ownerId': serializer.toJson<String?>(ownerId),
+      'stokMinimumGlobal': serializer.toJson<int>(stokMinimumGlobal),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -253,6 +285,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
     Value<String?> alamat = const Value.absent(),
     Value<String?> telepon = const Value.absent(),
     Value<String?> ownerId = const Value.absent(),
+    int? stokMinimumGlobal,
     DateTime? createdAt,
   }) => TokoTableData(
     id: id ?? this.id,
@@ -260,6 +293,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
     alamat: alamat.present ? alamat.value : this.alamat,
     telepon: telepon.present ? telepon.value : this.telepon,
     ownerId: ownerId.present ? ownerId.value : this.ownerId,
+    stokMinimumGlobal: stokMinimumGlobal ?? this.stokMinimumGlobal,
     createdAt: createdAt ?? this.createdAt,
   );
   TokoTableData copyWithCompanion(TokoTableCompanion data) {
@@ -269,6 +303,9 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
       alamat: data.alamat.present ? data.alamat.value : this.alamat,
       telepon: data.telepon.present ? data.telepon.value : this.telepon,
       ownerId: data.ownerId.present ? data.ownerId.value : this.ownerId,
+      stokMinimumGlobal: data.stokMinimumGlobal.present
+          ? data.stokMinimumGlobal.value
+          : this.stokMinimumGlobal,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -281,14 +318,22 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
           ..write('alamat: $alamat, ')
           ..write('telepon: $telepon, ')
           ..write('ownerId: $ownerId, ')
+          ..write('stokMinimumGlobal: $stokMinimumGlobal, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, nama, alamat, telepon, ownerId, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    nama,
+    alamat,
+    telepon,
+    ownerId,
+    stokMinimumGlobal,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -298,6 +343,7 @@ class TokoTableData extends DataClass implements Insertable<TokoTableData> {
           other.alamat == this.alamat &&
           other.telepon == this.telepon &&
           other.ownerId == this.ownerId &&
+          other.stokMinimumGlobal == this.stokMinimumGlobal &&
           other.createdAt == this.createdAt);
 }
 
@@ -307,6 +353,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
   final Value<String?> alamat;
   final Value<String?> telepon;
   final Value<String?> ownerId;
+  final Value<int> stokMinimumGlobal;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const TokoTableCompanion({
@@ -315,6 +362,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
     this.alamat = const Value.absent(),
     this.telepon = const Value.absent(),
     this.ownerId = const Value.absent(),
+    this.stokMinimumGlobal = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -324,6 +372,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
     this.alamat = const Value.absent(),
     this.telepon = const Value.absent(),
     this.ownerId = const Value.absent(),
+    this.stokMinimumGlobal = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -334,6 +383,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
     Expression<String>? alamat,
     Expression<String>? telepon,
     Expression<String>? ownerId,
+    Expression<int>? stokMinimumGlobal,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -343,6 +393,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
       if (alamat != null) 'alamat': alamat,
       if (telepon != null) 'telepon': telepon,
       if (ownerId != null) 'owner_id': ownerId,
+      if (stokMinimumGlobal != null) 'stok_minimum_global': stokMinimumGlobal,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -354,6 +405,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
     Value<String?>? alamat,
     Value<String?>? telepon,
     Value<String?>? ownerId,
+    Value<int>? stokMinimumGlobal,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -363,6 +415,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
       alamat: alamat ?? this.alamat,
       telepon: telepon ?? this.telepon,
       ownerId: ownerId ?? this.ownerId,
+      stokMinimumGlobal: stokMinimumGlobal ?? this.stokMinimumGlobal,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -386,6 +439,9 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
     if (ownerId.present) {
       map['owner_id'] = Variable<String>(ownerId.value);
     }
+    if (stokMinimumGlobal.present) {
+      map['stok_minimum_global'] = Variable<int>(stokMinimumGlobal.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -403,6 +459,7 @@ class TokoTableCompanion extends UpdateCompanion<TokoTableData> {
           ..write('alamat: $alamat, ')
           ..write('telepon: $telepon, ')
           ..write('ownerId: $ownerId, ')
+          ..write('stokMinimumGlobal: $stokMinimumGlobal, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -854,6 +911,17 @@ class $ProdukTableTable extends ProdukTable
     requiredDuringInsert: false,
     defaultValue: const Constant('pcs'),
   );
+  static const VerificationMeta _stokMinimumMeta = const VerificationMeta(
+    'stokMinimum',
+  );
+  @override
+  late final GeneratedColumn<int> stokMinimum = GeneratedColumn<int>(
+    'stok_minimum',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -889,6 +957,7 @@ class $ProdukTableTable extends ProdukTable
     stok,
     kategori,
     satuan,
+    stokMinimum,
     updatedAt,
     createdAt,
   ];
@@ -961,6 +1030,15 @@ class $ProdukTableTable extends ProdukTable
         satuan.isAcceptableOrUnknown(data['satuan']!, _satuanMeta),
       );
     }
+    if (data.containsKey('stok_minimum')) {
+      context.handle(
+        _stokMinimumMeta,
+        stokMinimum.isAcceptableOrUnknown(
+          data['stok_minimum']!,
+          _stokMinimumMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -1018,6 +1096,10 @@ class $ProdukTableTable extends ProdukTable
         DriftSqlType.string,
         data['${effectivePrefix}satuan'],
       )!,
+      stokMinimum: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}stok_minimum'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -1045,6 +1127,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   final int stok;
   final String? kategori;
   final String satuan;
+  final int? stokMinimum;
   final DateTime updatedAt;
   final DateTime createdAt;
   const ProdukTableData({
@@ -1057,6 +1140,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     required this.stok,
     this.kategori,
     required this.satuan,
+    this.stokMinimum,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -1076,6 +1160,9 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       map['kategori'] = Variable<String>(kategori);
     }
     map['satuan'] = Variable<String>(satuan);
+    if (!nullToAbsent || stokMinimum != null) {
+      map['stok_minimum'] = Variable<int>(stokMinimum);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -1096,6 +1183,9 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ? const Value.absent()
           : Value(kategori),
       satuan: Value(satuan),
+      stokMinimum: stokMinimum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stokMinimum),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -1116,6 +1206,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       stok: serializer.fromJson<int>(json['stok']),
       kategori: serializer.fromJson<String?>(json['kategori']),
       satuan: serializer.fromJson<String>(json['satuan']),
+      stokMinimum: serializer.fromJson<int?>(json['stokMinimum']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -1133,6 +1224,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       'stok': serializer.toJson<int>(stok),
       'kategori': serializer.toJson<String?>(kategori),
       'satuan': serializer.toJson<String>(satuan),
+      'stokMinimum': serializer.toJson<int?>(stokMinimum),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -1148,6 +1240,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     int? stok,
     Value<String?> kategori = const Value.absent(),
     String? satuan,
+    Value<int?> stokMinimum = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ProdukTableData(
@@ -1160,6 +1253,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     stok: stok ?? this.stok,
     kategori: kategori.present ? kategori.value : this.kategori,
     satuan: satuan ?? this.satuan,
+    stokMinimum: stokMinimum.present ? stokMinimum.value : this.stokMinimum,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1174,6 +1268,9 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       stok: data.stok.present ? data.stok.value : this.stok,
       kategori: data.kategori.present ? data.kategori.value : this.kategori,
       satuan: data.satuan.present ? data.satuan.value : this.satuan,
+      stokMinimum: data.stokMinimum.present
+          ? data.stokMinimum.value
+          : this.stokMinimum,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -1191,6 +1288,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ..write('stok: $stok, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
+          ..write('stokMinimum: $stokMinimum, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1208,6 +1306,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     stok,
     kategori,
     satuan,
+    stokMinimum,
     updatedAt,
     createdAt,
   );
@@ -1224,6 +1323,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           other.stok == this.stok &&
           other.kategori == this.kategori &&
           other.satuan == this.satuan &&
+          other.stokMinimum == this.stokMinimum &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -1238,6 +1338,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   final Value<int> stok;
   final Value<String?> kategori;
   final Value<String> satuan;
+  final Value<int?> stokMinimum;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -1251,6 +1352,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.stok = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
+    this.stokMinimum = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1265,6 +1367,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.stok = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
+    this.stokMinimum = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1281,6 +1384,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Expression<int>? stok,
     Expression<String>? kategori,
     Expression<String>? satuan,
+    Expression<int>? stokMinimum,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -1295,6 +1399,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       if (stok != null) 'stok': stok,
       if (kategori != null) 'kategori': kategori,
       if (satuan != null) 'satuan': satuan,
+      if (stokMinimum != null) 'stok_minimum': stokMinimum,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -1311,6 +1416,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Value<int>? stok,
     Value<String?>? kategori,
     Value<String>? satuan,
+    Value<int?>? stokMinimum,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -1325,6 +1431,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       stok: stok ?? this.stok,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
+      stokMinimum: stokMinimum ?? this.stokMinimum,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -1361,6 +1468,9 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     if (satuan.present) {
       map['satuan'] = Variable<String>(satuan.value);
     }
+    if (stokMinimum.present) {
+      map['stok_minimum'] = Variable<int>(stokMinimum.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -1385,6 +1495,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
           ..write('stok: $stok, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
+          ..write('stokMinimum: $stokMinimum, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -9432,6 +9543,7 @@ typedef $$TokoTableTableCreateCompanionBuilder =
       Value<String?> alamat,
       Value<String?> telepon,
       Value<String?> ownerId,
+      Value<int> stokMinimumGlobal,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -9442,6 +9554,7 @@ typedef $$TokoTableTableUpdateCompanionBuilder =
       Value<String?> alamat,
       Value<String?> telepon,
       Value<String?> ownerId,
+      Value<int> stokMinimumGlobal,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -9477,6 +9590,11 @@ class $$TokoTableTableFilterComposer
 
   ColumnFilters<String> get ownerId => $composableBuilder(
     column: $table.ownerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get stokMinimumGlobal => $composableBuilder(
+    column: $table.stokMinimumGlobal,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9520,6 +9638,11 @@ class $$TokoTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get stokMinimumGlobal => $composableBuilder(
+    column: $table.stokMinimumGlobal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -9549,6 +9672,11 @@ class $$TokoTableTableAnnotationComposer
 
   GeneratedColumn<String> get ownerId =>
       $composableBuilder(column: $table.ownerId, builder: (column) => column);
+
+  GeneratedColumn<int> get stokMinimumGlobal => $composableBuilder(
+    column: $table.stokMinimumGlobal,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -9590,6 +9718,7 @@ class $$TokoTableTableTableManager
                 Value<String?> alamat = const Value.absent(),
                 Value<String?> telepon = const Value.absent(),
                 Value<String?> ownerId = const Value.absent(),
+                Value<int> stokMinimumGlobal = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TokoTableCompanion(
@@ -9598,6 +9727,7 @@ class $$TokoTableTableTableManager
                 alamat: alamat,
                 telepon: telepon,
                 ownerId: ownerId,
+                stokMinimumGlobal: stokMinimumGlobal,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -9608,6 +9738,7 @@ class $$TokoTableTableTableManager
                 Value<String?> alamat = const Value.absent(),
                 Value<String?> telepon = const Value.absent(),
                 Value<String?> ownerId = const Value.absent(),
+                Value<int> stokMinimumGlobal = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TokoTableCompanion.insert(
@@ -9616,6 +9747,7 @@ class $$TokoTableTableTableManager
                 alamat: alamat,
                 telepon: telepon,
                 ownerId: ownerId,
+                stokMinimumGlobal: stokMinimumGlobal,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -9855,6 +9987,7 @@ typedef $$ProdukTableTableCreateCompanionBuilder =
       Value<int> stok,
       Value<String?> kategori,
       Value<String> satuan,
+      Value<int?> stokMinimum,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -9870,6 +10003,7 @@ typedef $$ProdukTableTableUpdateCompanionBuilder =
       Value<int> stok,
       Value<String?> kategori,
       Value<String> satuan,
+      Value<int?> stokMinimum,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -9926,6 +10060,11 @@ class $$ProdukTableTableFilterComposer
 
   ColumnFilters<String> get satuan => $composableBuilder(
     column: $table.satuan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9994,6 +10133,11 @@ class $$ProdukTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -10040,6 +10184,11 @@ class $$ProdukTableTableAnnotationComposer
 
   GeneratedColumn<String> get satuan =>
       $composableBuilder(column: $table.satuan, builder: (column) => column);
+
+  GeneratedColumn<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -10088,6 +10237,7 @@ class $$ProdukTableTableTableManager
                 Value<int> stok = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
+                Value<int?> stokMinimum = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10101,6 +10251,7 @@ class $$ProdukTableTableTableManager
                 stok: stok,
                 kategori: kategori,
                 satuan: satuan,
+                stokMinimum: stokMinimum,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -10116,6 +10267,7 @@ class $$ProdukTableTableTableManager
                 Value<int> stok = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
+                Value<int?> stokMinimum = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10129,6 +10281,7 @@ class $$ProdukTableTableTableManager
                 stok: stok,
                 kategori: kategori,
                 satuan: satuan,
+                stokMinimum: stokMinimum,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,

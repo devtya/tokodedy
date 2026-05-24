@@ -90,3 +90,7 @@ class BayarHutangCashier extends CashierEvent {
 class ClearError extends CashierEvent {
   const ClearError();
 }
+
+class ClearCart extends CashierEvent {
+  const ClearCart();
+}

@@ -285,6 +285,7 @@ final Map<String, _Inserter> _inserters = {
       hargaBeli: Value((r['harga_beli'] as num).toDouble()),
       hargaJual: Value((r['harga_jual'] as num).toDouble()),
       stok: Value(r['stok'] as int? ?? 0),
+      stokMinimum: Value(r['stok_minimum'] as int?),
       kategori: Value(r['kategori'] as String?),
       satuan: Value(r['satuan'] as String? ?? 'pcs'),
       updatedAt: Value(_parseDate(r['updated_at'])),

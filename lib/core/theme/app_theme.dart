@@ -41,13 +41,19 @@ class AppTheme {
   //  LIGHT PALETTE — override untuk light theme
   // ═══════════════════════════════════════════════════════════════════
 
-  static const Color lightBackground = Color(0xFFF5F5F5);
+  static const Color lightBackground = Color(0xFFF8F9FF);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightBorder = Color(0xFFE0E0E0);
-  static const Color lightDivider = Color(0xFFEEEEEE);
-  static const Color lightGrey = Color(0xFF999999);
-  static const Color lightText = Color(0xFF1A1A1A);
-  static const Color lightTextSecondary = Color(0xFF666666);
+  static const Color lightBorder = Color(0xFFBBCABF);
+  static const Color lightDivider = Color(0xFFD9E3F6);
+  static const Color lightGrey = Color(0xFF6C7A71);
+  static const Color lightText = Color(0xFF121C2A);
+  static const Color lightTextSecondary = Color(0xFF3C4A42);
+
+  // New Light Colors from Stitch Design
+  static const Color lightPrimary = Color(0xFF006C49);
+  static const Color lightPrimaryContainer = Color(0xFF10B981);
+  static const Color lightSecondaryContainer = Color(0xFFC3ECD7);
+  static const Color lightOnSecondaryContainer = Color(0xFF476C5B);
 
   // ═══════════════════════════════════════════════════════════════════
   //  BACKWARD-COMPATIBLE ALIASES
@@ -100,7 +106,6 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: border, width: 1.5),
         ),
       ),
 
@@ -212,11 +217,13 @@ class AppTheme {
       fontFamily: 'Roboto',
 
       colorScheme: const ColorScheme.light(
-        primary: primary,
+        primary: lightPrimary,
         onPrimary: Colors.white,
-        primaryContainer: Color(0xFFD5F5E3),
-        secondary: primary,
+        primaryContainer: lightPrimaryContainer,
+        secondary: lightPrimary,
         onSecondary: Colors.white,
+        secondaryContainer: lightSecondaryContainer,
+        onSecondaryContainer: lightOnSecondaryContainer,
         error: error,
         surface: lightSurface,
         onSurface: lightText,
@@ -235,7 +242,6 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: lightBorder, width: 1.5),
         ),
       ),
 
@@ -262,7 +268,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: primary, width: 1.5),
+          borderSide: const BorderSide(color: lightPrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -276,7 +282,7 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: lightPrimary,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -300,18 +306,18 @@ class AppTheme {
       ),
 
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: primary,
+        backgroundColor: lightPrimary,
         foregroundColor: Colors.white,
       ),
 
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return primary;
+          if (states.contains(WidgetState.selected)) return lightPrimary;
           return Colors.grey;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return primary.withValues(alpha: 0.3);
+            return lightPrimary.withValues(alpha: 0.3);
           }
           return const Color(0xFFCCCCCC);
         }),

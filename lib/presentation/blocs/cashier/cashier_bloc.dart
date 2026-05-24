@@ -27,6 +27,7 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     on<BayarCashier>(_onBayar);
     on<BayarHutangCashier>(_onBayarHutang);
     on<ClearError>(_onClearError);
+    on<ClearCart>(_onClearCart);
   }
 
   Future<void> _onInit(InitCashier event, Emitter<CashierState> emit) async {
@@ -71,11 +72,12 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     );
     if (existingIndex >= 0) {
       final existing = cart[existingIndex];
-      cart[existingIndex] = existing.copyWith(
+      cart.removeAt(existingIndex);
+      cart.insert(0, existing.copyWith(
         jumlah: existing.jumlah + event.jumlah,
-      );
+      ));
     } else {
-      cart.add(
+      cart.insert(0,
         CartItem(
           produkId: event.produkId,
           namaProduk: event.namaProduk,
@@ -223,6 +225,13 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     if (state is CashierError) {
       final error = state as CashierError;
       emit(CashierReady(cart: error.cart, jumlahBayar: error.jumlahBayar));
+    }
+  }
+
+  void _onClearCart(ClearCart event, Emitter<CashierState> emit) {
+    if (state is CashierReady) {
+      final current = state as CashierReady;
+      emit(current.copyWith(cart: const []));
     }
   }
 }

@@ -6,6 +6,7 @@ class Toko extends Equatable {
   final String? alamat;
   final String? telepon;
   final String? ownerId; // Supabase Auth UUID
+  final int stokMinimumGlobal;
   final DateTime? createdAt;
 
   const Toko({
@@ -14,6 +15,7 @@ class Toko extends Equatable {
     this.alamat,
     this.telepon,
     this.ownerId,
+    this.stokMinimumGlobal = 0,
     this.createdAt,
   });
 
@@ -23,6 +25,7 @@ class Toko extends Equatable {
     String? alamat,
     String? telepon,
     String? ownerId,
+    int? stokMinimumGlobal,
     DateTime? createdAt,
   }) {
     return Toko(
@@ -31,10 +34,11 @@ class Toko extends Equatable {
       alamat: alamat ?? this.alamat,
       telepon: telepon ?? this.telepon,
       ownerId: ownerId ?? this.ownerId,
+      stokMinimumGlobal: stokMinimumGlobal ?? this.stokMinimumGlobal,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, nama, alamat, telepon, ownerId, createdAt];
+  List<Object?> get props => [id, nama, alamat, telepon, ownerId, stokMinimumGlobal, createdAt];
 }

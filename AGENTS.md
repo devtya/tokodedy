@@ -249,11 +249,35 @@ lib/
 - **Files**: `lib/presentation/pages/settings_page.dart`
 - **Date**: 2026-05-21
 
+### Fitur: Redesain Dashboard Desktop & Edit QTY Keranjang Kasir
+- **Deskripsi**: Merombak tampilan awal Desktop (`HomeDesktopPage`) dengan merapikan kesejajaran Top Bar dan Sidebar. "Menu Cepat" telah dihapus sepenuhnya karena sudah tergantikan oleh Sidebar *persistent*. Mengintegrasikan `DashboardBloc` untuk menampilkan "Ringkasan Hari Ini", "Stok Menipis", dan "Update Harga Terakhir" dalam tata letak kolom ganda (50:50) yang simetris. Pada halaman Kasir Desktop (`CashierDesktopView`), QTY barang dalam keranjang sekarang berupa `TextField` sehingga kasir dapat langsung mengedit angka tanpa *double-click* (fokus kursor otomatis kembali ke kolom Barcode). Perbaikan tambahan pada sistem tangkapan *Keyboard Shortcut* kasir.
+- **Cara pakai**: (1) Dashboard Desktop menampilkan omzet, stok, dan harga secara dinamis. (2) Di menu Kasir, ketikkan angka langsung pada kolom teks di samping nama barang di dalam daftar belanja sisi kanan untuk mengubah jumlahnya secara real-time.
+- **Files**: `home_page_desktop.dart`, `cashier_desktop_view.dart`
+- **Date**: 2026-05-24
+
+### Fitur: Persistent Sidebar Kasir Desktop & List View Produk
+- **Deskripsi**: Merombak mekanisme navigasi utama di `HomeDesktopPage` menggunakan `IndexedStack` sehingga menu Sidebar tidak lagi hilang (tetap *persistent*) saat berpindah menu. Mengganti tampilan hasil filter produk di menu Kasir dari yang sebelumnya *GridView* menjadi *ListView* memanjang ke bawah. Menambahkan *Dashboard* sebagai salah satu item dalam Sidebar.
+- **Cara pakai**: Sidebar di layar Windows/Desktop tidak akan tertutup saat membuka halaman Kasir, Produk, Pembelian, dll. Daftar barang di Kasir juga lebih nyaman dibaca melalui tampilan List.
+- **Files**: `lib/presentation/pages/home_page_desktop.dart`, `lib/presentation/pages/cashier_desktop_view.dart`
+- **Date**: 2026-05-24
+
+### Fitur: Perombakan Layout Kasir Desktop (Split View 50:50) & Keyboard Shortcuts
+- **Deskripsi**: Merombak `CashierDesktopView` dari `StatelessWidget` menjadi `StatefulWidget` dengan layout Split Screen (kiri-kanan). Menambahkan fitur pencarian barang interaktif dengan *Arrow Up/Down* langsung dari Grid View, dan fungsi pintasan kursor *Barcode ↔ QTY* menggunakan tombol *Enter*. Sistem otomatis membaca *exact match* saat input barcode dilakukan melalui alat *Scanner*, sehingga barang instan masuk keranjang.
+- **Cara pakai**: Di aplikasi versi Windows, navigasikan kursor di daftar barang menggunakan `Arrow Up` / `Arrow Down` dari kolom Barcode. Tekan `Enter` saat kosong untuk pindah kolom QTY. Tekan `Enter` kembali dari QTY untuk kembali. *Scan* barcode untuk instant masuk keranjang.
+- **Files**: `lib/presentation/pages/cashier_desktop_view.dart`
+- **Date**: 2026-05-24
+
 ### Fitur: Halaman Terpisah Undang Kasir
 - **Deskripsi**: Fungsi invite kasir dipindah dari dialog di `UserManagementPage` ke halaman terpisah (`InviteKasirPage`) dengan form validasi lengkap (email format, required). FAB di user management sekarang navigasi ke halaman baru.
 - **Cara pakai**: Buka Manajemen Pengguna → tap FAB (+) → isi email & nama (opsional) → "Undang Kasir".
 - **Files**: `lib/presentation/pages/invite_kasir_page.dart`, `lib/presentation/pages/user_management_page.dart`
 - **Date**: 2026-05-21
+
+### Fitur: Stok Minimum Per Item & Global
+- **Deskripsi**: Menambahkan pengaturan Stok Minimum baik secara global untuk satu toko (lewat tombol khusus di AppBar Daftar Produk) maupun spesifik per item (lewat form Produk). Jika stok suatu item mencapai angka ini atau lebih rendah, akan muncul indikator merah di daftar produk.
+- **Cara pakai**: Di halaman Daftar Produk, tap ikon kotak (stok) di AppBar untuk atur Stok Minimum Global. Saat tambah/edit barang, bisa set nilai Stok Minimum spesifik atau dikosongkan agar ikut global.
+- **Files**: `produk_form_page.dart`, `produk_page.dart`, `produk_card.dart`, `toko_service.dart`
+- **Date**: 2026-05-24
 
 ### Fitur: RBAC Kasir — Harga Pokok & Margin Tersembunyi
 - **Deskripsi**: Halaman kasir sekarang membaca role dari `AuthBloc`. Jika pengguna adalah kasir (`role == 'kasir'`), `hargaPokok` yang dikirim ke `AddToCart` di-set ke 0, sehingga margin (`hargaJual - hargaPokok`) tidak tersimpan di state manapun.
