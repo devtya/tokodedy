@@ -112,14 +112,28 @@ class UpdateService {
     await OpenFilex.open(filePath);
   }
 
+  List<int> _extractVersion(String versionString) {
+    // Cari pola x.y.z, opsional diikuti oleh +buildNumber, -buildNumber, atau _buildNumber
+    final RegExp regex = RegExp(r'(\d+)\.(\d+)\.(\d+)(?:[\+_\-](\d+))?');
+    final match = regex.firstMatch(versionString);
+    if (match != null) {
+      final major = int.parse(match.group(1)!);
+      final minor = int.parse(match.group(2)!);
+      final patch = int.parse(match.group(3)!);
+      final build = match.group(4) != null ? int.parse(match.group(4)!) : 0;
+      return [major, minor, patch, build];
+    }
+    return [0, 0, 0, 0];
+  }
+
   int _compareVersions(String a, String b) {
-    final partsA = a.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final partsB = b.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final len = partsA.length > partsB.length ? partsA.length : partsB.length;
-    for (var i = 0; i < len; i++) {
-      final va = i < partsA.length ? partsA[i] : 0;
-      final vb = i < partsB.length ? partsB[i] : 0;
-      if (va != vb) return va - vb;
+    final partsA = _extractVersion(a);
+    final partsB = _extractVersion(b);
+    
+    for (var i = 0; i < partsA.length; i++) {
+      if (partsA[i] != partsB[i]) {
+        return partsA[i] - partsB[i];
+      }
     }
     return 0;
   }
