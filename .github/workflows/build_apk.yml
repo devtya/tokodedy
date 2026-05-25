@@ -1,4 +1,4 @@
-name: Build & Release APK
+name: Build & Release
 on:
   push:
     tags:
@@ -8,7 +8,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,9 +65,63 @@ jobs:
           echo "APK_NAME=$DEST" >> $GITHUB_OUTPUT
         id: rename
 
-      - name: Create Release
+      - name: Upload Release Asset (APK)
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.rename.outputs.APK_NAME }}
+          generate_release_notes: true
+          name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Get version from pubspec.yaml
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
+          VERSION_NAME=${VERSION%%+*}
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Build version: $VERSION_NAME"
+
+      - name: Generate Drift code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Build Windows
+        shell: bash
+        run: |
+          flutter build windows --release \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+
+      - name: Compress Windows Build
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION_NAME }}"
+          DEST="HendKasir-v${VERSION}-Windows.zip"
+          cd build/windows/x64/runner/Release
+          7z a "../../../../../$DEST" *
+          cd ../../../../../
+          echo "ZIP_NAME=$DEST" >> $GITHUB_OUTPUT
+        id: compress
+
+      - name: Upload Release Asset (Windows)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.compress.outputs.ZIP_NAME }}
           generate_release_notes: true
           name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"

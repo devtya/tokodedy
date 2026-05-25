@@ -124,6 +124,12 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
       produk: produk,
       isPembelian: widget.isPembelian,
       onSelected: (id, nama, harga, satuanId, konversi) {
+        final satuan = produk.satuanList?.where((s) => s.id == satuanId).firstOrNull;
+        final finalHargaJual = satuan?.hargaJual ?? (produk.hargaJual * konversi);
+        final finalHargaBeli = (satuan?.hargaBeli != null && satuan!.hargaBeli > 0)
+            ? satuan.hargaBeli
+            : (produk.hargaBeli * konversi);
+
         DialogUtils.showQuantityDialog(
           context: context,
           namaProduk: nama,
@@ -131,8 +137,8 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
             widget.onAddToCart(
               id,
               nama,
-              harga,
-              produk.hargaBeli, // harga pokok dari entitas produk
+              finalHargaJual,
+              finalHargaBeli,
               qty,
               satuanId: satuanId,
               konversi: konversi,

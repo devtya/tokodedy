@@ -59,18 +59,23 @@ class _SettingsPageState extends State<SettingsPage> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Update Tersedia'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Versi baru: ${update.version}'),
-              if (update.notes != null && update.notes!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                const Text('Catatan rilis:', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(update.notes!, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-              ],
-            ],
+          content: Container(
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Versi baru: ${update.version}'),
+                  if (update.notes != null && update.notes!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Text('Catatan rilis:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(update.notes!, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  ],
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nanti')),

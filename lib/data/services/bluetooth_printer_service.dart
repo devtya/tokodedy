@@ -340,6 +340,7 @@ class BluetoothPrinterService implements PrinterService {
     add([0x0A, 0x0A, 0x0A]);
 
     // Cut paper
+    add([0x1B, 0x70, 0x00, 0x19, 0xFA]); // Open cash drawer
     add([0x1D, 0x56, 0x41, 0x03]);
 
     return buffer;

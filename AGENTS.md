@@ -343,3 +343,15 @@ lib/
 - **Fix**: Menggunakan `itemsData[i].hargaBeliSatuan` yang mengandung nilai nett untuk dikirim ke list `changedItems` yang memicu dialog validasi. Serta memperbarui `_pendingSaveItems` untuk memakai nilai harga nett ketika disimpan agar sinkron dengan `ProdukTable`.
 - **Files**: `lib/presentation/pages/pembelian_form_page.dart`
 - **Date**: 2026-05-23
+
+### Bug: Logic Pembelian — Pembelian dengan satuan konversi menggunakan harga satuan dasar
+- **Root cause**: Di `CariProdukDialog`, callback `onAddToCart` selalu menerima `produk.hargaBeli` (harga dasar) sebagai argumen `hargaBeli`, meskipun pengguna memilih satuan konversi (seperti pak).
+- **Fix**: Mengubah `CariProdukDialog._pilihProduk` agar menghitung `finalHargaBeli` (dan `finalHargaJual`) dengan benar berdasarkan satuan yang dipilih, menggunakan harga spesifik satuan jika ada, atau mengalikan harga dasar dengan rasio konversi.
+- **Files**: `lib/presentation/widgets/cari_produk_dialog.dart`
+- **Date**: 2026-05-25
+
+### Fitur: Buka Laci Otomatis Saat Cetak Nota (Bluetooth/USB)
+- **Deskripsi**: Kasir kini tidak perlu membuka laci uang secara manual. Aplikasi secara otomatis mengirim perintah ESC/POS buka laci ke printer Bluetooth/USB sebelum memotong struk transaksi.
+- **Cara pakai**: Lakukan transaksi dan cetak nota. Laci uang yang terhubung dengan laci RJ11 di printer (yang dikonfigurasi via Bluetooth/USB) akan terbuka otomatis.
+- **Files**: `lib/data/services/bluetooth_printer_service.dart`
+- **Date**: 2026-05-25
