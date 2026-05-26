@@ -106,6 +106,15 @@ lib/
 - **Dynamic DI**: `PrinterService` diregistrasi ulang via `updatePrinterService()` saat tipe printer berubah. `ReceiptGenerator` baca `fontSize` dari `PrinterSettings`.
 - **ESC-POS**: Both network and Bluetooth services generate raw ESC-POS commands; ukuran font dikontrol via ESC/POS print mode byte
 
+## Version Tracking
+
+Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
+- **x** — Major (breaking changes, reset y & z ke 0)
+- **y** — Minor (fitur baru, reset z ke 0)
+- **z** — Patch (bug fix / perbaikan kecil)
+
+Current: **1.4.5**
+
 ## Log Konvensi
 
 > **Setiap bug fix dan penambahan fitur WAJIB dicatat di bagian log di bawah ini** (format konsisten) agar menjadi referensi untuk development selanjutnya. Format:
@@ -365,4 +374,10 @@ lib/
 - **Deskripsi**: Update palet warna, dark theme, light theme sesuai design system baru. Project Windows Desktop resmi dihentikan (DISCONTINUED).
 - **Cara pakai**: Theme otomatis mengikuti sistem. Windows build tidak lagi didukung.
 - **Files**: `lib/core/theme/app_theme.dart`, `AGENTS.md`, `.github/workflows/build_apk.yml`
+- **Date**: 2026-05-27
+
+### Fitur: Auto-Konvert Harga Beli Multi-Satuan dengan Listener
+- **Deskripsi**: Setiap perubahan nilai konversi pada multi-satuan akan otomatis mengubah harga beli satuan dasar secara real-time.
+- **Cara pakai**: Edit nilai konversi satuan di form produk → harga beli satuan dasar otomatis menyesuaikan.
+- **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
 - **Date**: 2026-05-27

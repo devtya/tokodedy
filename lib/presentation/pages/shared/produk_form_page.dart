@@ -1318,11 +1318,8 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
   void _onKonversiChanged() {
     final konversi = double.tryParse(_konversiCtrl.text) ?? 0;
     if (konversi > 0 && widget.baseHargaBeli > 0) {
-      final currentPokok = double.tryParse(_hargaPokokCtrl.text) ?? 0;
-      if (currentPokok <= 0) {
-        final auto = widget.baseHargaBeli * konversi;
-        _hargaPokokCtrl.text = auto.toStringAsFixed(2);
-      }
+      final auto = widget.baseHargaBeli * konversi;
+      _hargaPokokCtrl.text = auto.toStringAsFixed(2);
     }
   }
 
