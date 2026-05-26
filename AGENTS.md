@@ -129,6 +129,12 @@ Current: **1.4.6**
 - **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
 - **Date**: 2026-05-27
 
+### Bug: Layout Error — Spacer di unbounded Column di ProdukCard
+- **Root cause**: `const Spacer()` di dalam `Column` di `Card` (dalam `ListView.builder`). `ListView` memberi unbounded height constraint (`0..Inf`), `Spacer` butuh bounded height untuk distribusi flex → layout never resolve → infinite `NEEDS-LAYOUT` loop.
+- **Fix**: Ganti `const Spacer()` dengan `const SizedBox(height: 8)` agar Column shrink-wrap natural ke kontennya.
+- **Files**: `lib/presentation/widgets/produk_card.dart`
+- **Date**: 2026-05-27
+
 ### Bug: User Management — Admin dari toko lain terlihat
 - **Root cause**: `getAllUsers()` di `AuthRepositoryImpl` tidak filter by `tokoId`. `addUser()` hardcoded `tokoId: 1`.
 - **Fix**: `getAllUsers()` sekarang filter by `_tokoService.tokoId`. `addUser()` pakai `tokoId` dari `TokoService`.
