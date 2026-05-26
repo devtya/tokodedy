@@ -63,8 +63,6 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   final List<_UnitItem> _units = [];
   int _nextUnitId = 1;
 
-
-
   @override
   void initState() {
     super.initState();
@@ -79,7 +77,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       text: p?.barcode ?? widget.initialBarcode ?? '',
     );
     _stokCtrl = TextEditingController(text: p?.stok.toString() ?? '');
-    _stokMinimumCtrl = TextEditingController(text: p?.stokMinimum?.toString() ?? '');
+    _stokMinimumCtrl = TextEditingController(
+      text: p?.stokMinimum?.toString() ?? '',
+    );
     _kategoriCtrl = TextEditingController(text: p?.kategori ?? '');
     _satuanDasarCtrl = TextEditingController(text: p?.satuan ?? 'pcs');
 
@@ -198,10 +198,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EditUnitSheet(
-        unit: unit,
-        baseHargaBeli: base.hargaBeli,
-      ),
+      builder: (_) => _EditUnitSheet(unit: unit, baseHargaBeli: base.hargaBeli),
     );
     if (result != null) {
       setState(() {
@@ -294,7 +291,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       );
       return;
     }
-    final currentTokoId = _currentProduk?.tokoId ?? sl<TokoService>().tokoId ?? '';
+    final currentTokoId =
+        _currentProduk?.tokoId ?? sl<TokoService>().tokoId ?? '';
     satuanList = _units
         .where((u) => u.nama.trim().isNotEmpty)
         .map(
@@ -352,6 +350,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _colors.surface,
+      resizeToAvoidBottomInset: true,
+      appBar: _buildAppBar(),
+      bottomNavigationBar: _buildBottomBar(),
       body: BlocListener<ProdukBloc, ProdukState>(
         listener: (context, state) {
           if (state is ProdukOperationSuccess && _saved) {
@@ -402,118 +403,80 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
             setState(() => _isSaving = false);
           }
         },
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProductInfo(),
-                    const SizedBox(height: 16),
-                    _buildSatDasarSection(),
-                    const SizedBox(height: 20),
-                    _buildUnitList(),
-                    const SizedBox(height: 12),
-                    _buildHitungButton(),
-                    const SizedBox(height: 10),
-                    _buildDefaultCheckbox(),
-                  ],
-                ),
-              ),
-            ),
-            _buildBottomBar(),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProductInfo(),
+              const SizedBox(height: 16),
+              _buildSatDasarSection(),
+              const SizedBox(height: 20),
+              _buildUnitList(),
+              const SizedBox(height: 12),
+              _buildHitungButton(),
+              const SizedBox(height: 10),
+              _buildDefaultCheckbox(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ── Header ──
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [_colors.primaryContainer, _colors.surface],
-        ),
+  // ── AppBar ──
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: _colors.primaryContainer,
+      elevation: 0,
+      leading: IconButton(
+        onPressed: () => Navigator.maybePop(context),
+        icon: Icon(Icons.arrow_back, color: _colors.onSurface, size: 20),
       ),
-      padding: EdgeInsets.fromLTRB(
-        16,
-        MediaQuery.of(context).padding.top + 12,
-        16,
-        16,
-      ),
-      child: Row(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-              color: _colors.onSurface.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _colors.outline),
-              ),
-              child: Icon(
-                Icons.arrow_back,
-                  color: _colors.onSurface,
-                  size: 18,
-              ),
+          Text(
+            _isEditing ? 'EDIT DATA ITEM • $_displayCode' : 'TAMBAH DATA ITEM',
+            style: TextStyle(
+              color: _colors.onSurface.withValues(alpha: 0.55),
+              fontSize: 9,
+              letterSpacing: 2,
+              fontFamily: 'monospace',
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isEditing
-                      ? 'EDIT DATA ITEM • $_displayCode'
-                      : 'TAMBAH DATA ITEM',
-                  style: TextStyle(
-                    color: _colors.onSurface.withValues(alpha: 0.45),
-                    fontSize: 9,
-                    letterSpacing: 2,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                const Text(
-                  'Satuan & Harga Jual',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: _colors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _colors.primary),
-            ),
-            child: Text(
-              'PUSAT',
-              style: TextStyle(
-                color: _colors.primary,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-                fontFamily: 'monospace',
-              ),
+          const Text(
+            'Satuan & Harga Jual',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
             ),
           ),
         ],
       ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: _colors.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _colors.primary),
+          ),
+          child: Text(
+            'PUSAT',
+            style: TextStyle(
+              color: _colors.primary,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -552,7 +515,10 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                     letterSpacing: 1.5,
                   ),
                   hintText: 'Opsional',
-                  hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 13),
+                  hintStyle: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.45),
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
@@ -595,34 +561,37 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               ),
             ),
             const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _kategoriCtrl,
-                  readOnly: true,
-                  textCapitalization: TextCapitalization.characters,
-                  style: TextStyle(color: _colors.onSurface, fontSize: 15),
-                  decoration: InputDecoration(
-                    labelText: 'KATEGORI',
-                    labelStyle: TextStyle(
-                      color: _colors.onSurface.withValues(alpha: 0.45),
-                      fontSize: 9,
-                      letterSpacing: 1.5,
-                    ),
-                    hintText: 'Tap untuk pilih / ketik baru',
-                    hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 13),
+            Expanded(
+              child: TextField(
+                controller: _kategoriCtrl,
+                readOnly: true,
+                textCapitalization: TextCapitalization.characters,
+                style: TextStyle(color: _colors.onSurface, fontSize: 15),
+                decoration: InputDecoration(
+                  labelText: 'KATEGORI',
+                  labelStyle: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.45),
+                    fontSize: 9,
+                    letterSpacing: 1.5,
                   ),
-                  onTap: () {
-                    final repo = sl<ProdukRepository>();
-                    repo.getAllKategori().then((items) {
-                      _showSearchPickerDialog(
-                        title: 'Kategori',
-                        items: items,
-                        controller: _kategoriCtrl,
-                      );
-                    });
-                  },
+                  hintText: 'Tap untuk pilih / ketik baru',
+                  hintStyle: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.45),
+                    fontSize: 13,
+                  ),
                 ),
+                onTap: () {
+                  final repo = sl<ProdukRepository>();
+                  repo.getAllKategori().then((items) {
+                    _showSearchPickerDialog(
+                      title: 'Kategori',
+                      items: items,
+                      controller: _kategoriCtrl,
+                    );
+                  });
+                },
               ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -641,7 +610,10 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                     letterSpacing: 1.5,
                   ),
                   hintText: 'Ikut pengaturan toko jika kosong',
-                  hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 12),
+                  hintStyle: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.45),
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
@@ -661,42 +633,42 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-          color: _colors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _colors.outline, width: 1.5),
+            color: _colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _colors.outline, width: 1.5),
           ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _satuanDasarCtrl,
-                    readOnly: true,
-                    textCapitalization: TextCapitalization.characters,
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: _colors.onSurface,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onTap: () {
-                      final repo = sl<ProdukRepository>();
-                      repo.getAllSatuan().then((items) {
-                        _showSearchPickerDialog(
-                          title: 'Satuan',
-                          items: items,
-                          controller: _satuanDasarCtrl,
-                        );
-                      });
-                    },
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _satuanDasarCtrl,
+                  readOnly: true,
+                  textCapitalization: TextCapitalization.characters,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: _colors.onSurface,
                   ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  onTap: () {
+                    final repo = sl<ProdukRepository>();
+                    repo.getAllSatuan().then((items) {
+                      _showSearchPickerDialog(
+                        title: 'Satuan',
+                        items: items,
+                        controller: _satuanDasarCtrl,
+                      );
+                    });
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -822,7 +794,11 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           Expanded(
             child: Text(
               'Menggunakan harga pokok jika tidak memenuhi kriteria',
-              style: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 11, height: 1.4),
+              style: TextStyle(
+                color: _colors.onSurface.withValues(alpha: 0.45),
+                fontSize: 11,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -832,78 +808,72 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── Bottom Bar ──
   Widget _buildBottomBar() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            _colors.surface.withValues(alpha: 0),
-            _colors.surface,
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_colors.surface.withValues(alpha: 0), _colors.surface],
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.maybePop(context),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: _colors.outline, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Batal',
+                  style: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isSaving
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _colors.onPrimary,
+                        ),
+                      )
+                    : Text(
+                        _saved ? '✓ Tersimpan!' : 'Simpan',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: _colors.onSurface,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+              ),
+            ),
           ],
         ),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        MediaQuery.of(context).padding.bottom + 16,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.maybePop(context),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: _colors.outline, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Batal',
-                style: TextStyle(
-                  color: _colors.onSurface.withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: _isSaving ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: _isSaving
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: _colors.onPrimary,
-                      ),
-                    )
-                  : Text(
-                      _saved ? '✓ Tersimpan!' : 'Simpan',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: _colors.onSurface,
-                    letterSpacing: -0.5,
-                  ),
-                    ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1010,13 +980,18 @@ class _UnitCard extends StatelessWidget {
           style: TextStyle(color: colors.onSurface, fontSize: 18),
           decoration: InputDecoration(
             hintText: '0',
-            hintStyle: TextStyle(color: colors.onSurface.withValues(alpha: 0.45)),
+            hintStyle: TextStyle(
+              color: colors.onSurface.withValues(alpha: 0.45),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Batal', style: TextStyle(color: colors.onSurface.withValues(alpha: 0.7))),
+            child: Text(
+              'Batal',
+              style: TextStyle(color: colors.onSurface.withValues(alpha: 0.7)),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -1024,10 +999,7 @@ class _UnitCard extends StatelessWidget {
               if (val != null) onSave?.call(val);
               Navigator.pop(ctx);
             },
-            child: Text(
-              'Simpan',
-              style: TextStyle(color: colors.primary),
-            ),
+            child: Text('Simpan', style: TextStyle(color: colors.primary)),
           ),
         ],
       ),
@@ -1040,32 +1012,16 @@ class _UnitCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        gradient: unit.isBase
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [colors.primaryContainer, colors.primary],
-              )
-            : null,
-        color: unit.isBase ? null : colors.surfaceContainerLow,
+        color: unit.isBase
+            ? colors.primary.withValues(alpha: 0.08)
+            : colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: unit.isBase ? colors.primary : colors.outline,
+          color: unit.isBase
+              ? colors.primary.withValues(alpha: 0.5)
+              : colors.outline,
           width: 1.5,
         ),
-        boxShadow: unit.isBase
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                ),
-              ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -1081,15 +1037,15 @@ class _UnitCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: unit.isBase
-                        ? colors.primary
-                        : colors.outlineVariant,
+                    color: unit.isBase ? colors.primary : colors.outlineVariant,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     unit.nama,
                     style: TextStyle(
-                      color: unit.isBase ? colors.onPrimary : colors.onSurface.withValues(alpha: 0.6),
+                      color: unit.isBase
+                          ? colors.onPrimary
+                          : colors.onSurface.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                       fontFamily: 'monospace',
@@ -1199,9 +1155,7 @@ class _UnitCard extends StatelessWidget {
                     label: 'HARGA JUAL',
                     value: 'Rp ${formatRp(unit.hargaJual)}',
                     highlight: true,
-                    accent: unit.isBase
-                        ? colors.primary
-                        : colors.tertiary,
+                    accent: unit.isBase ? colors.primary : colors.primary,
                   ),
                 ),
                 _InfoCell(
@@ -1243,7 +1197,9 @@ class _InfoCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final defaultAccent = highlight ? colors.tertiary : colors.onSurface.withValues(alpha: 0.87);
+    final defaultAccent = highlight
+        ? colors.primary
+        : colors.onSurface.withValues(alpha: 0.87);
     final color = accent ?? defaultAccent;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -1252,7 +1208,7 @@ class _InfoCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: highlight
-              ? (accent ?? colors.tertiary).withValues(alpha: 0.2)
+              ? (accent ?? colors.primary).withValues(alpha: 0.2)
               : Colors.transparent,
         ),
       ),
@@ -1465,7 +1421,10 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
                 children: [
                   Text(
                     'Laba',
-                    style: TextStyle(color: colors.onSurface.withValues(alpha: 0.45), fontSize: 12),
+                    style: TextStyle(
+                      color: colors.onSurface.withValues(alpha: 0.45),
+                      fontSize: 12,
+                    ),
                   ),
                   Text(
                     'Rp ${formatRp(_laba)} (${_labaPct.toStringAsFixed(1)}%)',
@@ -1549,24 +1508,15 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: colors.outline,
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: colors.outline, width: 1.5),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: colors.outline,
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: colors.outline, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: colors.primary,
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: colors.primary, width: 1.5),
               ),
             ),
           ),
@@ -1600,7 +1550,9 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[SearchPicker] initState title=${widget.title} items=${widget.items.length}');
+    debugPrint(
+      '[SearchPicker] initState title=${widget.title} items=${widget.items.length}',
+    );
     _ctrl = TextEditingController(text: widget.initialValue);
     final q = widget.initialValue.toUpperCase();
     _filtered = q.isEmpty
@@ -1678,8 +1630,10 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
                   final typed = _ctrl.text.trim().toUpperCase();
                   if (typed.isEmpty) return const SizedBox();
                   return ListTile(
-                    leading: Icon(Icons.add_circle,
-                        color: Theme.of(context).colorScheme.primary),
+                    leading: Icon(
+                      Icons.add_circle,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: Text("Gunakan '$typed'"),
                     onTap: () {
                       debugPrint('[SearchPicker] select new="$typed"');
