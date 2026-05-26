@@ -28,9 +28,9 @@ lib/
 | `flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Debug dengan Supabase sync aktif. |
 | `flutter build apk --debug --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | **Default** — build debug APK dengan Supabase sync. |
 | `flutter build apk --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Build release APK (final). |
-| `flutter build windows --debug --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Build Windows desktop debug. Requires **Visual Studio** (Desktop C++ workload) + **Developer Mode** enabled. |
-| `flutter build windows --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Build Windows desktop release. |
-| `flutter run -d windows --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Run di Windows desktop. |
+| `flutter build windows --debug ...` | **(DISCONTINUED)** |
+| `flutter build windows --release ...` | **(DISCONTINUED)** |
+| `flutter run -d windows ...` | **(DISCONTINUED)** |
 | `flutter test` | Run all tests. |
 
 ## Database (Drift)
@@ -92,10 +92,9 @@ lib/
 
 ## Windows Platform
 
-- **Status**: Aktif dikembangkan kembali.
+- **Status**: **DISCONTINUED** — Project desktop Windows dihentikan sementara. Tidak ada pengembangan lebih lanjut untuk platform Windows. Kode desktop (home_page_desktop.dart, cashier_desktop_view.dart) tetap ada di repo tetapi tidak dipelihara secara aktif.
 - **Barcode input**: `mobile_scanner` tidak support Windows. Gunakan `showBarcodeScannerDialog(context)` di `lib/presentation/widgets/barcode_scanner_widget.dart`. Di Windows nampilin `TextField` manual (kompatibel USB keyboard-wedge scanner), di Android pakai kamera `MobileScanner`.
 - **Theme**: System theme otomatis aktif di Windows. Bisa diganti manual lewat Settings page.
-- **Build prerequisites**: Visual Studio (Desktop C++ workload) + Windows Developer Mode (Settings → Privacy & Security → For Developers).
 
 ## Printing System (Thermal Printer)
 
@@ -361,3 +360,9 @@ lib/
 - **Cara pakai**: Lakukan transaksi dan cetak nota. Laci uang yang terhubung dengan laci RJ11 di printer (yang dikonfigurasi via Bluetooth/USB) akan terbuka otomatis.
 - **Files**: `lib/data/services/bluetooth_printer_service.dart`
 - **Date**: 2026-05-25
+
+### Fitur: Update Theme & Mark Desktop sebagai DISCONTINUED
+- **Deskripsi**: Update palet warna, dark theme, light theme sesuai design system baru. Project Windows Desktop resmi dihentikan (DISCONTINUED).
+- **Cara pakai**: Theme otomatis mengikuti sistem. Windows build tidak lagi didukung.
+- **Files**: `lib/core/theme/app_theme.dart`, `AGENTS.md`, `.github/workflows/build_apk.yml`
+- **Date**: 2026-05-27
