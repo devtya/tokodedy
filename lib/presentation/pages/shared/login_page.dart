@@ -139,25 +139,27 @@ class _LoginPageState extends State<LoginPage> {
           }
         },
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.storefront,
-                  size: 80,
-                  color: AppTheme.primaryGreen,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'HendKasir',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Login untuk melanjutkan',
-                  style: TextStyle(color: AppTheme.neutralGrey),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.storefront,
+                    size: 80,
+                    color: AppTheme.primaryGreen,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'HendKasir',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Login untuk melanjutkan',
+                    style: TextStyle(color: AppTheme.neutralGrey),
                 ),
                 const SizedBox(height: 48),
                 TextField(
@@ -236,6 +238,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

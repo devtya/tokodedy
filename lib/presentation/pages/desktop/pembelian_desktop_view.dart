@@ -8,6 +8,7 @@ import '../../../domain/entities/produk.dart';
 import '../../../domain/entities/supplier.dart';
 import '../../../domain/usecases/produk/get_all_produk.dart';
 import '../shared/pembelian_form_page.dart'; // for ItemPembelianForm
+import '../../widgets/qty_satuan_dialog.dart';
 
 class PembelianDesktopView extends StatefulWidget {
   final List<ItemPembelianForm> items;
@@ -45,10 +46,7 @@ class PembelianDesktopView extends StatefulWidget {
 
 class _PembelianDesktopViewState extends State<PembelianDesktopView> {
   final _barcodeCtrl = TextEditingController();
-  final _qtyCtrl = TextEditingController(text: '1');
-
   final _barcodeFocus = FocusNode();
-  final _qtyFocus = FocusNode();
 
   List<Produk> _allProducts = [];
   List<Produk> _filteredProducts = [];
@@ -70,9 +68,7 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
   @override
   void dispose() {
     _barcodeCtrl.dispose();
-    _qtyCtrl.dispose();
     _barcodeFocus.dispose();
-    _qtyFocus.dispose();
     super.dispose();
   }
 
@@ -111,10 +107,7 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
   }
 
   void _handleBarcodeSubmit(String value) {
-    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
-
     if (value.trim().isEmpty) {
-      _qtyFocus.requestFocus();
       return;
     }
 
@@ -122,16 +115,14 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
         .where((p) => p.barcode == value.trim())
         .toList();
     if (exactMatch.isNotEmpty) {
-      widget.onAddToCart(exactMatch.first, qty);
-      _resetInput();
+      _addToCart(exactMatch.first);
       return;
     }
 
     if (_filteredProducts.isNotEmpty &&
         _selectedIndex >= 0 &&
         _selectedIndex < _filteredProducts.length) {
-      widget.onAddToCart(_filteredProducts[_selectedIndex], qty);
-      _resetInput();
+      _addToCart(_filteredProducts[_selectedIndex]);
       return;
     }
 
@@ -140,13 +131,8 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
     ).showSnackBar(const SnackBar(content: Text('Produk tidak ditemukan')));
   }
 
-  void _handleQtySubmit(String value) {
-    _barcodeFocus.requestFocus();
-  }
-
   void _resetInput() {
     _barcodeCtrl.clear();
-    _qtyCtrl.text = '1';
     _filterProducts('');
 
     Future.delayed(const Duration(milliseconds: 50), () {
@@ -154,6 +140,31 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
         _barcodeFocus.requestFocus();
       }
     });
+  }
+
+  void _addToCart(Produk produk) {
+    showDialog(
+      context: context,
+      builder: (ctx) => QtySatuanDialog(
+        produk: produk,
+        isPembelian: true,
+        onSelected: (qty, id, nama, harga, satuanId, konversi) {
+          // Because PembelianDesktopView uses a specific callback `widget.onAddToCart(produk, qty)`
+          // But wait, the original logic for Pembelian used to calculate `konversi` in `onAddToCart`? 
+          // Let's modify this to fit Pembelian's need.
+          // In original it called widget.onAddToCart(p, qty), where `p` is `Produk`.
+          // We can create a temporary copy of `Produk` with the updated name, hargaBeli, and id?
+          // Actually, let's see how `onAddToCart` in PembelianFormPage handles it.
+          final modifiedProduk = produk.copyWith(
+            id: id,
+            nama: nama,
+            hargaBeli: harga,
+          );
+          widget.onAddToCart(modifiedProduk, qty);
+          _resetInput();
+        },
+      ),
+    );
   }
 
   @override
@@ -239,21 +250,11 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  SizedBox(
-                                    width: 80,
-                                    child: TextField(
-                                      controller: _qtyCtrl,
-                                      focusNode: _qtyFocus,
-                                      keyboardType: TextInputType.number,
-                                      textAlign: TextAlign.center,
-                                      decoration: const InputDecoration(
-                                        labelText: 'QTY',
-                                      ),
-                                      onSubmitted: _handleQtySubmit,
-                                    ),
-                                  ),
                                 ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Kosongkan lalu Enter. Panah Atas/Bawah untuk memilih dari daftar.',
                               ),
                             ],
                           ),
@@ -283,13 +284,7 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
                                     return InkWell(
                                       onTap: () {
                                         setState(() => _selectedIndex = index);
-                                        final qty =
-                                            int.tryParse(
-                                              _qtyCtrl.text.trim(),
-                                            ) ??
-                                            1;
-                                        widget.onAddToCart(p, qty);
-                                        _resetInput();
+                                        _addToCart(p);
                                       },
                                       child: Container(
                                         margin: const EdgeInsets.only(
@@ -309,8 +304,8 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.03,
+                                              color: Colors.black.withValues(
+                                                alpha: 0.03,
                                               ),
                                               blurRadius: 6,
                                               offset: const Offset(0, 2),
@@ -465,7 +460,7 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
                             color: Theme.of(context).cardColor,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, -2),
                               ),
@@ -619,7 +614,7 @@ class _PembelianItemRow extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = index.isEven
         ? Colors.transparent
-        : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200);
+        : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade200);
 
     return InkWell(
       onTap: () => onShowEditDialog(index, item),

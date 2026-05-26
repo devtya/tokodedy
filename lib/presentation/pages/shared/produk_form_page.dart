@@ -156,6 +156,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── Computed ──
 
+  ThemeData get _theme => Theme.of(context);
+  ColorScheme get _colors => _theme.colorScheme;
+
   String get _displayCode =>
       _isEditing ? (_currentProduk!.barcode ?? _currentProduk!.nama) : 'BARU';
 
@@ -190,11 +193,15 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
   // ── Unit actions ──
   void _editUnit(_UnitItem unit) async {
+    final base = _units.firstWhere((u) => u.isBase, orElse: () => _units.first);
     final result = await showModalBottomSheet<_UnitItem>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EditUnitSheet(unit: unit),
+      builder: (_) => _EditUnitSheet(
+        unit: unit,
+        baseHargaBeli: base.hargaBeli,
+      ),
     );
     if (result != null) {
       setState(() {
@@ -344,7 +351,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: _colors.surface,
       body: BlocListener<ProdukBloc, ProdukState>(
         listener: (context, state) {
           if (state is ProdukOperationSuccess && _saved) {
@@ -400,7 +407,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -417,21 +424,21 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 ),
               ),
             ),
+            _buildBottomBar(),
           ],
         ),
       ),
-      bottomSheet: _buildBottomBar(),
     );
   }
 
   // ── Header ──
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A2E17), AppTheme.background],
+          colors: [_colors.primaryContainer, _colors.surface],
         ),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -448,14 +455,14 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.border),
+              color: _colors.onSurface.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _colors.outline),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
-                color: Colors.white,
-                size: 18,
+                  color: _colors.onSurface,
+                  size: 18,
               ),
             ),
           ),
@@ -468,8 +475,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                   _isEditing
                       ? 'EDIT DATA ITEM • $_displayCode'
                       : 'TAMBAH DATA ITEM',
-                  style: const TextStyle(
-                    color: AppTheme.grey,
+                  style: TextStyle(
+                    color: _colors.onSurface.withValues(alpha: 0.45),
                     fontSize: 9,
                     letterSpacing: 2,
                     fontFamily: 'monospace',
@@ -490,14 +497,14 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.12),
+              color: _colors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.primary),
+              border: Border.all(color: _colors.primary),
             ),
-            child: const Text(
+            child: Text(
               'PUSAT',
               style: TextStyle(
-                color: AppTheme.primary,
+                color: _colors.primary,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1,
@@ -520,11 +527,11 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         TextField(
           controller: _namaCtrl,
           textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
-          decoration: const InputDecoration(
+          style: TextStyle(color: _colors.onSurface, fontSize: 15),
+          decoration: InputDecoration(
             labelText: 'NAMA PRODUK *',
             labelStyle: TextStyle(
-              color: AppTheme.grey,
+              color: _colors.onSurface.withValues(alpha: 0.45),
               fontSize: 9,
               letterSpacing: 1.5,
             ),
@@ -536,16 +543,16 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
             Expanded(
               child: TextField(
                 controller: _barcodeCtrl,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
-                decoration: const InputDecoration(
+                style: TextStyle(color: _colors.onSurface, fontSize: 15),
+                decoration: InputDecoration(
                   labelText: 'BARCODE',
                   labelStyle: TextStyle(
-                    color: AppTheme.grey,
+                    color: _colors.onSurface.withValues(alpha: 0.45),
                     fontSize: 9,
                     letterSpacing: 1.5,
                   ),
                   hintText: 'Opsional',
-                  hintStyle: TextStyle(color: AppTheme.grey, fontSize: 13),
+                  hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 13),
                 ),
               ),
             ),
@@ -556,13 +563,13 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.12),
+                  color: _colors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.primary),
+                  border: Border.all(color: _colors.primary),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.qr_code_scanner,
-                  color: AppTheme.primary,
+                  color: _colors.primary,
                   size: 20,
                 ),
               ),
@@ -576,11 +583,11 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               child: TextField(
                 controller: _stokCtrl,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
-                decoration: const InputDecoration(
+                style: TextStyle(color: _colors.onSurface, fontSize: 15),
+                decoration: InputDecoration(
                   labelText: 'STOK',
                   labelStyle: TextStyle(
-                    color: AppTheme.grey,
+                    color: _colors.onSurface.withValues(alpha: 0.45),
                     fontSize: 9,
                     letterSpacing: 1.5,
                   ),
@@ -593,16 +600,16 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                   controller: _kategoriCtrl,
                   readOnly: true,
                   textCapitalization: TextCapitalization.characters,
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: _colors.onSurface, fontSize: 15),
+                  decoration: InputDecoration(
                     labelText: 'KATEGORI',
                     labelStyle: TextStyle(
-                      color: AppTheme.grey,
+                      color: _colors.onSurface.withValues(alpha: 0.45),
                       fontSize: 9,
                       letterSpacing: 1.5,
                     ),
                     hintText: 'Tap untuk pilih / ketik baru',
-                    hintStyle: TextStyle(color: AppTheme.grey, fontSize: 13),
+                    hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 13),
                   ),
                   onTap: () {
                     final repo = sl<ProdukRepository>();
@@ -625,16 +632,16 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               child: TextField(
                 controller: _stokMinimumCtrl,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
-                decoration: const InputDecoration(
+                style: TextStyle(color: _colors.onSurface, fontSize: 15),
+                decoration: InputDecoration(
                   labelText: 'STOK MINIMUM',
                   labelStyle: TextStyle(
-                    color: AppTheme.grey,
+                    color: _colors.onSurface.withValues(alpha: 0.45),
                     fontSize: 9,
                     letterSpacing: 1.5,
                   ),
                   hintText: 'Ikut pengaturan toko jika kosong',
-                  hintStyle: TextStyle(color: AppTheme.grey, fontSize: 12),
+                  hintStyle: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 12),
                 ),
               ),
             ),
@@ -654,9 +661,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppTheme.border, width: 1.5),
+          color: _colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _colors.outline, width: 1.5),
           ),
             child: Row(
               children: [
@@ -665,13 +672,13 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                     controller: _satuanDasarCtrl,
                     readOnly: true,
                     textCapitalization: TextCapitalization.characters,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'monospace',
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
-                      color: Colors.white,
+                      color: _colors.onSurface,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
@@ -729,22 +736,22 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.05),
+                    color: _colors.primary.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      color: _colors.primary.withValues(alpha: 0.3),
                       width: 1.5,
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, color: AppTheme.primary, size: 16),
+                      Icon(Icons.add, color: _colors.primary, size: 16),
                       SizedBox(width: 4),
                       Text(
                         'Tambah Satuan',
                         style: TextStyle(
-                          color: AppTheme.primary,
+                          color: _colors.primary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
@@ -796,9 +803,9 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
+        color: _colors.onSurface.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF222222)),
+        border: Border.all(color: _colors.outlineVariant),
       ),
       child: Row(
         children: [
@@ -806,16 +813,16 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
             width: 18,
             height: 18,
             decoration: BoxDecoration(
-              color: const Color(0xFF222222),
+              color: _colors.outlineVariant,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFF444444), width: 1.5),
+              border: Border.all(color: _colors.outline, width: 1.5),
             ),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
               'Menggunakan harga pokok jika tidak memenuhi kriteria',
-              style: TextStyle(color: AppTheme.grey, fontSize: 11, height: 1.4),
+              style: TextStyle(color: _colors.onSurface.withValues(alpha: 0.45), fontSize: 11, height: 1.4),
             ),
           ),
         ],
@@ -831,8 +838,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.background.withValues(alpha: 0),
-            AppTheme.background,
+            _colors.surface.withValues(alpha: 0),
+            _colors.surface,
           ],
         ),
       ),
@@ -849,15 +856,15 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               onPressed: () => Navigator.maybePop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: const BorderSide(color: AppTheme.border, width: 1.5),
+                side: BorderSide(color: _colors.outline, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Batal',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: _colors.onSurface.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -877,21 +884,22 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
                 elevation: 0,
               ),
               child: _isSaving
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: _colors.onPrimary,
                       ),
                     )
                   : Text(
                       _saved ? '✓ Tersimpan!' : 'Simpan',
-                      style: const TextStyle(
-                        color: AppTheme.onPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: _colors.onSurface,
+                    letterSpacing: -0.5,
+                  ),
                     ),
             ),
           ),
@@ -903,8 +911,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   Widget _sectionLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: AppTheme.grey,
+      style: TextStyle(
+        color: _colors.onSurface.withValues(alpha: 0.45),
         fontSize: 10,
         letterSpacing: 1.5,
         fontFamily: 'monospace',
@@ -983,31 +991,32 @@ class _UnitCard extends StatelessWidget {
     double current,
     ValueChanged<double>? onSave,
   ) {
+    final colors = Theme.of(context).colorScheme;
     final ctrl = TextEditingController(
       text: current > 0 ? current.toStringAsFixed(2) : '',
     );
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceContainerLow,
+        backgroundColor: colors.surface,
         title: Text(
           label,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: colors.onSurface, fontSize: 16),
         ),
         content: TextField(
           controller: ctrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           autofocus: true,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-          decoration: const InputDecoration(
+          style: TextStyle(color: colors.onSurface, fontSize: 18),
+          decoration: InputDecoration(
             hintText: '0',
-            hintStyle: TextStyle(color: AppTheme.grey),
+            hintStyle: TextStyle(color: colors.onSurface.withValues(alpha: 0.45)),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: Colors.white70)),
+            child: Text('Batal', style: TextStyle(color: colors.onSurface.withValues(alpha: 0.7))),
           ),
           TextButton(
             onPressed: () {
@@ -1015,9 +1024,9 @@ class _UnitCard extends StatelessWidget {
               if (val != null) onSave?.call(val);
               Navigator.pop(ctx);
             },
-            child: const Text(
+            child: Text(
               'Simpan',
-              style: TextStyle(color: AppTheme.primary),
+              style: TextStyle(color: colors.primary),
             ),
           ),
         ],
@@ -1027,26 +1036,27 @@ class _UnitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         gradient: unit.isBase
-            ? const LinearGradient(
+            ? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0F4C2A), Color(0xFF1A6B3A)],
+                colors: [colors.primaryContainer, colors.primary],
               )
             : null,
-        color: unit.isBase ? null : AppTheme.surface,
+        color: unit.isBase ? null : colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: unit.isBase ? AppTheme.primary : AppTheme.border,
+          color: unit.isBase ? colors.primary : colors.outline,
           width: 1.5,
         ),
         boxShadow: unit.isBase
             ? [
                 BoxShadow(
-                  color: AppTheme.primary.withValues(alpha: 0.15),
+                  color: colors.primary.withValues(alpha: 0.15),
                   blurRadius: 20,
                 ),
               ]
@@ -1072,14 +1082,14 @@ class _UnitCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: unit.isBase
-                        ? AppTheme.primary
-                        : const Color(0xFF333333),
+                        ? colors.primary
+                        : colors.outlineVariant,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     unit.nama,
                     style: TextStyle(
-                      color: unit.isBase ? AppTheme.onPrimary : Colors.grey,
+                      color: unit.isBase ? colors.onPrimary : colors.onSurface.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                       fontFamily: 'monospace',
@@ -1094,8 +1104,8 @@ class _UnitCard extends StatelessWidget {
                     children: [
                       Text(
                         unit.jnsSatuan.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppTheme.grey,
+                        style: TextStyle(
+                          color: colors.onSurface.withValues(alpha: 0.45),
                           fontSize: 9,
                           letterSpacing: 1,
                           fontFamily: 'monospace',
@@ -1103,8 +1113,8 @@ class _UnitCard extends StatelessWidget {
                       ),
                       Text(
                         'Konversi: ${unit.konversi.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: colors.onSurface.withValues(alpha: 0.7),
                           fontSize: 11,
                         ),
                       ),
@@ -1118,14 +1128,14 @@ class _UnitCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.15),
+                      color: colors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.primary),
+                      border: Border.all(color: colors.primary),
                     ),
-                    child: const Text(
+                    child: Text(
                       'BASE',
                       style: TextStyle(
-                        color: AppTheme.primary,
+                        color: colors.primary,
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.5,
@@ -1139,15 +1149,15 @@ class _UnitCard extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 8),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppTheme.error.withValues(alpha: 0.1),
+                        color: colors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppTheme.error.withValues(alpha: 0.3),
+                          color: colors.error.withValues(alpha: 0.3),
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.delete_outline,
-                        color: AppTheme.error,
+                        color: colors.error,
                         size: 16,
                       ),
                     ),
@@ -1190,8 +1200,8 @@ class _UnitCard extends StatelessWidget {
                     value: 'Rp ${formatRp(unit.hargaJual)}',
                     highlight: true,
                     accent: unit.isBase
-                        ? AppTheme.primary
-                        : const Color(0xFFF39C12),
+                        ? colors.primary
+                        : colors.tertiary,
                   ),
                 ),
                 _InfoCell(
@@ -1202,7 +1212,7 @@ class _UnitCard extends StatelessWidget {
                   label: 'LABA',
                   value:
                       'Rp ${formatRp(unit.laba)} (${unit.labaPct.toStringAsFixed(1)}%)',
-                  accent: unit.laba >= 0 ? AppTheme.primary : AppTheme.error,
+                  accent: unit.laba >= 0 ? colors.primary : colors.error,
                 ),
               ],
             ),
@@ -1232,17 +1242,17 @@ class _InfoCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        accent ??
-        (highlight ? const Color(0xFFF39C12) : const Color(0xFFDDDDDD));
+    final colors = Theme.of(context).colorScheme;
+    final defaultAccent = highlight ? colors.tertiary : colors.onSurface.withValues(alpha: 0.87);
+    final color = accent ?? defaultAccent;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: colors.onSurface.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: highlight
-              ? (accent ?? const Color(0xFFF39C12)).withValues(alpha: 0.2)
+              ? (accent ?? colors.tertiary).withValues(alpha: 0.2)
               : Colors.transparent,
         ),
       ),
@@ -1252,8 +1262,8 @@ class _InfoCell extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppTheme.grey,
+            style: TextStyle(
+              color: colors.onSurface.withValues(alpha: 0.45),
               fontSize: 8,
               letterSpacing: 1,
               fontFamily: 'monospace',
@@ -1283,7 +1293,8 @@ class _InfoCell extends StatelessWidget {
 
 class _EditUnitSheet extends StatefulWidget {
   final _UnitItem unit;
-  const _EditUnitSheet({required this.unit});
+  final double baseHargaBeli;
+  const _EditUnitSheet({required this.unit, this.baseHargaBeli = 0});
 
   @override
   State<_EditUnitSheet> createState() => _EditUnitSheetState();
@@ -1304,6 +1315,17 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
     return pokok > 0 ? (_laba / pokok) * 100 : 0;
   }
 
+  void _onKonversiChanged() {
+    final konversi = double.tryParse(_konversiCtrl.text) ?? 0;
+    if (konversi > 0 && widget.baseHargaBeli > 0) {
+      final currentPokok = double.tryParse(_hargaPokokCtrl.text) ?? 0;
+      if (currentPokok <= 0) {
+        final auto = widget.baseHargaBeli * konversi;
+        _hargaPokokCtrl.text = auto.toStringAsFixed(2);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1322,6 +1344,14 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
           : '',
     );
 
+    if (widget.unit.hargaBeli <= 0 &&
+        widget.baseHargaBeli > 0 &&
+        widget.unit.konversi > 0) {
+      final auto = widget.baseHargaBeli * widget.unit.konversi;
+      _hargaPokokCtrl.text = auto.toStringAsFixed(2);
+    }
+
+    _konversiCtrl.addListener(_onKonversiChanged);
     for (final c in [_hargaPokokCtrl, _hargaJualCtrl]) {
       c.addListener(() => setState(() {}));
     }
@@ -1329,6 +1359,7 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
 
   @override
   void dispose() {
+    _konversiCtrl.removeListener(_onKonversiChanged);
     _namaCtrl.dispose();
     _konversiCtrl.dispose();
     _hargaPokokCtrl.dispose();
@@ -1348,14 +1379,15 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceContainerLow,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(
-          top: BorderSide(color: AppTheme.border),
-          left: BorderSide(color: AppTheme.border),
-          right: BorderSide(color: AppTheme.border),
+          top: BorderSide(color: colors.outline),
+          left: BorderSide(color: colors.outline),
+          right: BorderSide(color: colors.outline),
         ),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -1374,7 +1406,7 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
                 height: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF333333),
+                  color: colors.outline,
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -1382,12 +1414,12 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Edit Satuan',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: colors.onSurface,
                   ),
                 ),
                 Container(
@@ -1396,13 +1428,13 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primary,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     _namaCtrl.text,
-                    style: const TextStyle(
-                      color: AppTheme.onPrimary,
+                    style: TextStyle(
+                      color: colors.onPrimary,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'monospace',
                       fontSize: 13,
@@ -1423,25 +1455,25 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: _laba >= 0
-                    ? AppTheme.primary.withValues(alpha: 0.08)
-                    : AppTheme.error.withValues(alpha: 0.08),
+                    ? colors.primary.withValues(alpha: 0.08)
+                    : colors.error.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: (_laba >= 0 ? AppTheme.primary : AppTheme.error)
+                  color: (_laba >= 0 ? colors.primary : colors.error)
                       .withValues(alpha: 0.4),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Laba',
-                    style: TextStyle(color: AppTheme.grey, fontSize: 12),
+                    style: TextStyle(color: colors.onSurface.withValues(alpha: 0.45), fontSize: 12),
                   ),
                   Text(
                     'Rp ${formatRp(_laba)} (${_labaPct.toStringAsFixed(1)}%)',
                     style: TextStyle(
-                      color: _laba >= 0 ? AppTheme.primary : AppTheme.error,
+                      color: _laba >= 0 ? colors.primary : colors.error,
                       fontWeight: FontWeight.w800,
                       fontFamily: 'monospace',
                       fontSize: 14,
@@ -1457,17 +1489,17 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
               child: ElevatedButton(
                 onPressed: _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
+                  backgroundColor: colors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
+                child: Text(
                   'Simpan Satuan',
                   style: TextStyle(
-                    color: AppTheme.onPrimary,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -1486,6 +1518,7 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
     bool numeric = false,
     bool uppercase = false,
   }) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -1493,8 +1526,8 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
-              color: AppTheme.grey,
+            style: TextStyle(
+              color: colors.onSurface.withValues(alpha: 0.45),
               fontSize: 9,
               letterSpacing: 1.5,
               fontFamily: 'monospace',
@@ -1509,32 +1542,32 @@ class _EditUnitSheetState extends State<_EditUnitSheet> {
             textCapitalization: uppercase
                 ? TextCapitalization.characters
                 : TextCapitalization.none,
-            style: const TextStyle(color: Colors.white, fontSize: 15),
+            style: TextStyle(color: colors.onSurface, fontSize: 15),
             decoration: InputDecoration(
               filled: true,
-              fillColor: AppTheme.surface,
+              fillColor: colors.surfaceContainerLow,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 10,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppTheme.border,
+                borderSide: BorderSide(
+                  color: colors.outline,
                   width: 1.5,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppTheme.border,
+                borderSide: BorderSide(
+                  color: colors.outline,
                   width: 1.5,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppTheme.primary,
+                borderSide: BorderSide(
+                  color: colors.primary,
                   width: 1.5,
                 ),
               ),
@@ -1613,7 +1646,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
                       controller: _ctrl,
                       autofocus: true,
                       textCapitalization: TextCapitalization.characters,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Cari...',
                         prefixIcon: Icon(Icons.search),
                       ),
@@ -1648,8 +1681,8 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
                   final typed = _ctrl.text.trim().toUpperCase();
                   if (typed.isEmpty) return const SizedBox();
                   return ListTile(
-                    leading: const Icon(Icons.add_circle,
-                        color: AppTheme.primary),
+                    leading: Icon(Icons.add_circle,
+                        color: Theme.of(context).colorScheme.primary),
                     title: Text("Gunakan '$typed'"),
                     onTap: () {
                       debugPrint('[SearchPicker] select new="$typed"');

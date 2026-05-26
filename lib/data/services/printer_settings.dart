@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/di/injection.dart';
@@ -23,7 +24,10 @@ class PrinterSettings {
   String get url => prefs.getString(_keyUrl) ?? 'http://192.168.1.100:5000';
   set url(String v) => prefs.setString(_keyUrl, v);
 
-  bool get enabled => prefs.getBool(_keyEnabled) ?? false;
+  bool get enabled {
+    final defaultEnabled = (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+    return prefs.getBool(_keyEnabled) ?? defaultEnabled;
+  }
   set enabled(bool v) => prefs.setBool(_keyEnabled, v);
 
   bool get autoPrint => prefs.getBool(_keyAutoPrint) ?? true;

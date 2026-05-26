@@ -203,7 +203,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
                                 await widget.onAddNewProduct!(
                                   _searchController.text.trim(),
                                 );
-                                if (mounted) Navigator.pop(context);
+                                if (context.mounted) Navigator.pop(context);
                               },
                               icon: const Icon(Icons.add, size: 18),
                               label: const Text('Tambah Barang Baru'),

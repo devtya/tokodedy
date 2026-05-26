@@ -157,6 +157,12 @@ lib/
 - **Files**: `lib/data/repositories/hutang_piutang_repository_impl.dart`
 - **Date**: 2026-05-20
 
+### Bug: Produk — Freeze saat tambah produk di Desktop
+- **Root cause**: Penggunaan `bottomSheet` pada `Scaffold` di `ProdukFormPage` sering menyebabkan infinite layout pass (freeze UI) saat dijalankan di aplikasi Desktop.
+- **Fix**: Menghapus argumen `bottomSheet` dari `Scaffold` dan memindahkan `_buildBottomBar()` ke dalam struktur `Column` utama di body Scaffold tepat di bawah `Expanded(SingleChildScrollView)`. Padding bottom disesuaikan dari 120 menjadi 20.
+- **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
+- **Date**: 2026-05-25
+
 ## Features Log
 
 ### Fitur: Printer Bluetooth — Selektor tipe printer di Settings

@@ -261,6 +261,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     final barcode = await showBarcodeScannerDialog(context);
     if (barcode == null) return;
     final produk = await sl<GetProdukByBarcode>().call(barcode);
+    if (!mounted) return;
     if (produk == null) {
       final tambah = await showDialog<bool>(
         context: context,
@@ -283,6 +284,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       );
 
       if (tambah == true) {
+        if (!mounted) return;
         final produkBloc2 = sl<ProdukBloc>();
         final newId = await Navigator.push(
           context,
@@ -644,6 +646,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
     if (_pembelianId == null) {
       final allProduk = await sl<GetAllProduk>().call();
+      if (!mounted) return;
       final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
       final List<ItemPembelianForm> changedItems = [];
 
@@ -849,7 +852,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           }
           _pendingSaveItems = null;
           _pendingSaveSupplierId = null;
-          if (mounted) {
+          if (context.mounted && mounted) {
             setState(() => _forcePop = true);
             Navigator.pop(context);
           }
@@ -857,7 +860,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           _isSaving = false;
           _pendingSaveItems = null;
           _pendingSaveSupplierId = null;
-          if (mounted) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Gagal: ${state.message}'),
@@ -873,7 +876,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           if (didPop) return;
           final shouldPop = await _onWillPop();
           if (shouldPop) {
-            if (mounted) {
+            if (context.mounted && mounted) {
               setState(() => _forcePop = true);
               Navigator.pop(context);
             }
@@ -1713,8 +1716,6 @@ class _PriceValidationDialogState extends State<_PriceValidationDialog> {
                 itemBuilder: (context, index) {
                   final item = widget.changedItems[index];
                   final controller = _controllers[item.produkId]!;
-
-                  final isNaik = item.hargaBeliSatuan > item.hargaBeliLama;
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),

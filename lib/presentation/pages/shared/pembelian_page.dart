@@ -323,7 +323,11 @@ class _PembelianPageState extends State<PembelianPage> {
           child: PembelianFormPage(existingPembelianId: p.id),
         ),
       ),
-    ).then((_) => context.read<PembelianBloc>().add(LoadPembelian()));
+    ).then((_) {
+      if (mounted) {
+        context.read<PembelianBloc>().add(LoadPembelian());
+      }
+    });
   }
 
   @override
@@ -369,6 +373,7 @@ class _PembelianPageState extends State<PembelianPage> {
                 context,
                 MaterialPageRoute(builder: (_) => const PendingPembelianPage()),
               ).then((_) {
+                if (!context.mounted) return;
                 context.read<PembelianBloc>().add(LoadPembelian());
                 _loadPendingCount();
               });

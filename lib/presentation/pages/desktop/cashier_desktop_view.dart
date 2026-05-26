@@ -13,8 +13,8 @@ import '../../blocs/auth/auth_state.dart';
 import '../../blocs/cashier/cashier_bloc.dart';
 import '../../blocs/cashier/cashier_event.dart';
 import '../../blocs/cashier/cashier_state.dart';
-import '../../utils/dialog_utils.dart';
 import '../../../domain/usecases/transaksi/buat_transaksi.dart';
+import '../../widgets/qty_satuan_dialog.dart';
 
 class CashierDesktopView extends StatefulWidget {
   final CashierState state;
@@ -53,10 +53,7 @@ class CashierDesktopView extends StatefulWidget {
 
 class _CashierDesktopViewState extends State<CashierDesktopView> {
   final _barcodeCtrl = TextEditingController();
-  final _qtyCtrl = TextEditingController(text: '1');
-
   final _barcodeFocus = FocusNode();
-  final _qtyFocus = FocusNode();
   final ScrollController _cartScrollCtrl = ScrollController();
 
   List<Produk> _allProducts = [];
@@ -116,9 +113,7 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
   @override
   void dispose() {
     _barcodeCtrl.dispose();
-    _qtyCtrl.dispose();
     _barcodeFocus.dispose();
-    _qtyFocus.dispose();
     _cartScrollCtrl.dispose();
     super.dispose();
   }
@@ -160,11 +155,7 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
   }
 
   void _handleBarcodeSubmit(String value) {
-    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
-
     if (value.trim().isEmpty) {
-      // Pindah ke QTY
-      _qtyFocus.requestFocus();
       return;
     }
 
@@ -173,8 +164,7 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
         .where((p) => p.barcode == value.trim())
         .toList();
     if (exactMatch.isNotEmpty) {
-      _addToCart(exactMatch.first, qty);
-      _resetInput();
+      _addToCart(exactMatch.first);
       return;
     }
 
@@ -182,8 +172,7 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
     if (_filteredProducts.isNotEmpty &&
         _selectedIndex >= 0 &&
         _selectedIndex < _filteredProducts.length) {
-      _addToCart(_filteredProducts[_selectedIndex], qty);
-      _resetInput();
+      _addToCart(_filteredProducts[_selectedIndex]);
       return;
     }
 
@@ -193,14 +182,8 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
     ).showSnackBar(const SnackBar(content: Text('Produk tidak ditemukan')));
   }
 
-  void _handleQtySubmit(String value) {
-    // Pindah kembali ke barcode
-    _barcodeFocus.requestFocus();
-  }
-
   void _resetInput() {
     _barcodeCtrl.clear();
-    _qtyCtrl.text = '1';
     _filterProducts('');
 
     // Memberikan sedikit jeda sebelum request focus agar tidak di-override oleh event dialog
@@ -211,25 +194,27 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
     });
   }
 
-  void _addToCart(Produk produk, int qty) {
+  void _addToCart(Produk produk) {
     final pokok = _isKasir ? 0.0 : produk.hargaBeli;
 
-    DialogUtils.showPilihSatuanDialog(
+    showDialog(
       context: context,
-      produk: produk,
-      isPembelian: false,
-      onSelected: (id, nama, harga, satuanId, konversi) {
-        context.read<CashierBloc>().add(
-          AddToCart(
-            produkId: id,
-            namaProduk: nama,
-            hargaJual: harga,
-            hargaPokok: pokok,
-            jumlah: qty, // dari kolom QTY
-          ),
-        );
-        _resetInput();
-      },
+      builder: (ctx) => QtySatuanDialog(
+        produk: produk,
+        isPembelian: false,
+        onSelected: (qty, id, nama, harga, satuanId, konversi) {
+          context.read<CashierBloc>().add(
+            AddToCart(
+              produkId: id,
+              namaProduk: nama,
+              hargaJual: harga,
+              hargaPokok: pokok,
+              jumlah: qty,
+            ),
+          );
+          _resetInput();
+        },
+      ),
     );
   }
 
@@ -261,8 +246,9 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
                   if (widget.data.cart.isNotEmpty) widget.onShowHutangDialog();
                   break;
                 case 'END':
-                  if (widget.data.cart.isNotEmpty)
+                  if (widget.data.cart.isNotEmpty) {
                     widget.onShowBayarConfirmation(widget.data);
+                  }
                   break;
               }
               return null;
@@ -330,25 +316,11 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                SizedBox(
-                                  width: 80,
-                                  child: TextField(
-                                    controller: _qtyCtrl,
-                                    focusNode: _qtyFocus,
-                                    keyboardType: TextInputType.number,
-                                    textAlign: TextAlign.center,
-                                    decoration: const InputDecoration(
-                                      labelText: 'QTY',
-                                    ),
-                                    onSubmitted: _handleQtySubmit,
-                                  ),
-                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Kosongkan lalu Enter untuk pindah ke QTY. Panah Atas/Bawah untuk memilih dari daftar.',
+                              'Kosongkan lalu Enter. Panah Atas/Bawah untuk memilih dari daftar.',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Theme.of(
@@ -424,10 +396,7 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
                                   return InkWell(
                                     onTap: () {
                                       setState(() => _selectedIndex = index);
-                                      final qty =
-                                          int.tryParse(_qtyCtrl.text.trim()) ??
-                                          1;
-                                      _addToCart(p, qty);
+                                      _addToCart(p);
                                     },
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 8),

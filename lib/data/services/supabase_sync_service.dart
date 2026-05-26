@@ -55,6 +55,14 @@ class SupabaseSyncService {
     // Pastikan toko_id selalu ada
     data['toko_id'] = _tokoId;
 
+    // Inject timestamp agar proses pull() di device lain bisa mendeteksi perubahan
+    final now = DateTime.now().toUtc().toIso8601String();
+    if (_pullOrder.contains(tableName)) {
+      data['updated_at'] = now;
+    } else if (_appendOnlyTables.contains(tableName)) {
+      data['created_at'] ??= now;
+    }
+
     if (await isOnline) {
       try {
         await _supabase.from(tableName).upsert(data, onConflict: 'id');

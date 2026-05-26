@@ -274,15 +274,30 @@ class _ProdukPageState extends State<ProdukPage> {
   }
 
   void _openForm({Produk? produk}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<ProdukBloc>(),
-          child: ProdukFormPage(produk: produk),
-        ),
-      ),
+    final form = BlocProvider.value(
+      value: context.read<ProdukBloc>(),
+      child: ProdukFormPage(produk: produk),
     );
+
+    if (Platform.isWindows) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420, maxHeight: 900),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: form,
+            ),
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => form));
+    }
   }
 
   void _openStok(Produk produk) {
@@ -367,7 +382,7 @@ class _ProdukPageState extends State<ProdukPage> {
             onPressed: () async {
               final val = int.tryParse(controller.text) ?? 0;
               await sl<TokoService>().updateStokMinimumGlobal(val);
-              if (mounted) {
+              if (ctx.mounted && mounted) {
                 Navigator.pop(ctx);
                 setState(() {}); // Update the UI to reflect new minimum stock
               }

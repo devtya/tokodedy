@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
@@ -113,7 +114,9 @@ class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver
               navigatorKey: _navigatorKey,
               title: 'HendKasir',
               debugShowCheckedModeBanner: false,
-              themeMode: themeMode,
+              themeMode: (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+                  ? ThemeMode.light
+                  : themeMode,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               home: BlocBuilder<AuthBloc, AuthState>(

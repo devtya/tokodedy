@@ -51,7 +51,7 @@ class _CashierPageState extends State<CashierPage> {
   List<CartItem>? _lastCartItems;
   double _lastTotalBayar = 0;
   double _lastKembalian = 0;
-  bool _isPrinting = false;
+  final bool _isPrinting = false;
   bool _isProcessing = false;
 
   // Printer connection state
@@ -75,6 +75,7 @@ class _CashierPageState extends State<CashierPage> {
     if (_isProcessing) return;
     
     await _checkPrinterConnection();
+    if (!mounted) return;
     
     double localBayar = data.totalSetelahDiskon;
     final bayarCtrl = TextEditingController(text: localBayar.toStringAsFixed(0));
@@ -184,7 +185,7 @@ class _CashierPageState extends State<CashierPage> {
       _lastCartItems = List.from(data.cart);
       _lastTotalBayar = localBayar;
       _lastKembalian = localBayar - data.totalSetelahDiskon;
-      if (context.mounted) {
+      if (mounted) {
         context.read<CashierBloc>().add(BayarCashier());
       }
     }
@@ -209,74 +210,7 @@ class _CashierPageState extends State<CashierPage> {
     );
   }
 
-  Future<void> _printReceipt({
-    required String transaksiId,
-    required List<CartItem> cartItems,
-    required double totalBayar,
-    required double kembalian,
-    String metode = 'Tunai',
-  }) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final settings = sl<PrinterSettings>();
-    if (!settings.enabled) {
-      if (mounted) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Printer tidak aktif. Aktifkan di Pengaturan Printer.'),
-            backgroundColor: AppTheme.warningRed,
-          ),
-        );
-      }
-      return;
-    }
 
-    setState(() => _isPrinting = true);
-
-    try {
-      final generator = sl<ReceiptGenerator>();
-      final receipt = generator.fromTransaction(
-        transaksiId: transaksiId,
-        cartItems: cartItems,
-        totalBayar: totalBayar,
-        kembalian: kembalian,
-        metodePembayaran: metode,
-      );
-
-      final printer = sl<PrinterService>();
-      final success = await printer.printReceipt(receipt);
-
-      if (mounted) {
-        if (success) {
-          messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Nota berhasil dicetak'),
-              backgroundColor: AppTheme.primaryGreen,
-            ),
-          );
-        } else {
-          messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Gagal mencetak nota'),
-              backgroundColor: AppTheme.warningRed,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Error print: $e'),
-            backgroundColor: AppTheme.warningRed,
-          ),
-        );
-      }
-    }
-
-    if (mounted) {
-      setState(() => _isPrinting = false);
-    }
-  }
 
   Future<void> _checkPrinterConnection() async {
     setState(() => _checkingPrinter = true);
@@ -468,7 +402,7 @@ class _CashierPageState extends State<CashierPage> {
                                     settings.enabled = true;
                                     updatePrinterService();
                                     _printerConnected = true;
-                                    if (ctx.mounted) {
+                                    if (ctx.mounted && mounted) {
                                       Navigator.pop(ctx);
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
@@ -479,7 +413,7 @@ class _CashierPageState extends State<CashierPage> {
                                       );
                                     }
                                   } else {
-                                    if (ctx.mounted) {
+                                    if (ctx.mounted && mounted) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
@@ -593,6 +527,7 @@ class _CashierPageState extends State<CashierPage> {
         onLoadPending: (id) async {
           final repo = sl<PendingOrderRepository>();
           final items = await repo.getItemsByPendingId(id);
+          if (!mounted) return;
           context.read<CashierBloc>().add(
             LoadCartFromPending(
               items
@@ -844,17 +779,16 @@ class _CashierPageState extends State<CashierPage> {
                   ),
                 );
               }
+              if (!mounted) return;
               context.read<CashierBloc>().add(InitCashier());
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Pending disimpan untuk ${namaController.text.trim()}',
-                    ),
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Pending disimpan untuk ${namaController.text.trim()}',
                   ),
-                );
-                if (exitAfterSave) Navigator.pop(context);
-              }
+                ),
+              );
+              if (exitAfterSave) Navigator.pop(context);
             },
             child: const Text('Simpan'),
           ),
@@ -898,8 +832,7 @@ class _CashierPageState extends State<CashierPage> {
           if (context.mounted) {
             context.read<CashierBloc>().add(InitCashier());
           }
-        }
-        if (state is CashierError) {
+        } else if (state is CashierError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),

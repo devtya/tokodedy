@@ -75,15 +75,16 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
               try {
                 await _authRepo.updateUser(user.copyWith(nama: nama));
-                if (mounted) {
+                if (!mounted) return;
+
+                if (ctx.mounted) {
                   Navigator.pop(ctx);
-                  _loadUsers();
                 }
-                if (mounted) {
-                  context.read<AuthBloc>().add(CheckAuthStatus());
-                }
+                
+                _loadUsers();
+                context.read<AuthBloc>().add(CheckAuthStatus());
               } catch (e) {
-                if (mounted) {
+                if (ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
                     SnackBar(content: Text('Gagal: $e')),
                   );
