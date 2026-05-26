@@ -113,7 +113,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.4.5**
+Current: **1.4.6**
 
 ## Log Konvensi
 
@@ -122,6 +122,12 @@ Current: **1.4.5**
 > - Fitur: `### Fitur: <nama>` dengan deskripsi, cara pakai, files, date
 
 ## Bug Fixes Log
+
+### Bug: Infinite Layout Loop — Android freeze saat tap menu Stok
+- **Root cause**: `_buildHeader()` menggunakan `MediaQuery.of(context).padding.top` langsung di body Scaffold (Column), dan `_buildBottomBar()` menggunakan `MediaQuery.of(context).padding.bottom`. Saat keyboard muncul, `resizeToAvoidBottomInset` mengubah `MediaQuery` → rebuild seluruh subtree → Column resize → trigger rebuild loop → freeze/ANR.
+- **Fix**: Pindahkan header ke `_buildAppBar()` (AppBar widget), wrap bottom bar dengan `SafeArea` + fixed padding, tambah `resizeToAvoidBottomInset: true`.
+- **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
+- **Date**: 2026-05-27
 
 ### Bug: User Management — Admin dari toko lain terlihat
 - **Root cause**: `getAllUsers()` di `AuthRepositoryImpl` tidak filter by `tokoId`. `addUser()` hardcoded `tokoId: 1`.
