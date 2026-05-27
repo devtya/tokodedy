@@ -1037,15 +1037,17 @@ class _UnitCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: unit.isBase ? colors.primary : colors.outlineVariant,
+                    color: unit.isBase
+                        ? colors.primary
+                        : colors.secondaryContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    unit.nama,
+                    unit.nama.toUpperCase(),
                     style: TextStyle(
                       color: unit.isBase
                           ? colors.onPrimary
-                          : colors.onSurface.withValues(alpha: 0.6),
+                          : colors.onSecondaryContainer,
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                       fontFamily: 'monospace',
@@ -1204,12 +1206,12 @@ class _InfoCell extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: colors.onSurface.withValues(alpha: 0.03),
+        color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: highlight
-              ? (accent ?? colors.primary).withValues(alpha: 0.2)
-              : Colors.transparent,
+              ? (accent ?? colors.primary).withValues(alpha: 0.35)
+              : colors.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
