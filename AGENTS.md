@@ -75,6 +75,12 @@ lib/
 - No git repo initialized yet — `git init` required if committing
 - No `opencode.json` or other agent config files exist
 
+## Agent Behavior Rules
+
+- **Ambiguitas**: Jika perintah user ambigu atau kurang jelas, WAJIB tanya apa yang dimaksud. Bisa juga kasih rekomendasi opsi yang memungkinkan.
+- **Commit**: WAJIB selalu tanya konfirmasi sebelum melakukan commit. Jangan pernah commit tanpa persetujuan eksplisit.
+- **Sebelum ubah kode**: WAJIB konfirmasi ke user dan jelaskan alasan/kenapa kode tersebut perlu diubah sebelum melakukan perubahan. Sertakan juga dampak dari perubahan tersebut.
+
 ## Pembelian Pages Layout Rules (LOCKED — DO NOT CHANGE)
 
 ### PembelianPage (`pembelian_page.dart`)
@@ -113,7 +119,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.4.7**
+Current: **1.4.9**
 
 ## Log Konvensi
 
@@ -397,4 +403,10 @@ Current: **1.4.7**
 ### Refactor: Android-only — Hapus Semua Kode Desktop & Platform Branches
 - **Deskripsi**: Bersihkan semua kode desktop (DISCONTINUED). File desktop di-rename ke .dart.txt (referensi). Hapus semua `Platform.isWindows`, `dart:io` untuk Platform, dan `MediaQuery.of(context)` dari shared pages. Sederhanakan `main.dart` (themeMode), `printer_settings.dart` (defaultEnabled), dan hapus `_buildManualInput` dari `barcode_scanner_widget.dart`.
 - **Files**: `cashier_page.dart`, `pembelian_form_page.dart`, `produk_page.dart`, `home_page.dart`, `pembelian_page.dart`, `pending_dialog.dart`, `printer_settings_page.dart`, `printer_settings.dart`, `main.dart`, `barcode_scanner_widget.dart`, `desktop/*.dart` (rename ke .txt)
+- **Date**: 2026-05-27
+
+### Bug: Pembelian — Satuan konversi tidak tersimpan saat transaksi pembelian
+- **Root cause**: Saat melakukan transaksi pembelian dengan satuan konversi (seperti "pak"), datanya hilang karena tabel database lokal (`item_pembelian_table` dan `pending_pembelian_item_table`) serta sinkronisasi Supabase tidak memiliki kolom `satuan_id` dan `konversi`.
+- **Fix**: Menambahkan kolom `satuan_id` dan `konversi` pada database lokal via migrasi Drift (v17) dan menyesuaikan `SupabaseSyncService`. `PembelianRepositoryImpl` juga diperbarui untuk mengambil nama spesifik satuan konversi dari `satuan_produk` saat memuat riwayat pembelian.
+- **Files**: `app_database.dart`, `item_pembelian_table.dart`, `pending_pembelian_item_table.dart`, `pembelian_repository_impl.dart`, `pending_pembelian_repository_impl.dart`, `supabase_sync_service.dart`, `supabase_setup_v2.sql`
 - **Date**: 2026-05-27

@@ -80,6 +80,8 @@ class PembelianRepositoryImpl implements PembelianRepository {
             jumlah: Value(item.jumlah),
             hargaBeliSatuan: Value(item.hargaBeliSatuan),
             subtotal: Value(item.subtotal),
+            satuanId: Value(item.satuanId),
+            konversi: Value(item.konversi),
           ),
         );
 
@@ -92,6 +94,8 @@ class PembelianRepositoryImpl implements PembelianRepository {
       'jumlah': item.jumlah,
       'harga_beli_satuan': item.hargaBeliSatuan,
       'subtotal': item.subtotal,
+      'satuan_id': item.satuanId,
+      'konversi': item.konversi,
     });
   }
 
@@ -105,6 +109,10 @@ class PembelianRepositoryImpl implements PembelianRepository {
       innerJoin(
         _db.produkTable,
         _db.produkTable.id.equalsExp(_db.itemPembelianTable.produkId),
+      ),
+      leftOuterJoin(
+        _db.satuanProdukTable,
+        _db.satuanProdukTable.id.equalsExp(_db.itemPembelianTable.satuanId),
       ),
     ])
       ..where(_db.itemPembelianTable.produkId.equals(produkId) & _db.itemPembelianTable.tokoId.equals(_tokoId))
@@ -122,6 +130,8 @@ class PembelianRepositoryImpl implements PembelianRepository {
     final item = result.readTable(_db.itemPembelianTable);
     final pembelian = result.readTable(_db.pembelianTable);
     final produk = result.readTable(_db.produkTable);
+    final satuan = result.readTableOrNull(_db.satuanProdukTable);
+    final unitName = satuan?.nama ?? produk.satuan;
       return domain.Pembelian(
         id: pembelian.id,
         tokoId: pembelian.tokoId,
@@ -136,10 +146,12 @@ class PembelianRepositoryImpl implements PembelianRepository {
             tokoId: item.tokoId,
             pembelianId: item.pembelianId,
             produkId: item.produkId,
-            namaProduk: '${produk.nama} - ${produk.satuan}',
+            namaProduk: '${produk.nama} - $unitName',
             jumlah: item.jumlah,
             hargaBeliSatuan: item.hargaBeliSatuan,
             subtotal: item.subtotal,
+            satuanId: item.satuanId,
+            konversi: item.konversi,
           ),
         ],
       );
@@ -154,21 +166,29 @@ class PembelianRepositoryImpl implements PembelianRepository {
         _db.produkTable,
         _db.produkTable.id.equalsExp(_db.itemPembelianTable.produkId),
       ),
+      leftOuterJoin(
+        _db.satuanProdukTable,
+        _db.satuanProdukTable.id.equalsExp(_db.itemPembelianTable.satuanId),
+      ),
     ])..where(_db.itemPembelianTable.pembelianId.equals(pembelianId) & _db.itemPembelianTable.tokoId.equals(_tokoId));
 
     final result = await query.get();
     return result.map((row) {
       final item = row.readTable(_db.itemPembelianTable);
       final produk = row.readTable(_db.produkTable);
+      final satuan = row.readTableOrNull(_db.satuanProdukTable);
+      final unitName = satuan?.nama ?? produk.satuan;
       return domain.ItemPembelian(
         id: item.id,
         tokoId: item.tokoId,
         pembelianId: item.pembelianId,
         produkId: item.produkId,
-        namaProduk: '${produk.nama} - ${produk.satuan}',
+        namaProduk: '${produk.nama} - $unitName',
         jumlah: item.jumlah,
         hargaBeliSatuan: item.hargaBeliSatuan,
         subtotal: item.subtotal,
+        satuanId: item.satuanId,
+        konversi: item.konversi,
       );
     }).toList();
   }

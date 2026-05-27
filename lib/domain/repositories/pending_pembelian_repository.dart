@@ -18,6 +18,8 @@ class PendingPembelianItemData {
   final double hargaBeliLama;
   final int diskonTipe;
   final double diskonValue;
+  final String? satuanId;
+  final double konversi;
 
   const PendingPembelianItemData({
     this.id,
@@ -28,5 +30,7 @@ class PendingPembelianItemData {
     required this.hargaBeliLama,
     this.diskonTipe = 0,
     this.diskonValue = 0,
+    this.satuanId,
+    this.konversi = 1.0,
   });
 }

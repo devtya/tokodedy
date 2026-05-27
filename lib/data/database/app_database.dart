@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -95,6 +95,17 @@ class AppDatabase extends _$AppDatabase {
         } catch (_) {}
         try {
           await m.addColumn(tokoTable, tokoTable.stokMinimumGlobal);
+        } catch (_) {}
+      }
+
+      if (from < 17) {
+        try {
+          await m.addColumn(itemPembelianTable, itemPembelianTable.satuanId);
+          await m.addColumn(itemPembelianTable, itemPembelianTable.konversi);
+        } catch (_) {}
+        try {
+          await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.satuanId);
+          await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.konversi);
         } catch (_) {}
       }
     },

@@ -119,6 +119,8 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
             hargaBeliLama: item.hargaBeliLama,
             diskonTipe: item.diskonTipe,
             diskonValue: item.diskonValue,
+            satuanId: item.satuanId,
+            konversi: item.konversi,
           ),
         )
         .toList();
@@ -139,6 +141,8 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
             hargaBeliLama: Value(item.hargaBeliLama),
             diskonTipe: Value(item.diskonTipe),
             diskonValue: Value(item.diskonValue),
+            satuanId: Value(item.satuanId),
+            konversi: Value(item.konversi),
           ),
         );
 
@@ -154,6 +158,8 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
       'harga_beli_lama': item.hargaBeliLama,
       'diskon_tipe': item.diskonTipe,
       'diskon_value': item.diskonValue,
+      'satuan_id': item.satuanId,
+      'konversi': item.konversi,
     });
   }
 }

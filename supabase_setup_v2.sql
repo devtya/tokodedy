@@ -140,7 +140,9 @@ CREATE TABLE IF NOT EXISTS item_pembelian (
   produk_id         UUID NOT NULL REFERENCES produk(id) ON DELETE RESTRICT,
   jumlah            INTEGER NOT NULL DEFAULT 1,
   harga_beli_satuan NUMERIC(15,2) NOT NULL DEFAULT 0,
-  subtotal          NUMERIC(15,2) NOT NULL DEFAULT 0
+  subtotal          NUMERIC(15,2) NOT NULL DEFAULT 0,
+  satuan_id         UUID REFERENCES satuan_produk(id) ON DELETE SET NULL,
+  konversi          NUMERIC(15,4) NOT NULL DEFAULT 1
 );
 
 -- ============================================================
@@ -216,7 +218,9 @@ CREATE TABLE IF NOT EXISTS pending_pembelian_item (
   harga_beli_satuan    NUMERIC(15,2) NOT NULL DEFAULT 0,
   harga_beli_lama      NUMERIC(15,2) NOT NULL DEFAULT 0,
   diskon_tipe          INTEGER NOT NULL DEFAULT 0,
-  diskon_value         NUMERIC(15,2) NOT NULL DEFAULT 0
+  diskon_value         NUMERIC(15,2) NOT NULL DEFAULT 0,
+  satuan_id            UUID REFERENCES satuan_produk(id) ON DELETE SET NULL,
+  konversi             NUMERIC(15,4) NOT NULL DEFAULT 1
 );
 
 -- ============================================================
@@ -704,3 +708,16 @@ $$;
 -- UNION ALL SELECT 'pending_order', COUNT(*) FROM pending_order WHERE toko_id = 'a0ddbba2-e188-456d-a56c-0c32cef076a7'
 -- UNION ALL SELECT 'pending_pembelian', COUNT(*) FROM pending_pembelian WHERE toko_id = 'a0ddbba2-e188-456d-a56c-0c32cef076a7'
 -- ORDER BY tabel;
+
+-- ============================================================
+-- MIGRATION: Add satuan_id and konversi to pembelian items
+-- ============================================================
+ALTER TABLE item_pembelian ADD COLUMN IF NOT EXISTS satuan_id UUID REFERENCES satuan_produk(id) ON DELETE SET NULL;
+ALTER TABLE item_pembelian ADD COLUMN IF NOT EXISTS konversi NUMERIC(15,4) NOT NULL DEFAULT 1;
+
+ALTER TABLE pending_pembelian_item ADD COLUMN IF NOT EXISTS satuan_id UUID REFERENCES satuan_produk(id) ON DELETE SET NULL;
+ALTER TABLE pending_pembelian_item ADD COLUMN IF NOT EXISTS konversi NUMERIC(15,4) NOT NULL DEFAULT 1;
+
+-- Reload PostgREST schema cache agar kolom baru langsung dikenali
+NOTIFY pgrst, 'reload schema';
+

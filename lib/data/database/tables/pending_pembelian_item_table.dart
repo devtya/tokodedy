@@ -11,6 +11,8 @@ class PendingPembelianItemTable extends Table {
   RealColumn get hargaBeliLama     => real().withDefault(const Constant(0))();
   IntColumn get diskonTipe         => integer().withDefault(const Constant(0))();
   RealColumn get diskonValue       => real().withDefault(const Constant(0))();
+  TextColumn get satuanId          => text().nullable()();
+  RealColumn get konversi          => real().withDefault(const Constant(1.0))();
 
   @override
   Set<Column> get primaryKey => {id};

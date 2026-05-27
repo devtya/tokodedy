@@ -392,6 +392,8 @@ final Map<String, _Inserter> _inserters = {
       jumlah: Value(r['jumlah'] as int),
       hargaBeliSatuan: Value((r['harga_beli_satuan'] as num).toDouble()),
       subtotal: Value((r['subtotal'] as num).toDouble()),
+      satuanId: Value(r['satuan_id'] as String?),
+      konversi: Value((r['konversi'] as num? ?? 1.0).toDouble()),
     ));
   },
   'riwayat_stok': (db, r) async {
@@ -462,6 +464,8 @@ final Map<String, _Inserter> _inserters = {
       hargaBeliLama: Value((r['harga_beli_lama'] as num).toDouble()),
       diskonTipe: Value(r['diskon_tipe'] as int? ?? 0),
       diskonValue: Value((r['diskon_value'] as num? ?? 0).toDouble()),
+      satuanId: Value(r['satuan_id'] as String?),
+      konversi: Value((r['konversi'] as num? ?? 1.0).toDouble()),
     ));
   },
 };

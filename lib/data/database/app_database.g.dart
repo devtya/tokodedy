@@ -5455,6 +5455,29 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _satuanIdMeta = const VerificationMeta(
+    'satuanId',
+  );
+  @override
+  late final GeneratedColumn<String> satuanId = GeneratedColumn<String>(
+    'satuan_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _konversiMeta = const VerificationMeta(
+    'konversi',
+  );
+  @override
+  late final GeneratedColumn<double> konversi = GeneratedColumn<double>(
+    'konversi',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5464,6 +5487,8 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     jumlah,
     hargaBeliSatuan,
     subtotal,
+    satuanId,
+    konversi,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5530,6 +5555,18 @@ class $ItemPembelianTableTable extends ItemPembelianTable
         subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
       );
     }
+    if (data.containsKey('satuan_id')) {
+      context.handle(
+        _satuanIdMeta,
+        satuanId.isAcceptableOrUnknown(data['satuan_id']!, _satuanIdMeta),
+      );
+    }
+    if (data.containsKey('konversi')) {
+      context.handle(
+        _konversiMeta,
+        konversi.isAcceptableOrUnknown(data['konversi']!, _konversiMeta),
+      );
+    }
     return context;
   }
 
@@ -5567,6 +5604,14 @@ class $ItemPembelianTableTable extends ItemPembelianTable
         DriftSqlType.double,
         data['${effectivePrefix}subtotal'],
       )!,
+      satuanId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}satuan_id'],
+      ),
+      konversi: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}konversi'],
+      )!,
     );
   }
 
@@ -5585,6 +5630,8 @@ class ItemPembelianTableData extends DataClass
   final int jumlah;
   final double hargaBeliSatuan;
   final double subtotal;
+  final String? satuanId;
+  final double konversi;
   const ItemPembelianTableData({
     required this.id,
     required this.tokoId,
@@ -5593,6 +5640,8 @@ class ItemPembelianTableData extends DataClass
     required this.jumlah,
     required this.hargaBeliSatuan,
     required this.subtotal,
+    this.satuanId,
+    required this.konversi,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5604,6 +5653,10 @@ class ItemPembelianTableData extends DataClass
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_beli_satuan'] = Variable<double>(hargaBeliSatuan);
     map['subtotal'] = Variable<double>(subtotal);
+    if (!nullToAbsent || satuanId != null) {
+      map['satuan_id'] = Variable<String>(satuanId);
+    }
+    map['konversi'] = Variable<double>(konversi);
     return map;
   }
 
@@ -5616,6 +5669,10 @@ class ItemPembelianTableData extends DataClass
       jumlah: Value(jumlah),
       hargaBeliSatuan: Value(hargaBeliSatuan),
       subtotal: Value(subtotal),
+      satuanId: satuanId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(satuanId),
+      konversi: Value(konversi),
     );
   }
 
@@ -5632,6 +5689,8 @@ class ItemPembelianTableData extends DataClass
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaBeliSatuan: serializer.fromJson<double>(json['hargaBeliSatuan']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
+      satuanId: serializer.fromJson<String?>(json['satuanId']),
+      konversi: serializer.fromJson<double>(json['konversi']),
     );
   }
   @override
@@ -5645,6 +5704,8 @@ class ItemPembelianTableData extends DataClass
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaBeliSatuan': serializer.toJson<double>(hargaBeliSatuan),
       'subtotal': serializer.toJson<double>(subtotal),
+      'satuanId': serializer.toJson<String?>(satuanId),
+      'konversi': serializer.toJson<double>(konversi),
     };
   }
 
@@ -5656,6 +5717,8 @@ class ItemPembelianTableData extends DataClass
     int? jumlah,
     double? hargaBeliSatuan,
     double? subtotal,
+    Value<String?> satuanId = const Value.absent(),
+    double? konversi,
   }) => ItemPembelianTableData(
     id: id ?? this.id,
     tokoId: tokoId ?? this.tokoId,
@@ -5664,6 +5727,8 @@ class ItemPembelianTableData extends DataClass
     jumlah: jumlah ?? this.jumlah,
     hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
     subtotal: subtotal ?? this.subtotal,
+    satuanId: satuanId.present ? satuanId.value : this.satuanId,
+    konversi: konversi ?? this.konversi,
   );
   ItemPembelianTableData copyWithCompanion(ItemPembelianTableCompanion data) {
     return ItemPembelianTableData(
@@ -5678,6 +5743,8 @@ class ItemPembelianTableData extends DataClass
           ? data.hargaBeliSatuan.value
           : this.hargaBeliSatuan,
       subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      satuanId: data.satuanId.present ? data.satuanId.value : this.satuanId,
+      konversi: data.konversi.present ? data.konversi.value : this.konversi,
     );
   }
 
@@ -5690,7 +5757,9 @@ class ItemPembelianTableData extends DataClass
           ..write('produkId: $produkId, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi')
           ..write(')'))
         .toString();
   }
@@ -5704,6 +5773,8 @@ class ItemPembelianTableData extends DataClass
     jumlah,
     hargaBeliSatuan,
     subtotal,
+    satuanId,
+    konversi,
   );
   @override
   bool operator ==(Object other) =>
@@ -5715,7 +5786,9 @@ class ItemPembelianTableData extends DataClass
           other.produkId == this.produkId &&
           other.jumlah == this.jumlah &&
           other.hargaBeliSatuan == this.hargaBeliSatuan &&
-          other.subtotal == this.subtotal);
+          other.subtotal == this.subtotal &&
+          other.satuanId == this.satuanId &&
+          other.konversi == this.konversi);
 }
 
 class ItemPembelianTableCompanion
@@ -5727,6 +5800,8 @@ class ItemPembelianTableCompanion
   final Value<int> jumlah;
   final Value<double> hargaBeliSatuan;
   final Value<double> subtotal;
+  final Value<String?> satuanId;
+  final Value<double> konversi;
   final Value<int> rowid;
   const ItemPembelianTableCompanion({
     this.id = const Value.absent(),
@@ -5736,6 +5811,8 @@ class ItemPembelianTableCompanion
     this.jumlah = const Value.absent(),
     this.hargaBeliSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ItemPembelianTableCompanion.insert({
@@ -5746,6 +5823,8 @@ class ItemPembelianTableCompanion
     this.jumlah = const Value.absent(),
     this.hargaBeliSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        tokoId = Value(tokoId),
@@ -5759,6 +5838,8 @@ class ItemPembelianTableCompanion
     Expression<int>? jumlah,
     Expression<double>? hargaBeliSatuan,
     Expression<double>? subtotal,
+    Expression<String>? satuanId,
+    Expression<double>? konversi,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5769,6 +5850,8 @@ class ItemPembelianTableCompanion
       if (jumlah != null) 'jumlah': jumlah,
       if (hargaBeliSatuan != null) 'harga_beli_satuan': hargaBeliSatuan,
       if (subtotal != null) 'subtotal': subtotal,
+      if (satuanId != null) 'satuan_id': satuanId,
+      if (konversi != null) 'konversi': konversi,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5781,6 +5864,8 @@ class ItemPembelianTableCompanion
     Value<int>? jumlah,
     Value<double>? hargaBeliSatuan,
     Value<double>? subtotal,
+    Value<String?>? satuanId,
+    Value<double>? konversi,
     Value<int>? rowid,
   }) {
     return ItemPembelianTableCompanion(
@@ -5791,6 +5876,8 @@ class ItemPembelianTableCompanion
       jumlah: jumlah ?? this.jumlah,
       hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
       subtotal: subtotal ?? this.subtotal,
+      satuanId: satuanId ?? this.satuanId,
+      konversi: konversi ?? this.konversi,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5819,6 +5906,12 @@ class ItemPembelianTableCompanion
     if (subtotal.present) {
       map['subtotal'] = Variable<double>(subtotal.value);
     }
+    if (satuanId.present) {
+      map['satuan_id'] = Variable<String>(satuanId.value);
+    }
+    if (konversi.present) {
+      map['konversi'] = Variable<double>(konversi.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5835,6 +5928,8 @@ class ItemPembelianTableCompanion
           ..write('jumlah: $jumlah, ')
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
           ..write('subtotal: $subtotal, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7574,6 +7669,29 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _satuanIdMeta = const VerificationMeta(
+    'satuanId',
+  );
+  @override
+  late final GeneratedColumn<String> satuanId = GeneratedColumn<String>(
+    'satuan_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _konversiMeta = const VerificationMeta(
+    'konversi',
+  );
+  @override
+  late final GeneratedColumn<double> konversi = GeneratedColumn<double>(
+    'konversi',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -7586,6 +7704,8 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
     hargaBeliLama,
     diskonTipe,
     diskonValue,
+    satuanId,
+    konversi,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7678,6 +7798,18 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
         ),
       );
     }
+    if (data.containsKey('satuan_id')) {
+      context.handle(
+        _satuanIdMeta,
+        satuanId.isAcceptableOrUnknown(data['satuan_id']!, _satuanIdMeta),
+      );
+    }
+    if (data.containsKey('konversi')) {
+      context.handle(
+        _konversiMeta,
+        konversi.isAcceptableOrUnknown(data['konversi']!, _konversiMeta),
+      );
+    }
     return context;
   }
 
@@ -7730,6 +7862,14 @@ class $PendingPembelianItemTableTable extends PendingPembelianItemTable
         DriftSqlType.double,
         data['${effectivePrefix}diskon_value'],
       )!,
+      satuanId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}satuan_id'],
+      ),
+      konversi: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}konversi'],
+      )!,
     );
   }
 
@@ -7751,6 +7891,8 @@ class PendingPembelianItemTableData extends DataClass
   final double hargaBeliLama;
   final int diskonTipe;
   final double diskonValue;
+  final String? satuanId;
+  final double konversi;
   const PendingPembelianItemTableData({
     required this.id,
     required this.tokoId,
@@ -7762,6 +7904,8 @@ class PendingPembelianItemTableData extends DataClass
     required this.hargaBeliLama,
     required this.diskonTipe,
     required this.diskonValue,
+    this.satuanId,
+    required this.konversi,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7776,6 +7920,10 @@ class PendingPembelianItemTableData extends DataClass
     map['harga_beli_lama'] = Variable<double>(hargaBeliLama);
     map['diskon_tipe'] = Variable<int>(diskonTipe);
     map['diskon_value'] = Variable<double>(diskonValue);
+    if (!nullToAbsent || satuanId != null) {
+      map['satuan_id'] = Variable<String>(satuanId);
+    }
+    map['konversi'] = Variable<double>(konversi);
     return map;
   }
 
@@ -7791,6 +7939,10 @@ class PendingPembelianItemTableData extends DataClass
       hargaBeliLama: Value(hargaBeliLama),
       diskonTipe: Value(diskonTipe),
       diskonValue: Value(diskonValue),
+      satuanId: satuanId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(satuanId),
+      konversi: Value(konversi),
     );
   }
 
@@ -7812,6 +7964,8 @@ class PendingPembelianItemTableData extends DataClass
       hargaBeliLama: serializer.fromJson<double>(json['hargaBeliLama']),
       diskonTipe: serializer.fromJson<int>(json['diskonTipe']),
       diskonValue: serializer.fromJson<double>(json['diskonValue']),
+      satuanId: serializer.fromJson<String?>(json['satuanId']),
+      konversi: serializer.fromJson<double>(json['konversi']),
     );
   }
   @override
@@ -7828,6 +7982,8 @@ class PendingPembelianItemTableData extends DataClass
       'hargaBeliLama': serializer.toJson<double>(hargaBeliLama),
       'diskonTipe': serializer.toJson<int>(diskonTipe),
       'diskonValue': serializer.toJson<double>(diskonValue),
+      'satuanId': serializer.toJson<String?>(satuanId),
+      'konversi': serializer.toJson<double>(konversi),
     };
   }
 
@@ -7842,6 +7998,8 @@ class PendingPembelianItemTableData extends DataClass
     double? hargaBeliLama,
     int? diskonTipe,
     double? diskonValue,
+    Value<String?> satuanId = const Value.absent(),
+    double? konversi,
   }) => PendingPembelianItemTableData(
     id: id ?? this.id,
     tokoId: tokoId ?? this.tokoId,
@@ -7853,6 +8011,8 @@ class PendingPembelianItemTableData extends DataClass
     hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,
     diskonTipe: diskonTipe ?? this.diskonTipe,
     diskonValue: diskonValue ?? this.diskonValue,
+    satuanId: satuanId.present ? satuanId.value : this.satuanId,
+    konversi: konversi ?? this.konversi,
   );
   PendingPembelianItemTableData copyWithCompanion(
     PendingPembelianItemTableCompanion data,
@@ -7880,6 +8040,8 @@ class PendingPembelianItemTableData extends DataClass
       diskonValue: data.diskonValue.present
           ? data.diskonValue.value
           : this.diskonValue,
+      satuanId: data.satuanId.present ? data.satuanId.value : this.satuanId,
+      konversi: data.konversi.present ? data.konversi.value : this.konversi,
     );
   }
 
@@ -7895,7 +8057,9 @@ class PendingPembelianItemTableData extends DataClass
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
           ..write('hargaBeliLama: $hargaBeliLama, ')
           ..write('diskonTipe: $diskonTipe, ')
-          ..write('diskonValue: $diskonValue')
+          ..write('diskonValue: $diskonValue, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi')
           ..write(')'))
         .toString();
   }
@@ -7912,6 +8076,8 @@ class PendingPembelianItemTableData extends DataClass
     hargaBeliLama,
     diskonTipe,
     diskonValue,
+    satuanId,
+    konversi,
   );
   @override
   bool operator ==(Object other) =>
@@ -7926,7 +8092,9 @@ class PendingPembelianItemTableData extends DataClass
           other.hargaBeliSatuan == this.hargaBeliSatuan &&
           other.hargaBeliLama == this.hargaBeliLama &&
           other.diskonTipe == this.diskonTipe &&
-          other.diskonValue == this.diskonValue);
+          other.diskonValue == this.diskonValue &&
+          other.satuanId == this.satuanId &&
+          other.konversi == this.konversi);
 }
 
 class PendingPembelianItemTableCompanion
@@ -7941,6 +8109,8 @@ class PendingPembelianItemTableCompanion
   final Value<double> hargaBeliLama;
   final Value<int> diskonTipe;
   final Value<double> diskonValue;
+  final Value<String?> satuanId;
+  final Value<double> konversi;
   final Value<int> rowid;
   const PendingPembelianItemTableCompanion({
     this.id = const Value.absent(),
@@ -7953,6 +8123,8 @@ class PendingPembelianItemTableCompanion
     this.hargaBeliLama = const Value.absent(),
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PendingPembelianItemTableCompanion.insert({
@@ -7966,6 +8138,8 @@ class PendingPembelianItemTableCompanion
     this.hargaBeliLama = const Value.absent(),
     this.diskonTipe = const Value.absent(),
     this.diskonValue = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        tokoId = Value(tokoId),
@@ -7983,6 +8157,8 @@ class PendingPembelianItemTableCompanion
     Expression<double>? hargaBeliLama,
     Expression<int>? diskonTipe,
     Expression<double>? diskonValue,
+    Expression<String>? satuanId,
+    Expression<double>? konversi,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7997,6 +8173,8 @@ class PendingPembelianItemTableCompanion
       if (hargaBeliLama != null) 'harga_beli_lama': hargaBeliLama,
       if (diskonTipe != null) 'diskon_tipe': diskonTipe,
       if (diskonValue != null) 'diskon_value': diskonValue,
+      if (satuanId != null) 'satuan_id': satuanId,
+      if (konversi != null) 'konversi': konversi,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8012,6 +8190,8 @@ class PendingPembelianItemTableCompanion
     Value<double>? hargaBeliLama,
     Value<int>? diskonTipe,
     Value<double>? diskonValue,
+    Value<String?>? satuanId,
+    Value<double>? konversi,
     Value<int>? rowid,
   }) {
     return PendingPembelianItemTableCompanion(
@@ -8025,6 +8205,8 @@ class PendingPembelianItemTableCompanion
       hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,
       diskonTipe: diskonTipe ?? this.diskonTipe,
       diskonValue: diskonValue ?? this.diskonValue,
+      satuanId: satuanId ?? this.satuanId,
+      konversi: konversi ?? this.konversi,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8062,6 +8244,12 @@ class PendingPembelianItemTableCompanion
     if (diskonValue.present) {
       map['diskon_value'] = Variable<double>(diskonValue.value);
     }
+    if (satuanId.present) {
+      map['satuan_id'] = Variable<String>(satuanId.value);
+    }
+    if (konversi.present) {
+      map['konversi'] = Variable<double>(konversi.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8081,6 +8269,8 @@ class PendingPembelianItemTableCompanion
           ..write('hargaBeliLama: $hargaBeliLama, ')
           ..write('diskonTipe: $diskonTipe, ')
           ..write('diskonValue: $diskonValue, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12408,6 +12598,8 @@ typedef $$ItemPembelianTableTableCreateCompanionBuilder =
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> subtotal,
+      Value<String?> satuanId,
+      Value<double> konversi,
       Value<int> rowid,
     });
 typedef $$ItemPembelianTableTableUpdateCompanionBuilder =
@@ -12419,6 +12611,8 @@ typedef $$ItemPembelianTableTableUpdateCompanionBuilder =
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> subtotal,
+      Value<String?> satuanId,
+      Value<double> konversi,
       Value<int> rowid,
     });
 
@@ -12463,6 +12657,16 @@ class $$ItemPembelianTableTableFilterComposer
 
   ColumnFilters<double> get subtotal => $composableBuilder(
     column: $table.subtotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get satuanId => $composableBuilder(
+    column: $table.satuanId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get konversi => $composableBuilder(
+    column: $table.konversi,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -12510,6 +12714,16 @@ class $$ItemPembelianTableTableOrderingComposer
     column: $table.subtotal,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get satuanId => $composableBuilder(
+    column: $table.satuanId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get konversi => $composableBuilder(
+    column: $table.konversi,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ItemPembelianTableTableAnnotationComposer
@@ -12545,6 +12759,12 @@ class $$ItemPembelianTableTableAnnotationComposer
 
   GeneratedColumn<double> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumn<String> get satuanId =>
+      $composableBuilder(column: $table.satuanId, builder: (column) => column);
+
+  GeneratedColumn<double> get konversi =>
+      $composableBuilder(column: $table.konversi, builder: (column) => column);
 }
 
 class $$ItemPembelianTableTableTableManager
@@ -12594,6 +12814,8 @@ class $$ItemPembelianTableTableTableManager
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemPembelianTableCompanion(
                 id: id,
@@ -12603,6 +12825,8 @@ class $$ItemPembelianTableTableTableManager
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
+                satuanId: satuanId,
+                konversi: konversi,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12614,6 +12838,8 @@ class $$ItemPembelianTableTableTableManager
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemPembelianTableCompanion.insert(
                 id: id,
@@ -12623,6 +12849,8 @@ class $$ItemPembelianTableTableTableManager
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
+                satuanId: satuanId,
+                konversi: konversi,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13531,6 +13759,8 @@ typedef $$PendingPembelianItemTableTableCreateCompanionBuilder =
       Value<double> hargaBeliLama,
       Value<int> diskonTipe,
       Value<double> diskonValue,
+      Value<String?> satuanId,
+      Value<double> konversi,
       Value<int> rowid,
     });
 typedef $$PendingPembelianItemTableTableUpdateCompanionBuilder =
@@ -13545,6 +13775,8 @@ typedef $$PendingPembelianItemTableTableUpdateCompanionBuilder =
       Value<double> hargaBeliLama,
       Value<int> diskonTipe,
       Value<double> diskonValue,
+      Value<String?> satuanId,
+      Value<double> konversi,
       Value<int> rowid,
     });
 
@@ -13604,6 +13836,16 @@ class $$PendingPembelianItemTableTableFilterComposer
 
   ColumnFilters<double> get diskonValue => $composableBuilder(
     column: $table.diskonValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get satuanId => $composableBuilder(
+    column: $table.satuanId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get konversi => $composableBuilder(
+    column: $table.konversi,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -13666,6 +13908,16 @@ class $$PendingPembelianItemTableTableOrderingComposer
     column: $table.diskonValue,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get satuanId => $composableBuilder(
+    column: $table.satuanId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get konversi => $composableBuilder(
+    column: $table.konversi,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PendingPembelianItemTableTableAnnotationComposer
@@ -13718,6 +13970,12 @@ class $$PendingPembelianItemTableTableAnnotationComposer
     column: $table.diskonValue,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get satuanId =>
+      $composableBuilder(column: $table.satuanId, builder: (column) => column);
+
+  GeneratedColumn<double> get konversi =>
+      $composableBuilder(column: $table.konversi, builder: (column) => column);
 }
 
 class $$PendingPembelianItemTableTableTableManager
@@ -13776,6 +14034,8 @@ class $$PendingPembelianItemTableTableTableManager
                 Value<double> hargaBeliLama = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PendingPembelianItemTableCompanion(
                 id: id,
@@ -13788,6 +14048,8 @@ class $$PendingPembelianItemTableTableTableManager
                 hargaBeliLama: hargaBeliLama,
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
+                satuanId: satuanId,
+                konversi: konversi,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -13802,6 +14064,8 @@ class $$PendingPembelianItemTableTableTableManager
                 Value<double> hargaBeliLama = const Value.absent(),
                 Value<int> diskonTipe = const Value.absent(),
                 Value<double> diskonValue = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PendingPembelianItemTableCompanion.insert(
                 id: id,
@@ -13814,6 +14078,8 @@ class $$PendingPembelianItemTableTableTableManager
                 hargaBeliLama: hargaBeliLama,
                 diskonTipe: diskonTipe,
                 diskonValue: diskonValue,
+                satuanId: satuanId,
+                konversi: konversi,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
