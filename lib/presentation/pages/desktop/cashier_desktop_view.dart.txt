@@ -1,3 +1,7 @@
+// DISCONTINUED — Desktop platform tidak lagi didukung.
+// Seluruh kode dialihkan ke mobile (Android).
+// File ini dipertahankan untuk referensi saja.
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -293,8 +297,9 @@ class _CashierDesktopViewState extends State<CashierDesktopView> {
                                           if (_selectedIndex > 0) {
                                             setState(() => _selectedIndex--);
                                           }
-                                        }
-                                      }
+  }
+}
+//
                                     },
                                     child: TextField(
                                       controller: _barcodeCtrl,

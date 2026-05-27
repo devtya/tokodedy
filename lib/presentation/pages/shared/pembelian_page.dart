@@ -70,7 +70,7 @@ class _PembelianPageState extends State<PembelianPage> {
             return Container(
               padding: const EdgeInsets.all(16),
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxHeight: 600,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

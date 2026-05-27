@@ -48,7 +48,7 @@ class _PendingDialogState extends State<PendingDialog> {
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
+        width: 400,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

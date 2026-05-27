@@ -1,3 +1,7 @@
+// DISCONTINUED — Desktop platform tidak lagi didukung.
+// Seluruh kode dialihkan ke mobile (Android).
+// File ini dipertahankan untuk referensi saja.
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -85,8 +89,9 @@ class _PembelianDesktopViewState extends State<PembelianDesktopView> {
       }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
-    }
   }
+}
+//
 
   void _filterProducts(String query) {
     if (query.isEmpty) {

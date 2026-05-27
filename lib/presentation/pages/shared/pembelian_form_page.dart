@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../desktop/pembelian_desktop_view.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/barcode_scanner_widget.dart';
 
@@ -882,58 +880,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             }
           }
         },
-        child: Platform.isWindows 
-            ? PembelianDesktopView(
-                items: _items,
-                selectedSupplier: _selectedSupplier,
-                isSaving: _isSaving,
-                onOpenCariProduk: _openCariProduk,
-                onOpenScanner: _openScanner,
-                onShowDiskonDialog: _showDiskonDialog,
-                onShowEditItemDialog: _showEditItemDialog,
-                onDeleteItem: (index) {
-                  setState(() => _items.removeAt(index));
-                },
-                onSave: _submit,
-                onSelectSupplier: _pilihSupplier,
-                onAddToCart: (produk, qty) {
-                  DialogUtils.showPilihSatuanDialog(
-                    context: context,
-                    produk: produk,
-                    isPembelian: true,
-                    onSelected: (id, nama, harga, satuanId, konversi) {
-                      setState(() {
-                        final existing = _items.indexWhere(
-                          (i) => i.produkId == id && i.satuanId == satuanId,
-                        );
-                        if (existing != -1) {
-                          final existingItem = _items[existing];
-                          final newJumlah = existingItem.jumlah + qty;
-                          _items[existing] = existingItem.copyWith(
-                            jumlah: newJumlah,
-                            totalHarga: newJumlah * existingItem.hargaBeliSatuan,
-                          );
-                        } else {
-                          _items.add(
-                            ItemPembelianForm(
-                              produkId: id,
-                              namaProduk: nama,
-                              jumlah: qty,
-                              hargaBeliSatuan: harga,
-                              hargaBeliLama: harga,
-                              totalHarga: qty * harga,
-                              satuanId: satuanId,
-                              konversi: konversi,
-                            ),
-                          );
-                        }
-                      });
-                    },
-                  );
-                },
-                totalSetelahDiskon: _totalFinal,
-              )
-            : Scaffold(
+        child: Scaffold(
                 appBar: AppBar(
           title: Text(_pembelianId != null ? 'Edit Pembelian' : 'Pembelian Baru'),
           actions: [

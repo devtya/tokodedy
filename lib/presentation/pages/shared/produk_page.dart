@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../widgets/barcode_scanner_widget.dart';
 
@@ -235,28 +234,7 @@ class _ProdukPageState extends State<ProdukPage> {
 
     return RefreshIndicator(
       onRefresh: _loadProducts,
-      child: Platform.isWindows
-          ? GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 120,
-              ),
-              itemCount: _filteredProducts.length,
-              itemBuilder: (context, index) {
-                final produk = _filteredProducts[index];
-                return ProdukCard(
-                  produk: produk,
-                  onTap: isAdmin ? () => _openForm(produk: produk) : null,
-                  onStockTap: isAdmin ? () => _openStok(produk) : null,
-                  onDelete: isAdmin ? () => _confirmDelete(produk.id!) : null,
-                  onLogTap: () => _showProdukLog(produk, isAdmin),
-                );
-              },
-            )
-          : ListView.builder(
+      child: ListView.builder(
               padding: const EdgeInsets.only(bottom: 80),
               itemCount: _filteredProducts.length,
               itemBuilder: (context, index) {
@@ -279,25 +257,7 @@ class _ProdukPageState extends State<ProdukPage> {
       child: ProdukFormPage(produk: produk),
     );
 
-    if (Platform.isWindows) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420, maxHeight: 900),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: form,
-            ),
-          ),
-        ),
-      );
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => form));
-    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => form));
   }
 
   void _openStok(Produk produk) {

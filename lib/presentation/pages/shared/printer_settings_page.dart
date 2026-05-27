@@ -1,6 +1,4 @@
 // ignore_for_file: deprecated_member_use
-import 'dart:io';
-
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -60,7 +58,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   }
 
   Future<bool> _requestBluetoothPermissions() async {
-    if (!Platform.isAndroid) return true;
     try {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
       if (androidInfo.version.sdkInt >= 31) {

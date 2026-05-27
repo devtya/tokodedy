@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +27,6 @@ import '../../utils/dialog_utils.dart';
 import '../../widgets/cari_produk_dialog.dart';
 import '../../widgets/pending_dialog.dart';
 import 'transaksi_page.dart';
-import '../desktop/cashier_desktop_view.dart';
 import 'share_receipt_page.dart';
 
 class CashierPage extends StatefulWidget {
@@ -232,7 +229,6 @@ class _CashierPageState extends State<CashierPage> {
   }
 
   Future<bool> _requestBluetoothPermissions() async {
-    if (!Platform.isAndroid) return true;
     try {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
       if (androidInfo.version.sdkInt >= 31) {
@@ -861,7 +857,7 @@ class _CashierPageState extends State<CashierPage> {
             }
           },
           child: Scaffold(
-            appBar: Platform.isWindows ? null : AppBar(
+            appBar: AppBar(
               title: const Text('Kasir'),
               actions: [
                 _checkingPrinter
@@ -904,23 +900,6 @@ class _CashierPageState extends State<CashierPage> {
               }
 
               final data = _resolveCashierData(state);
-
-              if (Platform.isWindows) {
-                return CashierDesktopView(
-                  state: state,
-                  data: data,
-                  bayarController: _bayarController,
-                  isPrinting: _isPrinting,
-                  onOpenCariProduk: _openCariProduk,
-                  onOpenScanner: _openScanner,
-                  onOpenPendingDialog: _openPendingDialog,
-                  onShowDiskonDialog: _showDiskonDialog,
-                  onShowEditJumlahDialog: _showEditJumlahDialog,
-                  onShowHutangDialog: _showHutangDialog,
-                  onSavePending: _savePending,
-                  onShowBayarConfirmation: _showBayarConfirmation,
-                );
-              }
 
               return Column(
                 children: [

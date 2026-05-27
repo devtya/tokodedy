@@ -1,41 +1,13 @@
+// DISCONTINUED — Desktop platform tidak lagi didukung.
+// Seluruh kode dialihkan ke mobile (Android).
+// File ini dipertahankan untuk referensi saja.
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hend_kasir/core/services/toko_service.dart';
 import 'package:hend_kasir/presentation/blocs/cashier/cashier_event.dart';
 import 'package:hend_kasir/presentation/blocs/cashier/cashier_state.dart';
 import 'package:intl/intl.dart';
-
-import '../../../core/di/injection.dart';
-import '../shared/login_page.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../domain/entities/user.dart';
-import '../../../domain/repositories/auth_repository.dart';
-import '../../blocs/auth/auth_bloc.dart';
-import '../../blocs/auth/auth_event.dart';
-import '../../blocs/auth/auth_state.dart';
-import '../../blocs/cashier/cashier_bloc.dart';
-import '../../blocs/hutang/hutang_bloc.dart';
-import '../../blocs/laporan/laporan_bloc.dart';
-import '../../blocs/notifikasi/notifikasi_bloc.dart';
-import '../../blocs/notifikasi/notifikasi_event.dart';
-import '../../blocs/notifikasi/notifikasi_state.dart';
-import '../../blocs/pembelian/pembelian_bloc.dart';
-import '../../blocs/produk/produk_bloc.dart';
-import '../../blocs/supplier/supplier_bloc.dart';
-import '../../blocs/transaksi/transaksi_bloc.dart';
-import '../../blocs/dashboard/dashboard_bloc.dart';
-import '../../blocs/dashboard/dashboard_event.dart';
-import '../../blocs/dashboard/dashboard_state.dart';
-import '../shared/cashier_page.dart';
-import '../shared/hutang_page.dart';
-import '../shared/laporan_page.dart';
-import '../shared/notifikasi_page.dart';
-import '../shared/pembelian_page.dart';
-import '../shared/produk_page.dart';
-import '../shared/settings_page.dart';
-import '../shared/supplier_page.dart';
-import '../shared/transaksi_page.dart';
-import '../shared/user_management_page.dart';
 
 class _NavItem {
   final IconData icon;
@@ -212,9 +184,10 @@ class _HomeDesktopViewState extends State<_HomeDesktopView> {
                 if (ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
                     SnackBar(content: Text('Gagal menyimpan: $e')),
-                  );
-                }
-              }
+    );
+  }
+}
+//
             },
             child: const Text('Simpan'),
           ),

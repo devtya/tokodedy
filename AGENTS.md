@@ -113,7 +113,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.4.6**
+Current: **1.4.7**
 
 ## Log Konvensi
 
@@ -392,4 +392,9 @@ Current: **1.4.6**
 - **Deskripsi**: Setiap perubahan nilai konversi pada multi-satuan akan otomatis mengubah harga beli satuan dasar secara real-time.
 - **Cara pakai**: Edit nilai konversi satuan di form produk → harga beli satuan dasar otomatis menyesuaikan.
 - **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
+- **Date**: 2026-05-27
+
+### Refactor: Android-only — Hapus Semua Kode Desktop & Platform Branches
+- **Deskripsi**: Bersihkan semua kode desktop (DISCONTINUED). File desktop di-rename ke .dart.txt (referensi). Hapus semua `Platform.isWindows`, `dart:io` untuk Platform, dan `MediaQuery.of(context)` dari shared pages. Sederhanakan `main.dart` (themeMode), `printer_settings.dart` (defaultEnabled), dan hapus `_buildManualInput` dari `barcode_scanner_widget.dart`.
+- **Files**: `cashier_page.dart`, `pembelian_form_page.dart`, `produk_page.dart`, `home_page.dart`, `pembelian_page.dart`, `pending_dialog.dart`, `printer_settings_page.dart`, `printer_settings.dart`, `main.dart`, `barcode_scanner_widget.dart`, `desktop/*.dart` (rename ke .txt)
 - **Date**: 2026-05-27
