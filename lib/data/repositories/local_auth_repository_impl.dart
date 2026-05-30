@@ -130,14 +130,19 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
   @override
   Future<bool> authenticateWithBiometrics() async {
     try {
+      final available = await _localAuth.canCheckBiometrics ||
+          await _localAuth.isDeviceSupported();
+      if (!available) return false;
+
       return await _localAuth.authenticate(
-        localizedReason: 'Verifikasi sidik jari untuk masuk',
+        localizedReason: 'Tempelkan sidik jari untuk verifikasi',
         options: const AuthenticationOptions(
-          biometricOnly: true,
+          biometricOnly: false,
           stickyAuth: true,
+          useErrorDialogs: true,
         ),
       );
-    } catch (_) {
+    } catch (e) {
       return false;
     }
   }

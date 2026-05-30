@@ -65,9 +65,6 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
             if (state.isLockedOut) {
               setState(() => _error = 'Terlalu banyak percobaan. Tunggu 30 detik.');
             }
-            if (state.biometricEnabled) {
-              _biometricLogin();
-            }
           } else if (state is PinNotSet) {
             widget.onSkip();
           }
