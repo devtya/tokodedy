@@ -2,11 +2,9 @@ package com.example.hend_kasir
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "hend_kasir/bluetooth"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

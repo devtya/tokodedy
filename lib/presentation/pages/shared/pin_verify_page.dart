@@ -25,6 +25,7 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
   final _pinController = TextEditingController();
   final _pinFocusNode = FocusNode();
   String _error = '';
+  bool _hasAutoTriggered = false;
 
   @override
   void initState() {
@@ -64,6 +65,10 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
           } else if (state is PinReady) {
             if (state.isLockedOut) {
               setState(() => _error = 'Terlalu banyak percobaan. Tunggu 30 detik.');
+            }
+            if (state.biometricEnabled && !_hasAutoTriggered) {
+              _hasAutoTriggered = true;
+              _biometricLogin();
             }
           } else if (state is PinNotSet) {
             widget.onSkip();
