@@ -704,8 +704,8 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                               SizedBox(
                                 width: 90,
                                 child: _QuickActionCard(
-                                  icon: Icons.add_box,
-                                  label: 'STOK',
+                                  icon: Icons.inventory_2,
+                                  label: 'PRODUK',
                                   color: Colors.blue,
                                   onTap: () {
                                     _navigateAndReload(
