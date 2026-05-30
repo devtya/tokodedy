@@ -330,6 +330,14 @@ CREATE TRIGGER set_updated_at_transaksi      BEFORE UPDATE ON transaksi      FOR
 CREATE TRIGGER set_updated_at_hutang_piutang BEFORE UPDATE ON hutang_piutang FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER set_updated_at_pembelian      BEFORE UPDATE ON pembelian      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER set_updated_at_supplier_products BEFORE UPDATE ON supplier_products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER set_updated_at_pending_order      BEFORE UPDATE ON pending_order      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER set_updated_at_pending_pembelian   BEFORE UPDATE ON pending_pembelian  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER set_updated_at_toko                BEFORE UPDATE ON toko               FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Pastikan tabel yang belum punya updated_at punya kolom tsb (safe untuk existing DB)
+ALTER TABLE pending_order      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE pending_pembelian  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE toko               ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ============================================================
 -- MIGRASI DATA LAMA: records (JSONB) → dedicated tables
