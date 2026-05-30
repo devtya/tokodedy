@@ -3,6 +3,8 @@ package com.example.hend_kasir
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "hend_kasir/bluetooth"

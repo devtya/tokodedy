@@ -119,6 +119,12 @@ Current: **1.4.10**
 
 ## Bug Fixes Log
 
+### Bug: Android Build — Unresolved reference FlutterEngine & MethodChannel
+- **Root cause**: File `MainActivity.kt` kehilangan import `FlutterEngine` dan `MethodChannel` yang menyebabkan kompilasi Kotlin gagal saat build APK rilis di GitHub Actions.
+- **Fix**: Menambahkan `import io.flutter.embedding.engine.FlutterEngine` dan `import io.flutter.plugin.common.MethodChannel` ke dalam file `MainActivity.kt`.
+- **Files**: `android/app/src/main/kotlin/com/example/hend_kasir/MainActivity.kt`
+- **Date**: 2026-05-30
+
 ### Bug: Infinite Layout Loop — Android freeze saat tap menu Stok
 - **Root cause**: `_buildHeader()` menggunakan `MediaQuery.of(context).padding.top` langsung di body Scaffold (Column), dan `_buildBottomBar()` menggunakan `MediaQuery.of(context).padding.bottom`. Saat keyboard muncul, `resizeToAvoidBottomInset` mengubah `MediaQuery` → rebuild seluruh subtree → Column resize → trigger rebuild loop → freeze/ANR.
 - **Fix**: Pindahkan header ke `_buildAppBar()` (AppBar widget), wrap bottom bar dengan `SafeArea` + fixed padding, tambah `resizeToAvoidBottomInset: true`.
