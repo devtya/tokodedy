@@ -12,7 +12,6 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/theme/theme_cubit.dart';
 import '../../blocs/sync/sync_bloc.dart';
-import 'backup_page.dart';
 import 'login_page.dart';
 import 'pin_settings_page.dart';
 import 'pengaturan_toko_page.dart';
@@ -438,17 +437,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         : const Icon(Icons.chevron_right),
                     onTap: _checkingUpdate ? null : _checkUpdate,
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.backup, color: AppTheme.primaryGreen),
-                    title: const Text('Backup & Restore'),
-                    subtitle: const Text('Ekspor / impor data produk'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const BackupPage()),
-                    ),
-                  ),
+
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.logout, color: AppTheme.warningRed),

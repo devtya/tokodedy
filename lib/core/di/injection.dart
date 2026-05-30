@@ -14,7 +14,6 @@ import '../../data/repositories/hutang_piutang_repository_impl.dart';
 import '../../data/repositories/pembelian_repository_impl.dart';
 import '../../data/repositories/pending_order_repository_impl.dart';
 import '../../data/repositories/pending_pembelian_repository_impl.dart';
-import '../../data/repositories/backup_repository_impl.dart';
 import '../../data/repositories/produk_repository_impl.dart';
 import '../../data/repositories/riwayat_stok_repository_impl.dart';
 import '../../data/repositories/supplier_repository_impl.dart';
@@ -29,7 +28,6 @@ import '../../domain/repositories/produk_repository.dart';
 import '../../domain/repositories/riwayat_stok_repository.dart';
 import '../../domain/repositories/supplier_repository.dart';
 import '../../domain/repositories/transaksi_repository.dart';
-import '../../domain/repositories/backup_repository.dart';
 import '../../domain/repositories/laporan_repository.dart';
 import '../../domain/repositories/notifikasi_repository.dart';
 import '../../data/repositories/laporan_repository_impl.dart';
@@ -70,7 +68,6 @@ import '../../domain/usecases/notifikasi/watch_unread_count.dart';
 import '../../domain/usecases/transaksi/get_all_transaksi.dart';
 import '../../domain/usecases/transaksi/get_transaksi_by_id.dart';
 import '../../presentation/blocs/auth/auth_bloc.dart';
-import '../../presentation/blocs/backup/backup_bloc.dart';
 import '../../presentation/blocs/cashier/cashier_bloc.dart';
 import '../../presentation/blocs/hutang/hutang_bloc.dart';
 import '../../presentation/blocs/laporan/laporan_bloc.dart';
@@ -198,8 +195,6 @@ Future<void> initDependencies() async {
     () => LaporanRepositoryImpl(database, sl()),
   );
 
-  sl.registerLazySingleton<BackupRepository>(() => BackupRepositoryImpl(sl()));
-
   sl.registerLazySingleton<SupabaseSyncService>(() => SupabaseSyncService(
         db: sl(),
         supabase: Supabase.instance.client,
@@ -315,8 +310,6 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => DashboardBloc(sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl(), tokoService: sl()));
   sl.registerFactory(() => LocalAuthBloc(sl()));
-
-  sl.registerFactory(() => BackupBloc(repository: sl()));
 
   sl.registerFactory(() => SyncBloc(
         syncService: sl(),
