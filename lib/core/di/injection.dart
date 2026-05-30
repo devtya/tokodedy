@@ -30,7 +30,9 @@ import '../../domain/repositories/riwayat_stok_repository.dart';
 import '../../domain/repositories/supplier_repository.dart';
 import '../../domain/repositories/transaksi_repository.dart';
 import '../../domain/repositories/backup_repository.dart';
+import '../../domain/repositories/laporan_repository.dart';
 import '../../domain/repositories/notifikasi_repository.dart';
+import '../../data/repositories/laporan_repository_impl.dart';
 import '../../data/repositories/notifikasi_repository_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
@@ -192,6 +194,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(database, sl()),
   );
+  sl.registerLazySingleton<LaporanRepository>(
+    () => LaporanRepositoryImpl(database, sl()),
+  );
 
   sl.registerLazySingleton<BackupRepository>(() => BackupRepositoryImpl(sl()));
 
@@ -280,7 +285,10 @@ Future<void> initDependencies() async {
     () => TransaksiBloc(getAllTransaksi: sl(), getTransaksiById: sl()),
   );
   sl.registerFactory(() => HutangBloc(repository: sl()));
-  sl.registerFactory(() => LaporanBloc(transaksiRepository: sl()));
+  sl.registerFactory(() => LaporanBloc(
+    transaksiRepository: sl(),
+    laporanRepository: sl(),
+  ));
   sl.registerFactory(
     () => PembelianBloc(
       repository: sl(),
