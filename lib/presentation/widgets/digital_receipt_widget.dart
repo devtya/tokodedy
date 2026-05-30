@@ -7,11 +7,13 @@ import '../../data/models/receipt_data.dart';
 class DigitalReceiptWidget extends StatelessWidget {
   final ReceiptData receipt;
   final String statusTitle;
+  final bool showCompactItems;
 
   const DigitalReceiptWidget({
     super.key,
     required this.receipt,
     this.statusTitle = 'Pembayaran Berhasil',
+    this.showCompactItems = false,
   });
 
   @override
@@ -98,20 +100,25 @@ class DigitalReceiptWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.nama,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${item.jumlah} x ${currency.format(item.harga)}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
+                    child: showCompactItems
+                        ? Text(
+                            '${item.nama} - ${item.jumlah} ${item.satuan ?? ''}'.trimRight(),
+                            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.nama,
+                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${item.jumlah} x ${currency.format(item.harga)}',
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
                   ),
                   Expanded(
                     flex: 1,

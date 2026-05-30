@@ -320,7 +320,10 @@ class _PembelianPageState extends State<PembelianPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ShareReceiptPage(receipt: receipt),
+          builder: (_) => ShareReceiptPage(
+            receipt: receipt,
+            showCompactItems: true,
+          ),
         ),
       );
     }

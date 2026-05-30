@@ -15,8 +15,13 @@ import '../../widgets/digital_receipt_widget.dart';
 
 class ShareReceiptPage extends StatefulWidget {
   final ReceiptData receipt;
+  final bool showCompactItems;
 
-  const ShareReceiptPage({super.key, required this.receipt});
+  const ShareReceiptPage({
+    super.key,
+    required this.receipt,
+    this.showCompactItems = false,
+  });
 
   @override
   State<ShareReceiptPage> createState() => _ShareReceiptPageState();
@@ -160,7 +165,10 @@ class _ShareReceiptPageState extends State<ShareReceiptPage> {
               // The RepaintBoundary should wrap only the widget we want to convert to image
               child: RepaintBoundary(
                 key: _globalKey,
-                child: DigitalReceiptWidget(receipt: widget.receipt),
+                child: DigitalReceiptWidget(
+                  receipt: widget.receipt,
+                  showCompactItems: widget.showCompactItems,
+                ),
               ),
             ),
           ),
