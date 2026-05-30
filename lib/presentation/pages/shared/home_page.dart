@@ -572,7 +572,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                         const Icon(Icons.trending_up, color: Colors.white70, size: 20),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'OMZET HARI INI',
+                                          t.dashboard.omzet_today,
                                           style: TextStyle(
                                             color: Colors.white.withValues(alpha: 0.9),
                                             fontSize: 12,
@@ -605,9 +605,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                const Text(
-                                                  'Transaksi',
-                                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                                Text(
+                                                  t.dashboard.transaction,
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
@@ -633,9 +633,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                const Text(
-                                                  'Terjual',
-                                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                                Text(
+                                                  t.dashboard.sold,
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
@@ -662,9 +662,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         const SizedBox(height: 24),
 
                         // Quick Actions
-                        const Text(
-                          'Aksi Cepat',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Text(
+                          t.quick_actions.title,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -677,7 +677,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                 width: 90,
                                 child: _QuickActionCard(
                                   icon: Icons.point_of_sale,
-                                  label: 'KASIR',
+                                  label: t.quick_actions.cashier,
                                   color: AppTheme.primaryGreen,
                                   onTap: () {
                                     _navigateAndReload(
@@ -694,7 +694,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                 width: 90,
                                 child: _QuickActionCard(
                                   icon: Icons.print,
-                                  label: 'LAPORAN',
+                                  label: t.quick_actions.report,
                                   color: Colors.purple,
                                   onTap: isAdmin ? () {
                                     _navigateAndReload(
@@ -705,7 +705,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                     );
                                   } : () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Hanya owner yang bisa akses Laporan')),
+                                      SnackBar(content: Text(t.error.owner_only_report)),
                                     );
                                   },
                                 ),
@@ -715,7 +715,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                 width: 90,
                                 child: _QuickActionCard(
                                   icon: Icons.inventory_2,
-                                  label: 'PRODUK',
+                                  label: t.quick_actions.product,
                                   color: Colors.blue,
                                   onTap: () {
                                     _navigateAndReload(
@@ -744,7 +744,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                 width: 90,
                                 child: _QuickActionCard(
                                   icon: Icons.add,
-                                  label: 'TAMBAH',
+                                  label: t.quick_actions.add,
                                   color: AppTheme.neutralGrey,
                                   onTap: _showAddQuickActionDialog,
                                 ),
@@ -771,9 +771,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Text(
-                                          'Stok Menipis',
-                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        Text(
+                                          t.dashboard.low_stock,
+                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -789,7 +789,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                             minimumSize: Size.zero,
                                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                           ),
-                                          child: const Text('Lihat semua', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                          child: Text(t.dashboard.see_all, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                                         ),
                                       ],
                                     ),
@@ -833,7 +833,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                                   borderRadius: BorderRadius.circular(isDark ? 9999 : 8),
                                                 ),
                                                 child: Text(
-                                                  'Sisa ${item.stok}',
+                                                  '${t.dashboard.remaining} ${item.stok}',
                                                   style: TextStyle(
                                                     color: isDark ? const Color(0xFF93000a) : Colors.white,
                                                     fontWeight: FontWeight.bold,
@@ -851,9 +851,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
                                   // Update Harga Barang
                                   if (state.metrics.updateHargaTerakhir.isNotEmpty) ...[
-                                    const Text(
-                                      'Update Harga Barang',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    Text(
+                                      t.price_update.title,
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(height: 12),
                                     Container(
@@ -904,7 +904,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                               child: Icon(iconData, color: iconColor),
                                             ),
                                             title: Text(
-                                              riwayat.produkNama ?? 'Produk Dihapus',
+                                              riwayat.produkNama ?? t.price_update.product_deleted,
                                               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                                             ),
                                             subtitle: Text(time, style: const TextStyle(fontSize: 12, color: Colors.grey)),

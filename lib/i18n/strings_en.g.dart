@@ -48,6 +48,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$home$en home = Translations$home$en._(_root);
 	late final Translations$pin$en pin = Translations$pin$en._(_root);
 	late final Translations$error$en error = Translations$error$en._(_root);
+	late final Translations$dashboard$en dashboard = Translations$dashboard$en._(_root);
+	late final Translations$quick_actions$en quick_actions = Translations$quick_actions$en._(_root);
+	late final Translations$price_update$en price_update = Translations$price_update$en._(_root);
 }
 
 // Path: login
@@ -120,6 +123,75 @@ class Translations$error$en {
 
 	/// en: 'Tidak ada koneksi internet'
 	String get network => 'Tidak ada koneksi internet';
+
+	/// en: 'Hanya owner yang bisa akses Laporan'
+	String get owner_only_report => 'Hanya owner yang bisa akses Laporan';
+}
+
+// Path: dashboard
+class Translations$dashboard$en {
+	Translations$dashboard$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'OMZET HARI INI'
+	String get omzet_today => 'OMZET HARI INI';
+
+	/// en: 'Transaksi'
+	String get transaction => 'Transaksi';
+
+	/// en: 'Terjual'
+	String get sold => 'Terjual';
+
+	/// en: 'Stok Menipis'
+	String get low_stock => 'Stok Menipis';
+
+	/// en: 'Lihat semua'
+	String get see_all => 'Lihat semua';
+
+	/// en: 'Sisa'
+	String get remaining => 'Sisa';
+}
+
+// Path: quick_actions
+class Translations$quick_actions$en {
+	Translations$quick_actions$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Aksi Cepat'
+	String get title => 'Aksi Cepat';
+
+	/// en: 'KASIR'
+	String get cashier => 'KASIR';
+
+	/// en: 'LAPORAN'
+	String get report => 'LAPORAN';
+
+	/// en: 'PRODUK'
+	String get product => 'PRODUK';
+
+	/// en: 'TAMBAH'
+	String get add => 'TAMBAH';
+}
+
+// Path: price_update
+class Translations$price_update$en {
+	Translations$price_update$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Update Harga Barang'
+	String get title => 'Update Harga Barang';
+
+	/// en: 'Produk Dihapus'
+	String get product_deleted => 'Produk Dihapus';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -143,6 +215,20 @@ extension on Translations {
 			'pin.verify_title' => 'Konfirmasi PIN',
 			'error.unknown' => 'Terjadi kesalahan yang tidak diketahui',
 			'error.network' => 'Tidak ada koneksi internet',
+			'error.owner_only_report' => 'Hanya owner yang bisa akses Laporan',
+			'dashboard.omzet_today' => 'OMZET HARI INI',
+			'dashboard.transaction' => 'Transaksi',
+			'dashboard.sold' => 'Terjual',
+			'dashboard.low_stock' => 'Stok Menipis',
+			'dashboard.see_all' => 'Lihat semua',
+			'dashboard.remaining' => 'Sisa',
+			'quick_actions.title' => 'Aksi Cepat',
+			'quick_actions.cashier' => 'KASIR',
+			'quick_actions.report' => 'LAPORAN',
+			'quick_actions.product' => 'PRODUK',
+			'quick_actions.add' => 'TAMBAH',
+			'price_update.title' => 'Update Harga Barang',
+			'price_update.product_deleted' => 'Produk Dihapus',
 			_ => null,
 		};
 	}
