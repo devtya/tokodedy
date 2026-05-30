@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/item_pembelian.dart';
 import '../../../domain/entities/pembelian.dart';
@@ -17,6 +15,7 @@ import '../../../domain/repositories/pending_pembelian_repository.dart';
 import '../../../data/models/receipt_data.dart';
 import '../../../data/services/printer_service.dart';
 import '../../../data/services/printer_settings.dart';
+import 'share_receipt_page.dart';
 
 class PembelianPage extends StatefulWidget {
   const PembelianPage({super.key});
@@ -248,7 +247,7 @@ class _PembelianPageState extends State<PembelianPage> {
       final now = DateTime.now();
       final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(now);
       final receipt = ReceiptData(
-        namaToko: settings.namaToko,
+        namaToko: p.namaSupplier ?? settings.namaToko,
         alamatToko: settings.alamatToko,
         transaksiId: p.id!,
         tanggal: tanggal,
@@ -285,30 +284,46 @@ class _PembelianPageState extends State<PembelianPage> {
   }
 
   Future<void> _sharePembelian(Pembelian p, List<ItemPembelian> items) async {
-    final buffer = StringBuffer();
-    buffer.writeln('📦 *PEMBELIAN BARANG*');
-    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
-    buffer.writeln('No: #${p.id}');
-    buffer.writeln('Supplier: ${p.namaSupplier}');
-    if (p.createdAt != null) {
-      buffer.writeln('Tanggal: ${_dateFormat.format(p.createdAt!)}');
+    final receiptItems = items
+        .map(
+          (item) {
+            final nama = item.namaProduk ?? 'Produk #${item.produkId}';
+            final parts = nama.split(' - ');
+            final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
+            return ReceiptItem(
+              nama: nama,
+              jumlah: item.jumlah,
+              harga: item.hargaBeliSatuan,
+              satuan: unitName,
+              konversi: item.konversi,
+            );
+          },
+        )
+        .toList();
+    final now = p.createdAt ?? DateTime.now();
+    final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(now);
+    final settings = sl<PrinterSettings>();
+    final receipt = ReceiptData(
+      namaToko: p.namaSupplier ?? settings.namaToko,
+      alamatToko: settings.alamatToko,
+      transaksiId: p.id!,
+      tanggal: tanggal,
+      items: receiptItems,
+      subtotal: p.totalHarga,
+      totalBayar: p.totalHarga,
+      metodePembayaran: '',
+      lebarKertas: settings.lebarKertas,
+      fontSize: settings.fontSize,
+    );
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ShareReceiptPage(receipt: receipt),
+        ),
+      );
     }
-    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
-    buffer.writeln('');
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final nama = item.namaProduk ?? 'Produk #${item.produkId}';
-      buffer.writeln('${i + 1}. $nama');
-      buffer.writeln('   ${item.jumlah} x ${_currency.format(item.hargaBeliSatuan)} = ${_currency.format(item.subtotal)}');
-    }
-
-    buffer.writeln('');
-    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
-    buffer.writeln('*TOTAL: ${_currency.format(p.totalHarga)}*');
-    buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
-
-    await Share.share(buffer.toString());
   }
 
   void _openEditForm(Pembelian p) {

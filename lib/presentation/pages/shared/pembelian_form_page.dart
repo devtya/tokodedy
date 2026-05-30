@@ -880,38 +880,38 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             }
           }
         },
-        child: Scaffold(
+        child: _isLoadingPending
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : Scaffold(
                 appBar: AppBar(
-          title: Text(_pembelianId != null ? 'Edit Pembelian' : 'Pembelian Baru'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.pending_actions),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PendingPembelianPage()),
-                );
-              },
-              tooltip: 'Lihat Pending',
-            ),
-          ],
-        ),
-        body: _isLoadingPending
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  _buildSupplierSection(),
-                  _buildSearchSection(),
-                  Expanded(
-                    child: SingleChildScrollView(child: _buildCartList()),
-                  ),
-                  _buildBottomPanel(),
-                ],
+                  title: const Text('Pembelian Barang'),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.pending_actions),
+                      tooltip: 'Pending Pembelian',
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PendingPembelianPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                body: Column(
+                  children: [
+                    _buildSupplierSection(),
+                    _buildSearchSection(),
+                    Expanded(child: _buildCartList()),
+                    _buildBottomPanel(),
+                  ],
+                ),
               ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildSupplierSection() {
     return Padding(

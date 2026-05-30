@@ -6,8 +6,13 @@ import '../../data/models/receipt_data.dart';
 
 class DigitalReceiptWidget extends StatelessWidget {
   final ReceiptData receipt;
+  final String statusTitle;
 
-  const DigitalReceiptWidget({super.key, required this.receipt});
+  const DigitalReceiptWidget({
+    super.key,
+    required this.receipt,
+    this.statusTitle = 'Pembayaran Berhasil',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +48,9 @@ class DigitalReceiptWidget extends StatelessWidget {
           ),
 
           // Status
-          const Text(
-            'Pembayaran Berhasil',
-            style: TextStyle(
+          Text(
+            statusTitle,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -131,10 +136,12 @@ class DigitalReceiptWidget extends StatelessWidget {
           _buildDetailRow('Subtotal', currency.format(receipt.subtotal)),
           if (receipt.totalDiskon > 0)
             _buildDetailRow('Diskon', '-${currency.format(receipt.totalDiskon)}'),
-          _buildDetailRow('Metode Pembayaran', receipt.metodePembayaran),
-          _buildDetailRow('Tunai/Dibayar', currency.format(receipt.totalBayar)),
-          if (receipt.kembalian > 0)
-            _buildDetailRow('Kembalian', currency.format(receipt.kembalian)),
+          if (receipt.metodePembayaran.isNotEmpty) ...[
+            _buildDetailRow('Metode Pembayaran', receipt.metodePembayaran),
+            _buildDetailRow('Tunai/Dibayar', currency.format(receipt.totalBayar)),
+            if (receipt.kembalian > 0)
+              _buildDetailRow('Kembalian', currency.format(receipt.kembalian)),
+          ],
 
           const SizedBox(height: 16),
           const Divider(color: Color(0xFFEEEEEE), thickness: 1, height: 1),

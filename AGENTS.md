@@ -19,6 +19,8 @@ lib/
   presentation/  blocs/, pages/, widgets/
 ```
 
+> **Pages**: All page files are under `lib/presentation/pages/`. Desktop Windows platform has been removed — this project now targets Android only.
+
 ## Key commands
 
 | Command | When |
@@ -28,9 +30,6 @@ lib/
 | `flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Debug dengan Supabase sync aktif. |
 | `flutter build apk --debug --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | **Default** — build debug APK dengan Supabase sync. |
 | `flutter build apk --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...` | Build release APK (final). |
-| `flutter build windows --debug ...` | **(DISCONTINUED)** |
-| `flutter build windows --release ...` | **(DISCONTINUED)** |
-| `flutter run -d windows ...` | **(DISCONTINUED)** |
 | `flutter test` | Run all tests. |
 
 ## Database (Drift)
@@ -40,16 +39,13 @@ lib/
 - **Schema version 10**: v1→v6 original migrations, v6→v7 adds `SyncRecordTable`, v7→v8 adds `SupplierProductsTable`, v8→v9 adds `TokoTable` + `tokoId` columns, v9→v10 adds `isPpnEnabled` + `ppnPercent` to `pending_pembelian_table`
 - Connection via `LazyDatabase` → `NativeDatabase` (file: `hend_kasir.db` in app docs dir)
 
-## Supabase Sync
+## Supabase Sync & Auth (Arsitektur V2)
 
-- **Offline-first**: Drift tetap primary, Supabase sebagai cloud sync
-- **Auto-sync** via `SyncBloc` tiap 5 menit + saat app foreground
-- `SyncRecordTable` di Drift mapping `(tableEntity, localId) ↔ uuid` untuk resolusi antar device
-- `SupabaseSyncService.push()`: upload data yang berubah ke Supabase `records` table
-- `SupabaseSyncService.pull()`: download data dari device lain, resolve FK via UUID
-- **Auth tetap lokal** — tidak menggunakan Supabase Auth
+- **Auth menggunakan Supabase Auth (Hybrid)**: Kredensial login (email & password) ditangani dan divalidasi penuh oleh Supabase Auth (online). Password tidak disimpan di lokal. Profil pengguna tersimpan di tabel `profiles` Supabase dan akan di-cache secara lokal ke tabel `user` Drift bersamaan dengan *session token* (di `SharedPreferences`). Ini memungkinkan aplikasi tetap bisa dibuka tanpa internet (offline) asalkan sesi lokal masih ada (sistem *Cloud Recovery Login*).
+- **Offline-first (V2 Sync)**: Database lokal (Drift) tetap menjadi tumpuan utama operasional harian. Sinkronisasi menggunakan model *direct upsert* per-tabel ke Supabase (tidak ada lagi `SyncRecordTable` atau UUID mapping JSON blob dari V1).
+- **Mekanisme Sync**: Data baru/berubah akan di-push (upsert) ke Supabase. Jika *offline*, aksi akan diantrikan ke `pending_sync_queue_table`. Saat `pull()`, data dari device lain diunduh berdasarkan parameter `updated_at` atau `created_at`.
 - Konfigurasi Supabase via `--dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...`
-- File `supabase_setup.sql` untuk setup tabel di Supabase project
+- File `supabase_setup.sql` / `supabase_setup_v2.sql` untuk setup tabel di project Supabase.
 - Defined in `lib/data/database/tables/`, aggregated in `lib/data/database/app_database.dart`
 - **Never override `primaryKey`** when using `autoIncrement()` — Drift handles it automatically
 - Connection via `LazyDatabase` → `NativeDatabase` (file: `hend_kasir.db` in app docs dir)
@@ -95,12 +91,6 @@ lib/
 - **AppBar actions**: Pending button (`Icons.pending_actions`) to view pending list
 - **Bottom panel** (`_buildBottomPanel`): Contains subtotal, discount, PPN toggle+input, total final, and submit button
 - **NO floating action buttons** — submit button is always at the bottom of the form
-
-## Windows Platform
-
-- **Status**: **DISCONTINUED** — Project desktop Windows dihentikan sementara. Tidak ada pengembangan lebih lanjut untuk platform Windows. Kode desktop (home_page_desktop.dart, cashier_desktop_view.dart) tetap ada di repo tetapi tidak dipelihara secara aktif.
-- **Barcode input**: `mobile_scanner` tidak support Windows. Gunakan `showBarcodeScannerDialog(context)` di `lib/presentation/widgets/barcode_scanner_widget.dart`. Di Windows nampilin `TextField` manual (kompatibel USB keyboard-wedge scanner), di Android pakai kamera `MobileScanner`.
-- **Theme**: System theme otomatis aktif di Windows. Bisa diganti manual lewat Settings page.
 
 ## Printing System (Thermal Printer)
 
@@ -183,10 +173,10 @@ Current: **1.4.9**
 - **Files**: `lib/data/repositories/hutang_piutang_repository_impl.dart`
 - **Date**: 2026-05-20
 
-### Bug: Produk — Freeze saat tambah produk di Desktop
-- **Root cause**: Penggunaan `bottomSheet` pada `Scaffold` di `ProdukFormPage` sering menyebabkan infinite layout pass (freeze UI) saat dijalankan di aplikasi Desktop.
+### Bug: Produk — Freeze saat tambah produk
+- **Root cause**: Penggunaan `bottomSheet` pada `Scaffold` di `ProdukFormPage` sering menyebabkan infinite layout pass (freeze UI).
 - **Fix**: Menghapus argumen `bottomSheet` dari `Scaffold` dan memindahkan `_buildBottomBar()` ke dalam struktur `Column` utama di body Scaffold tepat di bawah `Expanded(SingleChildScrollView)`. Padding bottom disesuaikan dari 120 menjadi 20.
-- **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
+- **Files**: `lib/presentation/pages/produk_form_page.dart`
 - **Date**: 2026-05-25
 
 ## Features Log
@@ -224,13 +214,13 @@ Current: **1.4.9**
 ### Fitur: Auth — Email sebagai login utama, username auto-generate
 - **Deskripsi**: Ubah flow registrasi: `username` dihapus dari form, diganti `email` sebagai login utama. Username auto-generate dari `email.split('@')[0]` + random suffix jika sudah terpakai. Login tetap dual-mode (username lama masih bisa dipakai). User tanpa email akan mendapat dialog prompt "Lengkapi Email" di home page. Schema v12→v13 untuk drop UNIQUE index username + nullable.
 - **Cara pakai**: Registrasi → input email (required). User lama login via username seperti biasa. Home page tampilkan dialog isi email jika belum punya.
-- **Files**: `user_table.dart`, `app_database.dart` (v13), `auth_repository.dart`, `auth_repository_impl.dart`, `auth_event.dart`, `auth_bloc.dart`, `register_store_page.dart`, `user_management_page.dart`, `home_page_desktop.dart`, `home_page_mobile.dart`
+- **Files**: `user_table.dart`, `app_database.dart` (v13), `auth_repository.dart`, `auth_repository_impl.dart`, `auth_event.dart`, `auth_bloc.dart`, `register_store_page.dart`, `user_management_page.dart`, `home_page.dart`
 - **Date**: 2026-05-21
 
 ### Bug: Auth — Logout tidak navigasi ke LoginPage + Nama di AppBar tidak real-time
 - **Root cause**: (1) Home page tidak punya listener untuk `Unauthenticated` state — hanya `BlocBuilder` tanpa `BlocListener`, jadi saat logout emit `Unauthenticated`, halaman tetap menampilkan UI kosong. (2) `AuthRepositoryImpl.updateUser()` hanya update DB, tidak update session di `SharedPreferences`, jadi nama baru tidak terbaca sampai login ulang.
-- **Fix**: (1) Tambah `BlocListener<AuthBloc, AuthState>` di `HomeDesktopPage` dan `HomeMobileView` yang navigasi ke `LoginPage` via `pushAndRemoveUntil` saat `Unauthenticated` state. (2) Update session JSON di `updateUser()` jika user ID cocok dengan session. (3) Dispatch `CheckAuthStatus` dari `UserManagementPage` setelah save agar AppBar langsung update.
-- **Files**: `home_page_desktop.dart`, `home_page_mobile.dart`, `auth_repository_impl.dart`, `user_management_page.dart`
+- **Fix**: (1) Tambah `BlocListener<AuthBloc, AuthState>` di `HomePage` yang navigasi ke `LoginPage` via `pushAndRemoveUntil` saat `Unauthenticated` state. (2) Update session JSON di `updateUser()` jika user ID cocok dengan session. (3) Dispatch `CheckAuthStatus` dari `UserManagementPage` setelah save agar AppBar langsung update.
+- **Files**: `home_page.dart`, `auth_repository_impl.dart`, `user_management_page.dart`
 - **Date**: 2026-05-20
 
 ### Bug: Bluetooth — Printer terpasang di sistem tidak terdeteksi aplikasi
@@ -281,23 +271,7 @@ Current: **1.4.9**
 - **Files**: `lib/presentation/pages/settings_page.dart`
 - **Date**: 2026-05-21
 
-### Fitur: Redesain Dashboard Desktop & Edit QTY Keranjang Kasir
-- **Deskripsi**: Merombak tampilan awal Desktop (`HomeDesktopPage`) dengan merapikan kesejajaran Top Bar dan Sidebar. "Menu Cepat" telah dihapus sepenuhnya karena sudah tergantikan oleh Sidebar *persistent*. Mengintegrasikan `DashboardBloc` untuk menampilkan "Ringkasan Hari Ini", "Stok Menipis", dan "Update Harga Terakhir" dalam tata letak kolom ganda (50:50) yang simetris. Pada halaman Kasir Desktop (`CashierDesktopView`), QTY barang dalam keranjang sekarang berupa `TextField` sehingga kasir dapat langsung mengedit angka tanpa *double-click* (fokus kursor otomatis kembali ke kolom Barcode). Perbaikan tambahan pada sistem tangkapan *Keyboard Shortcut* kasir.
-- **Cara pakai**: (1) Dashboard Desktop menampilkan omzet, stok, dan harga secara dinamis. (2) Di menu Kasir, ketikkan angka langsung pada kolom teks di samping nama barang di dalam daftar belanja sisi kanan untuk mengubah jumlahnya secara real-time.
-- **Files**: `home_page_desktop.dart`, `cashier_desktop_view.dart`
-- **Date**: 2026-05-24
 
-### Fitur: Persistent Sidebar Kasir Desktop & List View Produk
-- **Deskripsi**: Merombak mekanisme navigasi utama di `HomeDesktopPage` menggunakan `IndexedStack` sehingga menu Sidebar tidak lagi hilang (tetap *persistent*) saat berpindah menu. Mengganti tampilan hasil filter produk di menu Kasir dari yang sebelumnya *GridView* menjadi *ListView* memanjang ke bawah. Menambahkan *Dashboard* sebagai salah satu item dalam Sidebar.
-- **Cara pakai**: Sidebar di layar Windows/Desktop tidak akan tertutup saat membuka halaman Kasir, Produk, Pembelian, dll. Daftar barang di Kasir juga lebih nyaman dibaca melalui tampilan List.
-- **Files**: `lib/presentation/pages/home_page_desktop.dart`, `lib/presentation/pages/cashier_desktop_view.dart`
-- **Date**: 2026-05-24
-
-### Fitur: Perombakan Layout Kasir Desktop (Split View 50:50) & Keyboard Shortcuts
-- **Deskripsi**: Merombak `CashierDesktopView` dari `StatelessWidget` menjadi `StatefulWidget` dengan layout Split Screen (kiri-kanan). Menambahkan fitur pencarian barang interaktif dengan *Arrow Up/Down* langsung dari Grid View, dan fungsi pintasan kursor *Barcode ↔ QTY* menggunakan tombol *Enter*. Sistem otomatis membaca *exact match* saat input barcode dilakukan melalui alat *Scanner*, sehingga barang instan masuk keranjang.
-- **Cara pakai**: Di aplikasi versi Windows, navigasikan kursor di daftar barang menggunakan `Arrow Up` / `Arrow Down` dari kolom Barcode. Tekan `Enter` saat kosong untuk pindah kolom QTY. Tekan `Enter` kembali dari QTY untuk kembali. *Scan* barcode untuk instant masuk keranjang.
-- **Files**: `lib/presentation/pages/cashier_desktop_view.dart`
-- **Date**: 2026-05-24
 
 ### Fitur: Halaman Terpisah Undang Kasir
 - **Deskripsi**: Fungsi invite kasir dipindah dari dialog di `UserManagementPage` ke halaman terpisah (`InviteKasirPage`) dengan form validasi lengkap (email format, required). FAB di user management sekarang navigasi ke halaman baru.
@@ -335,9 +309,9 @@ Current: **1.4.9**
 - **Date**: 2026-05-22
 
 ### Fitur: Profil Dashboard — Popup Menu (Settings, Manajemen Pengguna, Catatan)
-- **Deskripsi**: Logo profil/CircleAvatar di halaman dashboard sekarang bisa diklik dan menampilkan popup menu berisi: Pengaturan, Manajemen Pengguna (admin only), dan Catatan & Peringatan (NotifikasiPage). Berlaku untuk mobile (AppBar) dan desktop (Sidebar).
+- **Deskripsi**: Logo profil/CircleAvatar di halaman dashboard sekarang bisa diklik dan menampilkan popup menu berisi: Pengaturan, Manajemen Pengguna (admin only), dan Catatan & Peringatan (NotifikasiPage).
 - **Cara pakai**: Tap logo profil di dashboard → pilih menu.
-- **Files**: `lib/presentation/pages/home_page_mobile.dart`, `lib/presentation/pages/home_page_desktop.dart`
+- **Files**: `lib/presentation/pages/home_page.dart`
 - **Date**: 2026-05-22
 
 ### Fitur: Loading Indicator di Tombol Simpan (Anti Double-Input)
@@ -355,7 +329,7 @@ Current: **1.4.9**
 ### Fitur: Aksi Cepat Kustom + Hapus Profil + Ganti Judul
 - **Deskripsi**: (1) Hapus logo profil/CircleAvatar dari AppBar mobile. (2) Ganti judul "POS Terminal" jadi "hend_kasir". (3) Tambah tombol "+" di header Aksi Cepat + card "TAMBAH" di akhir scroll untuk menambah menu dari Lainnya (Pembelian, Supplier, Hutang) ke baris Aksi Cepat. (4) Manajemen Pengguna pindah ke bottom sheet Lainnya.
 - **Cara pakai**: Tap tombol "+" atau kartu TAMBAH di Aksi Cepat → pilih menu → muncul di baris.
-- **Files**: `lib/presentation/pages/home_page_mobile.dart`
+- **Files**: `lib/presentation/pages/home_page.dart`
 - **Date**: 2026-05-22
 
 ### Bug: Role owner tidak terbaca setelah buat toko baru (akses tambah produk hilang)
@@ -388,25 +362,37 @@ Current: **1.4.9**
 - **Files**: `lib/data/services/bluetooth_printer_service.dart`
 - **Date**: 2026-05-25
 
-### Fitur: Update Theme & Mark Desktop sebagai DISCONTINUED
-- **Deskripsi**: Update palet warna, dark theme, light theme sesuai design system baru. Project Windows Desktop resmi dihentikan (DISCONTINUED).
-- **Cara pakai**: Theme otomatis mengikuti sistem. Windows build tidak lagi didukung.
-- **Files**: `lib/core/theme/app_theme.dart`, `AGENTS.md`, `.github/workflows/build_apk.yml`
+### Fitur: Update Theme
+- **Deskripsi**: Update palet warna, dark theme, light theme sesuai design system baru.
+- **Cara pakai**: Theme otomatis mengikuti sistem.
+- **Files**: `lib/core/theme/app_theme.dart`
 - **Date**: 2026-05-27
 
 ### Fitur: Auto-Konvert Harga Beli Multi-Satuan dengan Listener
 - **Deskripsi**: Setiap perubahan nilai konversi pada multi-satuan akan otomatis mengubah harga beli satuan dasar secara real-time.
 - **Cara pakai**: Edit nilai konversi satuan di form produk → harga beli satuan dasar otomatis menyesuaikan.
-- **Files**: `lib/presentation/pages/shared/produk_form_page.dart`
+- **Files**: `lib/presentation/pages/produk_form_page.dart`
 - **Date**: 2026-05-27
 
-### Refactor: Android-only — Hapus Semua Kode Desktop & Platform Branches
-- **Deskripsi**: Bersihkan semua kode desktop (DISCONTINUED). File desktop di-rename ke .dart.txt (referensi). Hapus semua `Platform.isWindows`, `dart:io` untuk Platform, dan `MediaQuery.of(context)` dari shared pages. Sederhanakan `main.dart` (themeMode), `printer_settings.dart` (defaultEnabled), dan hapus `_buildManualInput` dari `barcode_scanner_widget.dart`.
-- **Files**: `cashier_page.dart`, `pembelian_form_page.dart`, `produk_page.dart`, `home_page.dart`, `pembelian_page.dart`, `pending_dialog.dart`, `printer_settings_page.dart`, `printer_settings.dart`, `main.dart`, `barcode_scanner_widget.dart`, `desktop/*.dart` (rename ke .txt)
-- **Date**: 2026-05-27
+### Refactor: Android-only — Final Cleanup Desktop/Mobile Split
+- **Deskripsi**: Hapus semua kode desktop (home_page_desktop.dart, cashier_desktop_view.dart, pembelian_desktop_view.dart) dan kode mobile yang di-orphan (home_page_mobile.dart). Integrasi `CashierDesktopView` langsung ke `cashier_page.dart`, `PembelianDesktopView` ke `pembelian_form_page.dart`. Home page mobile (`HomeMobilePage`) dipindah ke `shared/home_page.dart` sebagai satu-satunya halaman utama. Hapus folder `desktop/` dan `mobile/`. Project sekarang murni Android-only.
+- **Files**: `cashier_page.dart`, `pembelian_form_page.dart`, `home_page.dart`, `desktop/*` (dihapus), `mobile/*` (dihapus)
+- **Date**: 2026-05-30
 
 ### Bug: Pembelian — Satuan konversi tidak tersimpan saat transaksi pembelian
 - **Root cause**: Saat melakukan transaksi pembelian dengan satuan konversi (seperti "pak"), datanya hilang karena tabel database lokal (`item_pembelian_table` dan `pending_pembelian_item_table`) serta sinkronisasi Supabase tidak memiliki kolom `satuan_id` dan `konversi`.
 - **Fix**: Menambahkan kolom `satuan_id` dan `konversi` pada database lokal via migrasi Drift (v17) dan menyesuaikan `SupabaseSyncService`. `PembelianRepositoryImpl` juga diperbarui untuk mengambil nama spesifik satuan konversi dari `satuan_produk` saat memuat riwayat pembelian.
 - **Files**: `app_database.dart`, `item_pembelian_table.dart`, `pending_pembelian_item_table.dart`, `pembelian_repository_impl.dart`, `pending_pembelian_repository_impl.dart`, `supabase_sync_service.dart`, `supabase_setup_v2.sql`
 - **Date**: 2026-05-27
+
+### Bug: Sync Supabase — Kolom stokMinimum tidak tersinkronisasi dua arah
+- **Root cause**: `ProdukTable` dan `TokoTable` di Drift memiliki kolom `stok_minimum` dan `stok_minimum_global`, namun tabel `produk` dan `toko` di database jarak jauh Supabase belum memiliki kolom tersebut, menyebabkan sinkronisasi gagal menyimpan nilai stok minimum ke cloud.
+- **Fix**: Menambahkan definisi `stok_minimum_global` (INTEGER NOT NULL DEFAULT 0) di tabel `toko` dan `stok_minimum` (INTEGER) di tabel `produk` pada skrip setup Supabase (`supabase_setup_v2.sql`). Ditambahkan juga baris migrasi `ALTER TABLE` agar tabel yang sudah ada dapat langsung diperbarui.
+- **Files**: `supabase_setup_v2.sql`
+- **Date**: 2026-05-28
+
+### Fitur: Digital Nota untuk Pembelian (Supplier sebagai Nama Toko)
+- **Deskripsi**: Tombol Share pada detail pembelian sekarang menggunakan `ShareReceiptPage` (digital nota visual PNG) seperti di kasir, bukan teks biasa. Nama toko di nota menggunakan nama supplier sebagai header. `DigitalReceiptWidget` ditambahkan parameter `statusTitle` untuk judul yang berbeda. Detail pembayaran (metode, tunai, kembalian) disembunyikan jika tidak relevan.
+- **Cara pakai**: Buka Pembelian Barang → tap item → "Share" → preview digital nota dengan nama supplier → "Bagikan via WA" atau "Cetak Thermal".
+- **Files**: `digital_receipt_widget.dart`, `pembelian_page.dart`
+- **Date**: 2026-05-30

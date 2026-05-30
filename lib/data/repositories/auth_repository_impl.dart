@@ -363,6 +363,7 @@ class AuthRepositoryImpl implements AuthRepository {
       stokMinimumGlobal: Value(toko.stokMinimumGlobal),
     ));
 
+    await _tokoService.updateName(toko.nama);
     await _tokoService.updateStokMinimumGlobal(toko.stokMinimumGlobal);
   }
 

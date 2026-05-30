@@ -25,7 +25,6 @@ import '../../blocs/cashier/cashier_state.dart';
 import '../../blocs/transaksi/transaksi_bloc.dart';
 import '../../utils/dialog_utils.dart';
 import '../../widgets/cari_produk_dialog.dart';
-import '../../widgets/pending_dialog.dart';
 import 'transaksi_page.dart';
 import 'share_receipt_page.dart';
 
@@ -53,7 +52,6 @@ class _CashierPageState extends State<CashierPage> {
 
   // Printer connection state
   bool _printerConnected = false;
-  bool _checkingPrinter = false;
 
   bool get _isKasir {
     final authState = context.read<AuthBloc>().state;
@@ -210,7 +208,6 @@ class _CashierPageState extends State<CashierPage> {
 
 
   Future<void> _checkPrinterConnection() async {
-    setState(() => _checkingPrinter = true);
     try {
       final settings = sl<PrinterSettings>();
       if (settings.type == 'bluetooth' && settings.enabled) {
@@ -225,7 +222,7 @@ class _CashierPageState extends State<CashierPage> {
     } catch (_) {
       _printerConnected = false;
     }
-    if (mounted) setState(() => _checkingPrinter = false);
+    if (mounted) setState(() {});
   }
 
   Future<bool> _requestBluetoothPermissions() async {
@@ -513,37 +510,6 @@ class _CashierPageState extends State<CashierPage> {
         },
       );
     }
-  }
-
-  void _openPendingDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => PendingDialog(
-        repository: sl(),
-        onLoadPending: (id) async {
-          final repo = sl<PendingOrderRepository>();
-          final items = await repo.getItemsByPendingId(id);
-          if (!mounted) return;
-          context.read<CashierBloc>().add(
-            LoadCartFromPending(
-              items
-                  .map(
-                    (i) => CartItem(
-                      produkId: i.produkId,
-                      namaProduk: i.namaProduk,
-                      hargaJual: i.hargaJual,
-                      jumlah: i.jumlah,
-                      diskonTipe: i.diskonTipe,
-                      diskonValue: i.diskonValue,
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-          await repo.deletePending(id);
-        },
-      ),
-    );
   }
 
   void _showDiskonDialog(int index, CartItem item) {
@@ -838,6 +804,7 @@ class _CashierPageState extends State<CashierPage> {
         }
       },
       builder: (context, state) {
+        final data = _resolveCashierData(state);
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
@@ -860,61 +827,25 @@ class _CashierPageState extends State<CashierPage> {
             appBar: AppBar(
               title: const Text('Kasir'),
               actions: [
-                _checkingPrinter
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Center(
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                      )
-                    : IconButton(
-                        icon: Icon(
-                          Icons.print,
-                          color: _printerConnected
-                              ? AppTheme.primaryGreen
-                              : AppTheme.warningRed,
-                        ),
-                        tooltip: _printerConnected
-                            ? 'Printer terhubung'
-                            : 'Printer tidak terhubung',
-                        onPressed: _showPrinterBottomSheet,
-                      ),
                 IconButton(
-                  icon: const Icon(Icons.pending_actions),
-                  tooltip: 'Pending Orders',
-                  onPressed: _openPendingDialog,
+                  icon: const Icon(Icons.pause_circle_outline),
+                  tooltip: 'Simpan Pending',
+                  onPressed: data.cart.isEmpty ? null : () => _savePending(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.bluetooth),
+                  tooltip: 'Printer Bluetooth',
+                  onPressed: _showPrinterBottomSheet,
                 ),
               ],
             ),
-            body: () {
-              if (state is CashierLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is! CashierReady && state is! CashierError) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final data = _resolveCashierData(state);
-
-              return Column(
-                children: [
-                  _buildSearchSection(),
-                  Expanded(
-                    child: data.cart.isEmpty
-                        ? _buildCartList(data)
-                        : SingleChildScrollView(
-                            child: _buildCartList(data),
-                          ),
-                  ),
-                  _buildBottomPanel(data),
-                ],
-              );
-            }(),
+            body: Column(
+              children: [
+                _buildSearchSection(),
+                Expanded(child: _buildCartList(data)),
+                _buildBottomPanel(data),
+              ],
+            ),
           ),
         );
       },
