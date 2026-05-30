@@ -145,15 +145,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i219.PrinterSettings>(
       () => _i219.PrinterSettings(gh<_i460.SharedPreferences>()),
     );
-    gh.factory<_i701.SyncLogEntry>(
-      () => _i701.SyncLogEntry(
-        timestamp: gh<DateTime>(),
-        type: gh<String>(),
-        tableName: gh<String>(),
-        message: gh<String>(),
-        isSuccess: gh<bool>(),
-      ),
-    );
     gh.lazySingleton<_i620.LaporanRepository>(
       () => _i880.LaporanRepositoryImpl(
         gh<_i160.AppDatabase>(),
@@ -187,6 +178,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i454.SupabaseClient>(),
         gh<_i460.SharedPreferences>(),
         gh<_i997.TokoService>(),
+      ),
+    );
+    gh.factory<_i701.SyncBloc>(
+      () => _i701.SyncBloc(
+        syncService: gh<_i345.SupabaseSyncService>(),
+        connectivity: gh<_i895.Connectivity>(),
       ),
     );
     gh.factory<_i286.DashboardBloc>(

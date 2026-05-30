@@ -11,7 +11,6 @@ import '../../../data/services/supabase_sync_service.dart';
 part 'sync_event.dart';
 part 'sync_state.dart';
 
-@injectable
 class SyncLogEntry extends Equatable {
   final DateTime timestamp;
   final String type; // 'push_table', 'pull_table', 'push_done', 'pull_done', 'error'
@@ -74,6 +73,7 @@ class SyncLogEntry extends Equatable {
   List<Object?> get props => [timestamp, type, tableName, message, isSuccess];
 }
 
+@injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final SupabaseSyncService _syncService;
   final Connectivity _connectivity;
