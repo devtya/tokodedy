@@ -1,8 +1,10 @@
+import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 
 import '../models/receipt_data.dart';
 import '../../domain/usecases/transaksi/buat_transaksi.dart';
 
+@injectable
 class ReceiptGenerator {
   final String namaToko;
   final String alamatToko;

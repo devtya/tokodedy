@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -10,6 +11,7 @@ import '../../../data/services/supabase_sync_service.dart';
 part 'sync_event.dart';
 part 'sync_state.dart';
 
+@injectable
 class SyncLogEntry extends Equatable {
   final DateTime timestamp;
   final String type; // 'push_table', 'pull_table', 'push_done', 'pull_done', 'error'

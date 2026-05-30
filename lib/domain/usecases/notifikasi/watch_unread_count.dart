@@ -1,5 +1,7 @@
+import 'package:injectable/injectable.dart';
 import '../../repositories/notifikasi_repository.dart';
 
+@lazySingleton
 class WatchUnreadCount {
   final NotifikasiRepository repository;
 

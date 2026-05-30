@@ -1,36 +1,13 @@
-import 'package:equatable/equatable.dart';
-
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/produk.dart';
 
-abstract class ProdukState extends Equatable {
-  const ProdukState();
-  @override
-  List<Object?> get props => [];
-}
+part 'produk_state.freezed.dart';
 
-class ProdukInitial extends ProdukState {}
-
-class ProdukLoading extends ProdukState {}
-
-class ProdukLoaded extends ProdukState {
-  final List<Produk> produkList;
-  final String? searchQuery;
-  const ProdukLoaded(this.produkList, {this.searchQuery});
-  @override
-  List<Object?> get props => [produkList, searchQuery];
-}
-
-class ProdukError extends ProdukState {
-  final String message;
-  const ProdukError(this.message);
-  @override
-  List<Object?> get props => [message];
-}
-
-class ProdukOperationSuccess extends ProdukState {
-  final String message;
-  final String? newId;
-  const ProdukOperationSuccess(this.message, {this.newId});
-  @override
-  List<Object?> get props => [message, newId];
+@freezed
+class ProdukState with _$ProdukState {
+  const factory ProdukState.initial() = _Initial;
+  const factory ProdukState.loading() = _Loading;
+  const factory ProdukState.loaded(List<Produk> produkList, {String? searchQuery}) = _Loaded;
+  const factory ProdukState.error(String message) = _Error;
+  const factory ProdukState.operationSuccess(String message, {String? newId}) = _OperationSuccess;
 }

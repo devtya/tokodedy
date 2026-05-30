@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/item_pembelian.dart';
@@ -9,6 +10,7 @@ import 'pembelian_state.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/services/toko_service.dart';
 
+@injectable
 class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
   final PembelianRepository repository;
   final BuatPembelian buatPembelian;

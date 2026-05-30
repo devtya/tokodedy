@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/theme/app_theme.dart';
 import 'login_page.dart';
@@ -491,7 +492,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Halo, $username! \u{1f44b}',
+                              '${t.home.welcome} $username! \u{1f44b}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,

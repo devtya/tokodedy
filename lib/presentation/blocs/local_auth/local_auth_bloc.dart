@@ -1,8 +1,10 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/local_auth_repository.dart';
 import 'local_auth_event.dart';
 import 'local_auth_state.dart';
 
+@injectable
 class LocalAuthBloc extends Bloc<LocalAuthEvent, LocalAuthState> {
   final LocalAuthRepository _repo;
 

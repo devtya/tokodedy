@@ -355,53 +355,58 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       bottomNavigationBar: _buildBottomBar(),
       body: BlocListener<ProdukBloc, ProdukState>(
         listener: (context, state) {
-          if (state is ProdukOperationSuccess && _saved) {
-            setState(() {
-              _saved = false;
-              _isSaving = false;
-            });
-            if (state.newId != null) {
-              _addedIds.add(state.newId!);
-            }
+          state.maybeWhen(
+            operationSuccess: (message, newId) {
+              if (_saved) {
+                setState(() {
+                  _saved = false;
+                  _isSaving = false;
+                });
+                if (newId != null) {
+                  _addedIds.add(newId);
+                }
 
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Produk Berhasil Disimpan'),
-                content: const Text('Apa yang ingin Anda lakukan selanjutnya?'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.maybePop(
-                        context,
-                        _addedIds.isNotEmpty ? _addedIds : null,
-                      );
-                    },
-                    child: const Text('Selesai'),
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Produk Berhasil Disimpan'),
+                    content: const Text('Apa yang ingin Anda lakukan selanjutnya?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.maybePop(
+                            context,
+                            _addedIds.isNotEmpty ? _addedIds : null,
+                          );
+                        },
+                        child: const Text('Selesai'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _resetForm(copyName: false);
+                        },
+                        child: const Text('Input Barang Baru'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _resetForm(copyName: true);
+                        },
+                        child: const Text('Copy & Input Baru'),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _resetForm(copyName: false);
-                    },
-                    child: const Text('Input Barang Baru'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _resetForm(copyName: true);
-                    },
-                    child: const Text('Copy & Input Baru'),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (state is ProdukError) {
-            setState(() => _isSaving = false);
-          }
+                );
+              }
+            },
+            error: (_) {
+              setState(() => _isSaving = false);
+            },
+            orElse: () {},
+          );
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),

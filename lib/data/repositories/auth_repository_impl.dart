@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -13,6 +14,7 @@ import '../../core/services/toko_service.dart';
 import 'package:drift/drift.dart' show Value;
 import 'local_auth_repository_impl.dart' show LocalAuthRepositoryImpl;
 
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final AppDatabase _db;
   final SupabaseClient _supabase;

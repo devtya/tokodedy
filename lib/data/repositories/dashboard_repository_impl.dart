@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 import '../../core/services/toko_service.dart';
 import '../../domain/entities/dashboard_metrics.dart';
@@ -6,6 +7,7 @@ import '../database/app_database.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/riwayat_harga.dart';
 
+@LazySingleton(as: DashboardRepository)
 class DashboardRepositoryImpl implements DashboardRepository {
   final AppDatabase _db;
   final TokoService _tokoService;

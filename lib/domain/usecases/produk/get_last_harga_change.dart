@@ -1,6 +1,8 @@
+import 'package:injectable/injectable.dart';
 import '../../entities/notifikasi.dart';
 import '../../repositories/notifikasi_repository.dart';
 
+@lazySingleton
 class GetLastHargaChangeByProduk {
   final NotifikasiRepository repository;
 

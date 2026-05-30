@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -8,6 +9,7 @@ import '../models/receipt_data.dart';
 import 'printer_service.dart';
 import 'printer_settings.dart';
 
+@lazySingleton
 class BluetoothPrinterService implements PrinterService {
   static const _channel = MethodChannel('hend_kasir/bluetooth');
 

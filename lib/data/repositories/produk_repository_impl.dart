@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -7,6 +8,7 @@ import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/satuan_produk.dart' as domain;
 import '../../domain/repositories/produk_repository.dart';
 
+@LazySingleton(as: ProdukRepository)
 class ProdukRepositoryImpl implements ProdukRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

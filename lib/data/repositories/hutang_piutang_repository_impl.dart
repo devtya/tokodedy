@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -6,6 +7,7 @@ import '../../core/services/toko_service.dart';
 import '../../domain/entities/hutang_piutang.dart' as domain;
 import '../../domain/repositories/hutang_piutang_repository.dart';
 
+@LazySingleton(as: HutangPiutangRepository)
 class HutangPiutangRepositoryImpl implements HutangPiutangRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

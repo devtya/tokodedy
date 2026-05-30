@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -6,6 +7,7 @@ import '../../core/services/toko_service.dart';
 import '../../domain/entities/supplier.dart' as domain;
 import '../../domain/repositories/supplier_repository.dart';
 
+@LazySingleton(as: SupplierRepository)
 class SupplierRepositoryImpl implements SupplierRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

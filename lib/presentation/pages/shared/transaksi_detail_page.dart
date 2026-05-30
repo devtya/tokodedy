@@ -37,7 +37,11 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
 
   Future<void> _printReceipt() async {
     final state = context.read<TransaksiBloc>().state;
-    if (state is! TransaksiDetailLoaded) return;
+    final t = state.maybeWhen(
+      detailLoaded: (transaksi) => transaksi,
+      orElse: () => null,
+    );
+    if (t == null) return;
 
     final messenger = ScaffoldMessenger.of(context);
     final settings = sl<PrinterSettings>();
@@ -54,7 +58,6 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
     setState(() => _isPrinting = true);
 
     try {
-      final t = state.transaksi;
       final items = t.items ?? [];
 
       final receiptItems = items
@@ -132,162 +135,160 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
           ),
           BlocBuilder<TransaksiBloc, TransaksiState>(
             builder: (context, state) {
-              if (state is TransaksiDetailLoaded) {
-                return IconButton(
-                  icon: const Icon(Icons.share),
-                  tooltip: 'Bagikan Nota',
-                  onPressed: () {
-                    final t = state.transaksi;
-                    final items = t.items ?? [];
-                    final settings = sl<PrinterSettings>();
-                    final receiptItems = items
-                        .map((item) => ReceiptItem(
-                              nama: item.namaProduk ?? 'Produk #${item.produkId}',
-                              jumlah: item.jumlah,
-                              harga: item.hargaSatuan,
-                            ))
-                        .toList();
-                    final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt ?? DateTime.now());
-                    final receipt = ReceiptData(
-                      namaToko: settings.namaToko,
-                      alamatToko: settings.alamatToko,
-                      transaksiId: t.id ?? widget.transaksiId,
-                      tanggal: tanggal,
-                      items: receiptItems,
-                      subtotal: t.totalHarga,
-                      totalBayar: t.jumlahBayar,
-                      kembalian: t.kembalian,
-                      lebarKertas: settings.lebarKertas,
-                      fontSize: settings.fontSize,
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ShareReceiptPage(receipt: receipt),
-                      ),
-                    );
-                  },
-                );
-              }
-              return const SizedBox();
+              return state.maybeWhen(
+                detailLoaded: (t) {
+                  return IconButton(
+                    icon: const Icon(Icons.share),
+                    tooltip: 'Bagikan Nota',
+                    onPressed: () {
+                      final items = t.items ?? [];
+                      final settings = sl<PrinterSettings>();
+                      final receiptItems = items
+                          .map((item) => ReceiptItem(
+                                nama: item.namaProduk ?? 'Produk #${item.produkId}',
+                                jumlah: item.jumlah,
+                                harga: item.hargaSatuan,
+                              ))
+                          .toList();
+                      final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(t.createdAt ?? DateTime.now());
+                      final receipt = ReceiptData(
+                        namaToko: settings.namaToko,
+                        alamatToko: settings.alamatToko,
+                        transaksiId: t.id ?? widget.transaksiId,
+                        tanggal: tanggal,
+                        items: receiptItems,
+                        subtotal: t.totalHarga,
+                        totalBayar: t.jumlahBayar,
+                        kembalian: t.kembalian,
+                        lebarKertas: settings.lebarKertas,
+                        fontSize: settings.fontSize,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ShareReceiptPage(receipt: receipt),
+                        ),
+                      );
+                    },
+                  );
+                },
+                orElse: () => const SizedBox(),
+              );
             },
           ),
         ],
       ),
       body: BlocBuilder<TransaksiBloc, TransaksiState>(
         builder: (context, state) {
-          if (state is TransaksiLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is TransaksiDetailLoaded) {
-            final t = state.transaksi;
-            final items = t.items ?? [];
-            final isHutang = t.status == 'hutang';
+          return state.maybeWhen(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (message) => Center(child: Text(message)),
+            detailLoaded: (t) {
+              final items = t.items ?? [];
+              final isHutang = t.status == 'hutang';
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Status:',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              Chip(
-                                label: Text(
-                                  isHutang ? 'Hutang' : 'Lunas',
-                                  style: TextStyle(
-                                    color: isHutang
-                                        ? AppTheme.warningOrange
-                                        : AppTheme.primaryGreen,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                backgroundColor: isHutang
-                                    ? AppTheme.warningOrange.withValues(
-                                        alpha: 0.15,
-                                      )
-                                    : AppTheme.lightGreen,
-                              ),
-                            ],
-                          ),
-                          const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Tanggal:'),
-                              Text(_dateFormat.format(t.createdAt!)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Item',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  ...items.map(
-                    (item) => Card(
-                      margin: const EdgeInsets.only(bottom: 4),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: Text(
-                                item.namaProduk ?? 'Produk #${item.produkId}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Status:',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
-                              ),
+                                Chip(
+                                  label: Text(
+                                    isHutang ? 'Hutang' : 'Lunas',
+                                    style: TextStyle(
+                                      color: isHutang
+                                          ? AppTheme.warningOrange
+                                          : AppTheme.primaryGreen,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  backgroundColor: isHutang
+                                      ? AppTheme.warningOrange.withValues(
+                                          alpha: 0.15,
+                                        )
+                                      : AppTheme.lightGreen,
+                                ),
+                              ],
                             ),
-                            Text('${item.jumlah}x '),
-                            Text(
-                              _currency.format(item.subtotal),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const Divider(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Tanggal:'),
+                                Text(_dateFormat.format(t.createdAt!)),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    color: AppTheme.lightGreen,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _row('Total', _currency.format(t.totalHarga)),
-                          const SizedBox(height: 4),
-                          _row('Bayar', _currency.format(t.jumlahBayar)),
-                          const SizedBox(height: 4),
-                          _row('Kembali', _currency.format(t.kembalian)),
-                        ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Item',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    ...items.map(
+                      (item) => Card(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.namaProduk ?? 'Produk #${item.produkId}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Text('${item.jumlah}x '),
+                              Text(
+                                _currency.format(item.subtotal),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (state is TransaksiError) {
-            return Center(child: Text(state.message));
-          }
-          return const SizedBox();
+                    const SizedBox(height: 16),
+                    Card(
+                      color: AppTheme.lightGreen,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            _row('Total', _currency.format(t.totalHarga)),
+                            const SizedBox(height: 4),
+                            _row('Bayar', _currency.format(t.jumlahBayar)),
+                            const SizedBox(height: 4),
+                            _row('Kembali', _currency.format(t.kembalian)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            orElse: () => const SizedBox(),
+          );
         },
       ),
     );

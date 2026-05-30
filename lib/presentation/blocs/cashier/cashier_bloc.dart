@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/produk/get_all_produk.dart';
@@ -6,6 +7,7 @@ import '../../../domain/usecases/transaksi/buat_transaksi.dart';
 import 'cashier_event.dart';
 import 'cashier_state.dart';
 
+@injectable
 class CashierBloc extends Bloc<CashierEvent, CashierState> {
   final GetAllProduk getAllProduk;
   final GetProdukByBarcode getProdukByBarcode;

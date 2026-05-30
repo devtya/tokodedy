@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -7,6 +8,7 @@ import '../../domain/entities/item_pembelian.dart' as domain;
 import '../../domain/entities/pembelian.dart' as domain;
 import '../../domain/repositories/pembelian_repository.dart';
 
+@LazySingleton(as: PembelianRepository)
 class PembelianRepositoryImpl implements PembelianRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

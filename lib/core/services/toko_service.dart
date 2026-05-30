@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service untuk menyimpan tokoId (UUID) aktif ke SharedPreferences.
 /// Dibaca oleh semua repository untuk filter data per toko.
+@lazySingleton
 class TokoService {
   final SharedPreferences _prefs;
   static const _tokoIdKey  = 'toko_id_v2';  // UUID string

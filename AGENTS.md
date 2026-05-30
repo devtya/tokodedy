@@ -76,6 +76,7 @@ lib/
 - **Ambiguitas**: Jika perintah user ambigu atau kurang jelas, WAJIB tanya apa yang dimaksud. Bisa juga kasih rekomendasi opsi yang memungkinkan.
 - **Commit**: WAJIB selalu tanya konfirmasi sebelum melakukan commit. Jangan pernah commit tanpa persetujuan eksplisit.
 - **Sebelum ubah kode**: WAJIB konfirmasi ke user dan jelaskan alasan/kenapa kode tersebut perlu diubah sebelum melakukan perubahan. Sertakan juga dampak dari perubahan tersebut.
+- **Todo List**: Sebelum mengerjakan perbaikan arsitektur atau tech debt, WAJIB mengupdate file `IMPROVEMENTS.md` dengan menandai bagian yang akan dikerjakan beserta ringkasan cara/metode yang akan digunakan.
 
 ## Pembelian Pages Layout Rules (LOCKED — DO NOT CHANGE)
 
@@ -109,7 +110,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.4.10**
+Current: **1.7.0**
 
 ## Log Konvensi
 
@@ -118,6 +119,18 @@ Current: **1.4.10**
 > - Fitur: `### Fitur: <nama>` dengan deskripsi, cara pakai, files, date
 
 ## Bug Fixes Log
+
+### Fitur: Background Sync (Workmanager)
+- **Deskripsi**: Menambahkan background sinkronisasi menggunakan package `workmanager` yang berjalan setiap 15 menit. Fungsi ini memanggil `flushQueue()` pada `SupabaseSyncService` untuk memproses antrean data ke Supabase tanpa harus membuka aplikasi.
+- **Cara pakai**: Otomatis berjalan di background.
+- **Files**: `lib/main.dart`
+- **Date**: 2026-05-31
+
+### Fitur: Localization & Hardcoded Strings Extraction (i18n)
+- **Deskripsi**: Instalasi package `slang` dan mengekstrak *hardcoded strings* di UI ke dalam file JSON. Implementasi telah mencakup halaman login, beranda, serta halaman konfirmasi PIN.
+- **Cara pakai**: Gunakan syntax `t.nama_field` setelah mengimport `strings.g.dart`.
+- **Files**: `lib/main.dart`, `lib/i18n/strings.i18n.json`, `lib/presentation/pages/shared/login_page.dart`, `lib/presentation/pages/shared/home_page.dart`, `lib/presentation/pages/shared/pin_verify_page.dart`
+- **Date**: 2026-05-31
 
 ### Bug: Android Build — Unresolved reference FlutterEngine & MethodChannel
 - **Root cause**: File `MainActivity.kt` kehilangan import `FlutterEngine` dan `MethodChannel` yang menyebabkan kompilasi Kotlin gagal saat build APK rilis di GitHub Actions.

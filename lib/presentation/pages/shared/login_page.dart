@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
+import '../../../i18n/strings.g.dart';
 import 'home_page.dart';
 import 'register_store_page.dart';
 
@@ -152,21 +153,21 @@ class _LoginPageState extends State<LoginPage> {
                     color: AppTheme.primaryGreen,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'HendKasir',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  Text(
+                    t.app_name,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Login untuk melanjutkan',
+                  Text(
+                    t.login.title,
                     style: TextStyle(color: AppTheme.neutralGrey),
                 ),
                 const SizedBox(height: 48),
                 TextField(
                   controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username / Email',
-                    prefixIcon: Icon(Icons.person),
+                  decoration: InputDecoration(
+                    labelText: t.login.email_hint,
+                    prefixIcon: const Icon(Icons.person),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -174,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: t.login.password_hint,
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -201,9 +202,9 @@ class _LoginPageState extends State<LoginPage> {
                       }
                       return ElevatedButton(
                         onPressed: _login,
-                        child: const Text(
-                          'LOGIN',
-                          style: TextStyle(
+                        child: Text(
+                          t.login.login_btn.toUpperCase(),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

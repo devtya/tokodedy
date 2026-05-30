@@ -155,20 +155,23 @@ class _ProdukPageState extends State<ProdukPage> {
               Expanded(
                 child: BlocListener<ProdukBloc, ProdukState>(
                   listener: (context, state) {
-                    if (state is ProdukOperationSuccess) {
-                      _loadProducts();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
-                    }
-                    if (state is ProdukError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state.message),
-                          backgroundColor: AppTheme.warningRed,
-                        ),
-                      );
-                    }
+                    state.maybeWhen(
+                      operationSuccess: (message, newId) {
+                        _loadProducts();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(message)),
+                        );
+                      },
+                      error: (message) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: AppTheme.warningRed,
+                          ),
+                        );
+                      },
+                      orElse: () {},
+                    );
                   },
                   child: _buildProductList(isAdmin),
                 ),

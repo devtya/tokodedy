@@ -1,8 +1,10 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'app_database.dart';
 
+@lazySingleton
 class SupplierProductsDao {
   final AppDatabase _db;
   final Uuid _uuid = const Uuid();

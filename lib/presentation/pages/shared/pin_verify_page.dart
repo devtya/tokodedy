@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../blocs/local_auth/local_auth_bloc.dart';
 import '../../blocs/local_auth/local_auth_event.dart';
 import '../../blocs/local_auth/local_auth_state.dart';
+import '../../../i18n/strings.g.dart';
 
 class PinVerifyPage extends StatefulWidget {
   final String userId;
@@ -96,16 +97,16 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                       color: AppTheme.primaryGreen,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Masukkan PIN',
-                      style: TextStyle(
+                    Text(
+                      t.pin.title,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Verifikasi untuk melanjutkan',
+                      t.pin.verify_title,
                       style: TextStyle(
                         color: AppTheme.neutralGrey,
                         fontSize: 14,

@@ -9,6 +9,8 @@ import 'package:uuid/uuid.dart';
 import '../database/app_database.dart';
 import '../../core/services/toko_service.dart';
 
+import 'package:injectable/injectable.dart';
+
 /// Sync service baru — direct upsert per-tabel ke Supabase.
 /// Tidak ada lagi blob JSON atau sync_record_table.
 /// Strategi:
@@ -16,6 +18,7 @@ import '../../core/services/toko_service.dart';
 ///     Jika offline → antri di pending_sync_queue_table.
 ///   - Read: pull dari Supabase berdasarkan updated_at > lastSync.
 ///   - Conflict: last-write-wins via updated_at.
+@lazySingleton
 class SupabaseSyncService {
   final AppDatabase _db;
   final SupabaseClient _supabase;

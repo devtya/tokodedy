@@ -1,9 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, User;
+import 'package:workmanager/workmanager.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'data/services/supabase_sync_service.dart';
 
 import 'domain/entities/user.dart';
 import 'core/config.dart';
@@ -12,6 +14,8 @@ import 'core/services/update_service.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/bluetooth_printer_service.dart';
 import 'data/services/printer_settings.dart';
+import 'i18n/strings.g.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/auth/auth_state.dart';
@@ -45,6 +49,8 @@ class _PinGate extends StatefulWidget {
 }
 
 class _PinGateState extends State<_PinGate> {
+  bool _hasChecked = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,9 +59,15 @@ class _PinGateState extends State<_PinGate> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocalAuthBloc, LocalAuthState>(
+    return BlocConsumer<LocalAuthBloc, LocalAuthState>(
+      listenWhen: (prev, curr) => curr is PinReady || curr is PinNotSet || curr is PinError || curr is PinVerified,
+      listener: (context, state) {
+        if (!_hasChecked && (state is PinReady || state is PinNotSet || state is PinError)) {
+          setState(() => _hasChecked = true);
+        }
+      },
       builder: (context, state) {
-        if (state is LocalAuthLoading || state is LocalAuthInitial) {
+        if (!_hasChecked) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -101,13 +113,45 @@ class _PinGateState extends State<_PinGate> {
   }
 }
 
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        anonKey: AppConfig.supabaseAnonKey,
+      );
+      await initDependencies();
+      final syncService = sl<SupabaseSyncService>();
+      await syncService.flushQueue();
+      return Future.value(true);
+    } catch (e) {
+      return Future.value(false);
+    }
+  });
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id', null);
+  LocaleSettings.useDeviceLocale();
 
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
+  );
+
+  Workmanager().initialize(
+    callbackDispatcher,
+  );
+  Workmanager().registerPeriodicTask(
+    "sync_task_1",
+    "syncSupabaseTask",
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
   );
 
   await initDependencies();
@@ -186,29 +230,36 @@ class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver
                   create: (context) => sl<LocalAuthBloc>(),
                 ),
               ],
-              child: MaterialApp(
-                navigatorKey: _navigatorKey,
-                title: 'HendKasir',
-                debugShowCheckedModeBanner: false,
-                themeMode: themeMode,
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                home: BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    if (state is AuthInitial ||
-                        state is AuthLoading &&
-                            state is! Authenticated &&
-                            state is! Unauthenticated) {
-                      return const Scaffold(
-                        body: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    if (state is Authenticated) {
-                      return _PinGate(user: state.user);
-                    }
-                    return const LoginPage();
-                  },
-                ),
+              child: TranslationProvider(
+                child: Builder(builder: (context) {
+                  return MaterialApp(
+                    navigatorKey: _navigatorKey,
+                    title: 'HendKasir',
+                    debugShowCheckedModeBanner: false,
+                    themeMode: themeMode,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    locale: TranslationProvider.of(context).flutterLocale,
+                    supportedLocales: AppLocaleUtils.supportedLocales,
+                    localizationsDelegates: GlobalMaterialLocalizations.delegates,
+                    home: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        if (state is AuthInitial ||
+                            state is AuthLoading &&
+                                state is! Authenticated &&
+                                state is! Unauthenticated) {
+                          return const Scaffold(
+                            body: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (state is Authenticated) {
+                          return _PinGate(user: state.user);
+                        }
+                        return const LoginPage();
+                      },
+                    ),
+                  );
+                }),
               ),
             ),
           );

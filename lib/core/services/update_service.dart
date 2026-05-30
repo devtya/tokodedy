@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -16,6 +17,7 @@ class UpdateInfo {
   UpdateInfo({required this.version, required this.url, this.notes, this.assetName});
 }
 
+@lazySingleton
 class UpdateService {
   String repoOwner = 'devtya';
   String repoName = 'hend_kasir';

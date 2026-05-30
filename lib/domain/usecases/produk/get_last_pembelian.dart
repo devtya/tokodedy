@@ -1,6 +1,8 @@
+import 'package:injectable/injectable.dart';
 import '../../entities/pembelian.dart';
 import '../../repositories/pembelian_repository.dart';
 
+@lazySingleton
 class GetLastPembelianByProduk {
   final PembelianRepository repository;
 

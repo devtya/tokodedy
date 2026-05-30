@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@injectable
 class ThemeCubit extends Cubit<ThemeMode> {
   final SharedPreferences _prefs;
 

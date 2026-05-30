@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import '../../entities/riwayat_stok.dart';
 import '../../repositories/produk_repository.dart';
 import '../../repositories/riwayat_stok_repository.dart';
 
+@lazySingleton
 class TambahStok {
   final ProdukRepository produkRepository;
   final RiwayatStokRepository riwayatRepository;

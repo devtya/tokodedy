@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/supplier/add_supplier.dart';
@@ -8,6 +9,7 @@ import '../../../domain/usecases/supplier/update_supplier.dart';
 import 'supplier_event.dart';
 import 'supplier_state.dart';
 
+@injectable
 class SupplierBloc extends Bloc<SupplierEvent, SupplierState> {
   final GetAllSupplier getAllSupplier;
   final SearchSupplier searchSupplier;

@@ -1,0 +1,23 @@
+{
+  "app_name": "Hend Kasir",
+  "login": {
+    "title": "Login",
+    "email_hint": "Email",
+    "password_hint": "Password",
+    "login_btn": "Masuk",
+    "register_prompt": "Belum punya toko? Daftar"
+  },
+  "home": {
+    "welcome": "Selamat datang,",
+    "logout": "Keluar"
+  },
+  "pin": {
+    "title": "Masukkan PIN",
+    "setup_title": "Buat PIN Baru",
+    "verify_title": "Konfirmasi PIN"
+  },
+  "error": {
+    "unknown": "Terjadi kesalahan yang tidak diketahui",
+    "network": "Tidak ada koneksi internet"
+  }
+}

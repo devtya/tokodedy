@@ -1,9 +1,11 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/repositories/hutang_piutang_repository.dart';
 import 'hutang_event.dart';
 import 'hutang_state.dart';
 
+@injectable
 class HutangBloc extends Bloc<HutangEvent, HutangState> {
   final HutangPiutangRepository repository;
 

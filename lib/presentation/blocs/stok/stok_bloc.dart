@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/stok/get_riwayat_stok.dart';
@@ -5,6 +6,7 @@ import '../../../domain/usecases/stok/tambah_stok.dart';
 import 'stok_event.dart';
 import 'stok_state.dart';
 
+@injectable
 class StokBloc extends Bloc<StokEvent, StokState> {
   final GetRiwayatStok getRiwayatStok;
   final TambahStok tambahStok;

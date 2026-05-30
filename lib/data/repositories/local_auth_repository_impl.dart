@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/repositories/local_auth_repository.dart';
 import '../database/app_database.dart';
 
+@LazySingleton(as: LocalAuthRepository)
 class LocalAuthRepositoryImpl implements LocalAuthRepository {
   final AppDatabase _db;
   final SharedPreferences _prefs;

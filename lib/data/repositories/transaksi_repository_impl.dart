@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -7,6 +8,7 @@ import '../../domain/entities/item_transaksi.dart' as domain;
 import '../../domain/entities/transaksi.dart' as domain;
 import '../../domain/repositories/transaksi_repository.dart';
 
+@LazySingleton(as: TransaksiRepository)
 class TransaksiRepositoryImpl implements TransaksiRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

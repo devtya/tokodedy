@@ -1,9 +1,11 @@
+import 'package:injectable/injectable.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/di/injection.dart';
 import '../../core/services/toko_service.dart';
 
+@lazySingleton
 class PrinterSettings {
   static const _keyType = 'printer_type';
   static const _keyUrl = 'printer_url';

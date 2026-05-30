@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/usecases/notifikasi/get_all_notifikasi.dart';
 import '../../../domain/usecases/notifikasi/get_unread_notifikasi.dart';
@@ -5,6 +6,7 @@ import '../../../domain/usecases/notifikasi/mark_as_read.dart';
 import 'notifikasi_event.dart';
 import 'notifikasi_state.dart';
 
+@injectable
 class NotifikasiBloc extends Bloc<NotifikasiEvent, NotifikasiState> {
   final GetAllNotifikasi getAllNotifikasi;
   final GetUnreadNotifikasi getUnreadNotifikasi;

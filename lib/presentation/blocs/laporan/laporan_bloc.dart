@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/repositories/laporan_repository.dart';
@@ -5,6 +6,7 @@ import '../../../domain/repositories/transaksi_repository.dart';
 import 'laporan_event.dart';
 import 'laporan_state.dart';
 
+@injectable
 class LaporanBloc extends Bloc<LaporanEvent, LaporanState> {
   final TransaksiRepository transaksiRepository;
   final LaporanRepository laporanRepository;

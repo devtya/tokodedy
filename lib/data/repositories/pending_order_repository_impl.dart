@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -6,6 +7,7 @@ import '../../core/services/toko_service.dart';
 import '../../domain/entities/pending_order.dart' as domain;
 import '../../domain/repositories/pending_order_repository.dart';
 
+@LazySingleton(as: PendingOrderRepository)
 class PendingOrderRepositoryImpl implements PendingOrderRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;

@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../entities/item_pembelian.dart';
 import '../../entities/pembelian.dart';
 import '../../entities/riwayat_stok.dart';
@@ -5,6 +6,7 @@ import '../../repositories/pembelian_repository.dart';
 import '../../repositories/produk_repository.dart';
 import '../../repositories/riwayat_stok_repository.dart';
 
+@lazySingleton
 class UpdatePembelian {
   final PembelianRepository pembelianRepository;
   final ProdukRepository produkRepository;

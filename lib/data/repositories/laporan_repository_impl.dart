@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 import '../../core/services/toko_service.dart';
 import '../../domain/entities/hutang_piutang.dart' as domain;
@@ -5,6 +6,7 @@ import '../../domain/entities/produk.dart' as domain;
 import '../../domain/repositories/laporan_repository.dart';
 import '../database/app_database.dart';
 
+@LazySingleton(as: LaporanRepository)
 class LaporanRepositoryImpl implements LaporanRepository {
   final AppDatabase _db;
   final TokoService _tokoService;

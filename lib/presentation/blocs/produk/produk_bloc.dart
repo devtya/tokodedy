@@ -1,4 +1,6 @@
+import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/future_extension.dart';
 
 import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/usecases/produk/add_produk.dart';
@@ -11,6 +13,7 @@ import '../../../domain/usecases/produk/update_produk.dart';
 import 'produk_event.dart';
 import 'produk_state.dart';
 
+@injectable
 class ProdukBloc extends Bloc<ProdukEvent, ProdukState> {
   final GetAllProduk getAllProduk;
   final SearchProduk searchProduk;
@@ -28,7 +31,7 @@ class ProdukBloc extends Bloc<ProdukEvent, ProdukState> {
     required this.deleteProduk,
     required this.addSatuan,
     required this.deleteSatuanByProdukId,
-  }) : super(ProdukInitial()) {
+  }) : super(const ProdukState.initial()) {
     on<LoadProduk>(_onLoadProduk);
     on<SearchProdukEvent>(_onSearchProduk);
     on<AddProdukEvent>(_onAddProduk);
@@ -40,95 +43,105 @@ class ProdukBloc extends Bloc<ProdukEvent, ProdukState> {
     LoadProduk event,
     Emitter<ProdukState> emit,
   ) async {
-    emit(ProdukLoading());
-    try {
-      final produk = await getAllProduk();
-      emit(ProdukLoaded(produk));
-    } catch (e) {
-      emit(ProdukError(e.toString()));
-    }
+    emit(const ProdukState.loading());
+    final result = await getAllProduk().toEither();
+    result.fold(
+      (f) => emit(ProdukState.error(f.message)),
+      (produk) => emit(ProdukState.loaded(produk)),
+    );
   }
 
   Future<void> _onSearchProduk(
     SearchProdukEvent event,
     Emitter<ProdukState> emit,
   ) async {
-    emit(ProdukLoading());
-    try {
-      final produk = await searchProduk(event.query);
-      emit(ProdukLoaded(produk, searchQuery: event.query));
-    } catch (e) {
-      emit(ProdukError(e.toString()));
-    }
+    emit(const ProdukState.loading());
+    final result = await searchProduk(event.query).toEither();
+    result.fold(
+      (f) => emit(ProdukState.error(f.message)),
+      (produk) => emit(ProdukState.loaded(produk, searchQuery: event.query)),
+    );
   }
 
   Future<void> _onAddProduk(
     AddProdukEvent event,
     Emitter<ProdukState> emit,
   ) async {
-    try {
-      final newId = await addProduk(event.produk);
-      final satuanList = event.produk.satuanList;
-      if (satuanList != null) {
-        for (final s in satuanList) {
-          await addSatuan(
-            SatuanProduk(
-              tokoId: event.produk.tokoId,
-              produkId: newId,
-              nama: s.nama,
-              konversi: s.konversi,
-              hargaBeli: s.hargaBeli,
-              hargaJual: s.hargaJual,
-            ),
-          );
+    final result = await addProduk(event.produk).toEither();
+    
+    await result.fold(
+      (f) async => emit(ProdukState.error(f.message)),
+      (newId) async {
+        final satuanList = event.produk.satuanList;
+        if (satuanList != null) {
+          for (final s in satuanList) {
+            await addSatuan(
+              SatuanProduk(
+                tokoId: event.produk.tokoId,
+                produkId: newId,
+                nama: s.nama,
+                konversi: s.konversi,
+                hargaBeli: s.hargaBeli,
+                hargaJual: s.hargaJual,
+              ),
+            );
+          }
         }
-      }
-      emit(ProdukOperationSuccess('Produk berhasil ditambahkan', newId: newId));
-      add(LoadProduk());
-    } catch (e) {
-      emit(ProdukError(e.toString()));
-    }
+        emit(ProdukState.operationSuccess('Produk berhasil ditambahkan', newId: newId));
+        add(LoadProduk());
+      },
+    );
   }
 
   Future<void> _onUpdateProduk(
     UpdateProdukEvent event,
     Emitter<ProdukState> emit,
   ) async {
-    try {
-      await updateProduk(event.produk);
-      final satuanList = event.produk.satuanList;
-      if (satuanList != null) {
-        await deleteSatuanByProdukId(event.produk.id!);
-        for (final s in satuanList) {
-          await addSatuan(
-            SatuanProduk(
-              tokoId: event.produk.tokoId,
-              produkId: event.produk.id!,
-              nama: s.nama,
-              konversi: s.konversi,
-              hargaBeli: s.hargaBeli,
-              hargaJual: s.hargaJual,
-            ),
-          );
-        }
-      }
-      emit(ProdukOperationSuccess('Produk berhasil diupdate'));
-      add(LoadProduk());
-    } catch (e) {
-      emit(ProdukError(e.toString()));
-    }
+    final result = await updateProduk(event.produk).toEither();
+    
+    await result.fold(
+      (f) async => emit(ProdukState.error(f.message)),
+      (_) async {
+        // Hapus satuan lama
+        final delSatuanResult = await deleteSatuanByProdukId(event.produk.id!).toEither();
+        await delSatuanResult.fold(
+          (f) async => emit(ProdukState.error(f.message)),
+          (_) async {
+            // Insert satuan baru
+            final satuanList = event.produk.satuanList;
+            if (satuanList != null) {
+              for (final s in satuanList) {
+                await addSatuan(
+                  SatuanProduk(
+                    tokoId: event.produk.tokoId,
+                    produkId: event.produk.id!,
+                    nama: s.nama,
+                    konversi: s.konversi,
+                    hargaBeli: s.hargaBeli,
+                    hargaJual: s.hargaJual,
+                  ),
+                );
+              }
+            }
+            emit(const ProdukState.operationSuccess('Produk berhasil diupdate'));
+            add(LoadProduk());
+          },
+        );
+      },
+    );
   }
 
   Future<void> _onDeleteProduk(
     DeleteProdukEvent event,
     Emitter<ProdukState> emit,
   ) async {
-    try {
-      await deleteProduk(event.id);
-      emit(ProdukOperationSuccess('Produk berhasil dihapus'));
-      add(LoadProduk());
-    } catch (e) {
-      emit(ProdukError(e.toString()));
-    }
+    final result = await deleteProduk(event.id).toEither();
+    result.fold(
+      (f) => emit(ProdukState.error(f.message)),
+      (_) {
+        emit(const ProdukState.operationSuccess('Produk berhasil dihapus'));
+        add(LoadProduk());
+      },
+    );
   }
 }

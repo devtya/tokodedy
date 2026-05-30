@@ -36,15 +36,13 @@ class _TransaksiPageState extends State<TransaksiPage> {
       appBar: AppBar(title: const Text('Riwayat Transaksi')),
       body: BlocBuilder<TransaksiBloc, TransaksiState>(
         builder: (context, state) {
-          if (state is TransaksiLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is TransaksiError) {
-            return Center(
+          return state.maybeWhen(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (message) => Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(state.message),
+                  Text(message),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () =>
@@ -53,69 +51,69 @@ class _TransaksiPageState extends State<TransaksiPage> {
                   ),
                 ],
               ),
-            );
-          }
-          if (state is TransaksiLoaded) {
-            if (state.transaksiList.isEmpty) {
-              return const Center(child: Text('Belum ada transaksi'));
-            }
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TransaksiBloc>().add(LoadTransaksi());
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.transaksiList.length,
-                itemBuilder: (context, index) {
-                  final t = state.transaksiList[index];
-                  final isHutang = t.status == 'hutang';
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: isHutang
-                            ? AppTheme.warningOrange.withValues(alpha: 0.15)
-                            : AppTheme.lightGreen,
-                        child: Icon(
-                          isHutang ? Icons.book : Icons.check_circle,
-                          color: isHutang
-                              ? AppTheme.warningOrange
-                              : AppTheme.primaryGreen,
-                        ),
-                      ),
-                      title: Text('Transaksi #${t.id}'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_currency.format(t.totalHarga)),
-                          Text(
-                            _dateFormat.format(t.createdAt!),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.neutralGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<TransaksiBloc>(),
-                              child: TransaksiDetailPage(transaksiId: t.id!),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
+            ),
+            loaded: (transaksiList) {
+              if (transaksiList.isEmpty) {
+                return const Center(child: Text('Belum ada transaksi'));
+              }
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<TransaksiBloc>().add(LoadTransaksi());
                 },
-              ),
-            );
-          }
-          return const SizedBox();
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: transaksiList.length,
+                  itemBuilder: (context, index) {
+                    final t = transaksiList[index];
+                    final isHutang = t.status == 'hutang';
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: isHutang
+                              ? AppTheme.warningOrange.withValues(alpha: 0.15)
+                              : AppTheme.lightGreen,
+                          child: Icon(
+                            isHutang ? Icons.book : Icons.check_circle,
+                            color: isHutang
+                                ? AppTheme.warningOrange
+                                : AppTheme.primaryGreen,
+                          ),
+                        ),
+                        title: Text('Transaksi #${t.id}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_currency.format(t.totalHarga)),
+                            Text(
+                              _dateFormat.format(t.createdAt!),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.neutralGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider(
+                                create: (_) => sl<TransaksiBloc>(),
+                                child: TransaksiDetailPage(transaksiId: t.id!),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+            orElse: () => const SizedBox(),
+          );
         },
       ),
     );
