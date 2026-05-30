@@ -7,19 +7,23 @@ import 'dart:convert';
 import '../../domain/entities/toko.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/local_auth_repository.dart';
 import '../database/app_database.dart';
 import '../../core/services/toko_service.dart';
 import 'package:drift/drift.dart' show Value;
+import 'local_auth_repository_impl.dart' show LocalAuthRepositoryImpl;
 
 class AuthRepositoryImpl implements AuthRepository {
   final AppDatabase _db;
   final SupabaseClient _supabase;
   final SharedPreferences _prefs;
   final TokoService _tokoService;
+  final LocalAuthRepository _localAuth;
 
   static const _sessionKey = 'current_user_session';
 
-  AuthRepositoryImpl(this._db, this._supabase, this._prefs, this._tokoService);
+  AuthRepositoryImpl(this._db, this._supabase, this._prefs, this._tokoService)
+      : _localAuth = LocalAuthRepositoryImpl(_db, _prefs);
 
   // ───────────── AUTH ─────────────
 
@@ -370,12 +374,14 @@ class AuthRepositoryImpl implements AuthRepository {
   // ───────────── LOCAL HELPERS ─────────────
 
   Future<void> _saveSession(User user) async {
+    final hasPin = user.id != null && await _localAuth.hasPin(user.id!);
     await _prefs.setString(_sessionKey, jsonEncode({
       'id': user.id,
       'tokoId': user.tokoId,
       'nama': user.nama,
       'role': user.role,
       'email': user.email,
+      'hasPin': hasPin,
     }));
   }
 

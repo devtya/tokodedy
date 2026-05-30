@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/di/injection.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/repositories/auth_repository.dart';
+import '../../../domain/repositories/local_auth_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
@@ -17,6 +18,7 @@ class UserManagementPage extends StatefulWidget {
 
 class _UserManagementPageState extends State<UserManagementPage> {
   final AuthRepository _authRepo = sl<AuthRepository>();
+  final LocalAuthRepository _localAuthRepo = sl<LocalAuthRepository>();
   List<User> _users = [];
   bool _isLoading = true;
 
@@ -138,16 +140,106 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
+  void _showResetPinDialog(User user) {
+    final pinCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Reset PIN ${user.nama ?? "Kasir"}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Masukkan PIN baru untuk user ini.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: pinCtrl,
+              obscureText: true,
+              maxLength: 6,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'PIN Baru (4-6 digit)',
+                prefixIcon: Icon(Icons.pin),
+              ),
+            ),
+            TextField(
+              controller: confirmCtrl,
+              obscureText: true,
+              maxLength: 6,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Konfirmasi PIN',
+                prefixIcon: Icon(Icons.pin),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final pin = pinCtrl.text.trim();
+              final confirm = confirmCtrl.text.trim();
+              if (pin.isEmpty || confirm.isEmpty) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('PIN tidak boleh kosong')),
+                );
+                return;
+              }
+              if (pin.length < 4 || pin.length > 6) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('PIN harus 4-6 digit')),
+                );
+                return;
+              }
+              if (pin != confirm) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('PIN tidak cocok')),
+                );
+                return;
+              }
+              try {
+                await _localAuthRepo.removePin(user.id!);
+                await _localAuthRepo.setPin(user.id!, pin);
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN berhasil direset'),
+                      backgroundColor: AppTheme.primaryGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Manajemen Pengguna')),
-      body: _isLoading
+        body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: _users.length,
               itemBuilder: (context, index) {
                 final user = _users[index];
+                final currentUser = _authRepo.getCurrentUser();
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: user.isOwner
@@ -165,6 +257,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (currentUser?.isOwner == true && !user.isOwner)
+                        IconButton(
+                          icon: const Icon(Icons.pin, color: Colors.orange),
+                          tooltip: 'Reset PIN',
+                          onPressed: () => _showResetPinDialog(user),
+                        ),
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () => _showEditDialog(user),

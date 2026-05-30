@@ -24,6 +24,7 @@ import 'tables/toko_table.dart';
 import 'tables/transaksi_table.dart';
 import 'tables/notifikasi_table.dart';
 import 'tables/user_table.dart';
+import 'tables/local_auth_table.dart';
 
 part 'app_database.g.dart';
 
@@ -48,13 +49,14 @@ part 'app_database.g.dart';
     NotifikasiTable,
     PendingSyncQueueTable,
     RiwayatHargaTable,
+    LocalAuthTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -95,6 +97,12 @@ class AppDatabase extends _$AppDatabase {
         } catch (_) {}
         try {
           await m.addColumn(tokoTable, tokoTable.stokMinimumGlobal);
+        } catch (_) {}
+      }
+
+      if (from < 18) {
+        try {
+          await m.createTable(localAuthTable);
         } catch (_) {}
       }
 

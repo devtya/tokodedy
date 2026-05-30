@@ -9662,6 +9662,393 @@ class RiwayatHargaTableCompanion
   }
 }
 
+class $LocalAuthTableTable extends LocalAuthTable
+    with TableInfo<$LocalAuthTableTable, LocalAuthTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalAuthTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pinHashMeta = const VerificationMeta(
+    'pinHash',
+  );
+  @override
+  late final GeneratedColumn<String> pinHash = GeneratedColumn<String>(
+    'pin_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _biometricEnabledMeta = const VerificationMeta(
+    'biometricEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> biometricEnabled = GeneratedColumn<bool>(
+    'biometric_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("biometric_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _failedAttemptsMeta = const VerificationMeta(
+    'failedAttempts',
+  );
+  @override
+  late final GeneratedColumn<int> failedAttempts = GeneratedColumn<int>(
+    'failed_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lockoutUntilMeta = const VerificationMeta(
+    'lockoutUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lockoutUntil = GeneratedColumn<DateTime>(
+    'lockout_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    pinHash,
+    biometricEnabled,
+    failedAttempts,
+    lockoutUntil,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_auth_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalAuthTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('pin_hash')) {
+      context.handle(
+        _pinHashMeta,
+        pinHash.isAcceptableOrUnknown(data['pin_hash']!, _pinHashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pinHashMeta);
+    }
+    if (data.containsKey('biometric_enabled')) {
+      context.handle(
+        _biometricEnabledMeta,
+        biometricEnabled.isAcceptableOrUnknown(
+          data['biometric_enabled']!,
+          _biometricEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('failed_attempts')) {
+      context.handle(
+        _failedAttemptsMeta,
+        failedAttempts.isAcceptableOrUnknown(
+          data['failed_attempts']!,
+          _failedAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('lockout_until')) {
+      context.handle(
+        _lockoutUntilMeta,
+        lockoutUntil.isAcceptableOrUnknown(
+          data['lockout_until']!,
+          _lockoutUntilMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId};
+  @override
+  LocalAuthTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalAuthTableData(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      pinHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pin_hash'],
+      )!,
+      biometricEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}biometric_enabled'],
+      )!,
+      failedAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}failed_attempts'],
+      )!,
+      lockoutUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}lockout_until'],
+      ),
+    );
+  }
+
+  @override
+  $LocalAuthTableTable createAlias(String alias) {
+    return $LocalAuthTableTable(attachedDatabase, alias);
+  }
+}
+
+class LocalAuthTableData extends DataClass
+    implements Insertable<LocalAuthTableData> {
+  final String userId;
+  final String pinHash;
+  final bool biometricEnabled;
+  final int failedAttempts;
+  final DateTime? lockoutUntil;
+  const LocalAuthTableData({
+    required this.userId,
+    required this.pinHash,
+    required this.biometricEnabled,
+    required this.failedAttempts,
+    this.lockoutUntil,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['pin_hash'] = Variable<String>(pinHash);
+    map['biometric_enabled'] = Variable<bool>(biometricEnabled);
+    map['failed_attempts'] = Variable<int>(failedAttempts);
+    if (!nullToAbsent || lockoutUntil != null) {
+      map['lockout_until'] = Variable<DateTime>(lockoutUntil);
+    }
+    return map;
+  }
+
+  LocalAuthTableCompanion toCompanion(bool nullToAbsent) {
+    return LocalAuthTableCompanion(
+      userId: Value(userId),
+      pinHash: Value(pinHash),
+      biometricEnabled: Value(biometricEnabled),
+      failedAttempts: Value(failedAttempts),
+      lockoutUntil: lockoutUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lockoutUntil),
+    );
+  }
+
+  factory LocalAuthTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalAuthTableData(
+      userId: serializer.fromJson<String>(json['userId']),
+      pinHash: serializer.fromJson<String>(json['pinHash']),
+      biometricEnabled: serializer.fromJson<bool>(json['biometricEnabled']),
+      failedAttempts: serializer.fromJson<int>(json['failedAttempts']),
+      lockoutUntil: serializer.fromJson<DateTime?>(json['lockoutUntil']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'pinHash': serializer.toJson<String>(pinHash),
+      'biometricEnabled': serializer.toJson<bool>(biometricEnabled),
+      'failedAttempts': serializer.toJson<int>(failedAttempts),
+      'lockoutUntil': serializer.toJson<DateTime?>(lockoutUntil),
+    };
+  }
+
+  LocalAuthTableData copyWith({
+    String? userId,
+    String? pinHash,
+    bool? biometricEnabled,
+    int? failedAttempts,
+    Value<DateTime?> lockoutUntil = const Value.absent(),
+  }) => LocalAuthTableData(
+    userId: userId ?? this.userId,
+    pinHash: pinHash ?? this.pinHash,
+    biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+    failedAttempts: failedAttempts ?? this.failedAttempts,
+    lockoutUntil: lockoutUntil.present ? lockoutUntil.value : this.lockoutUntil,
+  );
+  LocalAuthTableData copyWithCompanion(LocalAuthTableCompanion data) {
+    return LocalAuthTableData(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      pinHash: data.pinHash.present ? data.pinHash.value : this.pinHash,
+      biometricEnabled: data.biometricEnabled.present
+          ? data.biometricEnabled.value
+          : this.biometricEnabled,
+      failedAttempts: data.failedAttempts.present
+          ? data.failedAttempts.value
+          : this.failedAttempts,
+      lockoutUntil: data.lockoutUntil.present
+          ? data.lockoutUntil.value
+          : this.lockoutUntil,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalAuthTableData(')
+          ..write('userId: $userId, ')
+          ..write('pinHash: $pinHash, ')
+          ..write('biometricEnabled: $biometricEnabled, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('lockoutUntil: $lockoutUntil')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    userId,
+    pinHash,
+    biometricEnabled,
+    failedAttempts,
+    lockoutUntil,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalAuthTableData &&
+          other.userId == this.userId &&
+          other.pinHash == this.pinHash &&
+          other.biometricEnabled == this.biometricEnabled &&
+          other.failedAttempts == this.failedAttempts &&
+          other.lockoutUntil == this.lockoutUntil);
+}
+
+class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
+  final Value<String> userId;
+  final Value<String> pinHash;
+  final Value<bool> biometricEnabled;
+  final Value<int> failedAttempts;
+  final Value<DateTime?> lockoutUntil;
+  final Value<int> rowid;
+  const LocalAuthTableCompanion({
+    this.userId = const Value.absent(),
+    this.pinHash = const Value.absent(),
+    this.biometricEnabled = const Value.absent(),
+    this.failedAttempts = const Value.absent(),
+    this.lockoutUntil = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalAuthTableCompanion.insert({
+    required String userId,
+    required String pinHash,
+    this.biometricEnabled = const Value.absent(),
+    this.failedAttempts = const Value.absent(),
+    this.lockoutUntil = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       pinHash = Value(pinHash);
+  static Insertable<LocalAuthTableData> custom({
+    Expression<String>? userId,
+    Expression<String>? pinHash,
+    Expression<bool>? biometricEnabled,
+    Expression<int>? failedAttempts,
+    Expression<DateTime>? lockoutUntil,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (pinHash != null) 'pin_hash': pinHash,
+      if (biometricEnabled != null) 'biometric_enabled': biometricEnabled,
+      if (failedAttempts != null) 'failed_attempts': failedAttempts,
+      if (lockoutUntil != null) 'lockout_until': lockoutUntil,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalAuthTableCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? pinHash,
+    Value<bool>? biometricEnabled,
+    Value<int>? failedAttempts,
+    Value<DateTime?>? lockoutUntil,
+    Value<int>? rowid,
+  }) {
+    return LocalAuthTableCompanion(
+      userId: userId ?? this.userId,
+      pinHash: pinHash ?? this.pinHash,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      failedAttempts: failedAttempts ?? this.failedAttempts,
+      lockoutUntil: lockoutUntil ?? this.lockoutUntil,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (pinHash.present) {
+      map['pin_hash'] = Variable<String>(pinHash.value);
+    }
+    if (biometricEnabled.present) {
+      map['biometric_enabled'] = Variable<bool>(biometricEnabled.value);
+    }
+    if (failedAttempts.present) {
+      map['failed_attempts'] = Variable<int>(failedAttempts.value);
+    }
+    if (lockoutUntil.present) {
+      map['lockout_until'] = Variable<DateTime>(lockoutUntil.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalAuthTableCompanion(')
+          ..write('userId: $userId, ')
+          ..write('pinHash: $pinHash, ')
+          ..write('biometricEnabled: $biometricEnabled, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('lockoutUntil: $lockoutUntil, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9699,6 +10086,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $PendingSyncQueueTableTable(this);
   late final $RiwayatHargaTableTable riwayatHargaTable =
       $RiwayatHargaTableTable(this);
+  late final $LocalAuthTableTable localAuthTable = $LocalAuthTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9723,6 +10111,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     notifikasiTable,
     pendingSyncQueueTable,
     riwayatHargaTable,
+    localAuthTable,
   ];
 }
 
@@ -14871,6 +15260,218 @@ typedef $$RiwayatHargaTableTableProcessedTableManager =
       RiwayatHargaTableData,
       PrefetchHooks Function()
     >;
+typedef $$LocalAuthTableTableCreateCompanionBuilder =
+    LocalAuthTableCompanion Function({
+      required String userId,
+      required String pinHash,
+      Value<bool> biometricEnabled,
+      Value<int> failedAttempts,
+      Value<DateTime?> lockoutUntil,
+      Value<int> rowid,
+    });
+typedef $$LocalAuthTableTableUpdateCompanionBuilder =
+    LocalAuthTableCompanion Function({
+      Value<String> userId,
+      Value<String> pinHash,
+      Value<bool> biometricEnabled,
+      Value<int> failedAttempts,
+      Value<DateTime?> lockoutUntil,
+      Value<int> rowid,
+    });
+
+class $$LocalAuthTableTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalAuthTableTable> {
+  $$LocalAuthTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pinHash => $composableBuilder(
+    column: $table.pinHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get biometricEnabled => $composableBuilder(
+    column: $table.biometricEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get failedAttempts => $composableBuilder(
+    column: $table.failedAttempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lockoutUntil => $composableBuilder(
+    column: $table.lockoutUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocalAuthTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalAuthTableTable> {
+  $$LocalAuthTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pinHash => $composableBuilder(
+    column: $table.pinHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get biometricEnabled => $composableBuilder(
+    column: $table.biometricEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get failedAttempts => $composableBuilder(
+    column: $table.failedAttempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lockoutUntil => $composableBuilder(
+    column: $table.lockoutUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalAuthTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalAuthTableTable> {
+  $$LocalAuthTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get pinHash =>
+      $composableBuilder(column: $table.pinHash, builder: (column) => column);
+
+  GeneratedColumn<bool> get biometricEnabled => $composableBuilder(
+    column: $table.biometricEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get failedAttempts => $composableBuilder(
+    column: $table.failedAttempts,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lockoutUntil => $composableBuilder(
+    column: $table.lockoutUntil,
+    builder: (column) => column,
+  );
+}
+
+class $$LocalAuthTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalAuthTableTable,
+          LocalAuthTableData,
+          $$LocalAuthTableTableFilterComposer,
+          $$LocalAuthTableTableOrderingComposer,
+          $$LocalAuthTableTableAnnotationComposer,
+          $$LocalAuthTableTableCreateCompanionBuilder,
+          $$LocalAuthTableTableUpdateCompanionBuilder,
+          (
+            LocalAuthTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $LocalAuthTableTable,
+              LocalAuthTableData
+            >,
+          ),
+          LocalAuthTableData,
+          PrefetchHooks Function()
+        > {
+  $$LocalAuthTableTableTableManager(
+    _$AppDatabase db,
+    $LocalAuthTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalAuthTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalAuthTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalAuthTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> pinHash = const Value.absent(),
+                Value<bool> biometricEnabled = const Value.absent(),
+                Value<int> failedAttempts = const Value.absent(),
+                Value<DateTime?> lockoutUntil = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalAuthTableCompanion(
+                userId: userId,
+                pinHash: pinHash,
+                biometricEnabled: biometricEnabled,
+                failedAttempts: failedAttempts,
+                lockoutUntil: lockoutUntil,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String pinHash,
+                Value<bool> biometricEnabled = const Value.absent(),
+                Value<int> failedAttempts = const Value.absent(),
+                Value<DateTime?> lockoutUntil = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalAuthTableCompanion.insert(
+                userId: userId,
+                pinHash: pinHash,
+                biometricEnabled: biometricEnabled,
+                failedAttempts: failedAttempts,
+                lockoutUntil: lockoutUntil,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocalAuthTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalAuthTableTable,
+      LocalAuthTableData,
+      $$LocalAuthTableTableFilterComposer,
+      $$LocalAuthTableTableOrderingComposer,
+      $$LocalAuthTableTableAnnotationComposer,
+      $$LocalAuthTableTableCreateCompanionBuilder,
+      $$LocalAuthTableTableUpdateCompanionBuilder,
+      (
+        LocalAuthTableData,
+        BaseReferences<_$AppDatabase, $LocalAuthTableTable, LocalAuthTableData>,
+      ),
+      LocalAuthTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14916,4 +15517,6 @@ class $AppDatabaseManager {
       $$PendingSyncQueueTableTableTableManager(_db, _db.pendingSyncQueueTable);
   $$RiwayatHargaTableTableTableManager get riwayatHargaTable =>
       $$RiwayatHargaTableTableTableManager(_db, _db.riwayatHargaTable);
+  $$LocalAuthTableTableTableManager get localAuthTable =>
+      $$LocalAuthTableTableTableManager(_db, _db.localAuthTable);
 }

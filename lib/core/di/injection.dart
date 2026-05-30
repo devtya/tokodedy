@@ -8,6 +8,8 @@ import '../../presentation/blocs/theme/theme_cubit.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/supplier_products_dao.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/local_auth_repository_impl.dart';
+import '../../domain/repositories/local_auth_repository.dart';
 import '../../data/repositories/hutang_piutang_repository_impl.dart';
 import '../../data/repositories/pembelian_repository_impl.dart';
 import '../../data/repositories/pending_order_repository_impl.dart';
@@ -78,6 +80,7 @@ import '../../presentation/blocs/transaksi/transaksi_bloc.dart';
 import '../../presentation/blocs/notifikasi/notifikasi_bloc.dart';
 import '../../presentation/blocs/sync/sync_bloc.dart';
 import '../../presentation/blocs/dashboard/dashboard_bloc.dart';
+import '../../presentation/blocs/local_auth/local_auth_bloc.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';
 import '../../data/services/network_printer_service.dart';
@@ -154,6 +157,9 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl(), Supabase.instance.client, sl(), sl()),
+  );
+  sl.registerLazySingleton<LocalAuthRepository>(
+    () => LocalAuthRepositoryImpl(sl(), sl()),
   );
 
   sl.registerLazySingleton<ProdukRepository>(
@@ -300,6 +306,7 @@ Future<void> initDependencies() async {
   );
   sl.registerFactory(() => DashboardBloc(sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl(), tokoService: sl()));
+  sl.registerFactory(() => LocalAuthBloc(sl()));
 
   sl.registerFactory(() => BackupBloc(repository: sl()));
 

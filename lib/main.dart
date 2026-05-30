@@ -1,10 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, User;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'domain/entities/user.dart';
 import 'core/config.dart';
 import 'core/di/injection.dart';
 import 'core/services/update_service.dart';
@@ -14,11 +15,15 @@ import 'data/services/printer_settings.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/auth/auth_state.dart';
+import 'presentation/blocs/local_auth/local_auth_bloc.dart';
+import 'presentation/blocs/local_auth/local_auth_event.dart';
+import 'presentation/blocs/local_auth/local_auth_state.dart';
 import 'presentation/blocs/sync/sync_bloc.dart';
 import 'presentation/blocs/theme/theme_cubit.dart';
 import 'presentation/pages/shared/home_page.dart';
 import 'presentation/pages/shared/initial_sync_page.dart';
 import 'presentation/pages/shared/login_page.dart';
+import 'presentation/pages/shared/pin_verify_page.dart';
 import 'presentation/pages/shared/reset_password_page.dart';
 
 Future<void> _checkUpdate() async {
@@ -29,6 +34,71 @@ Future<void> _checkUpdate() async {
       // Update tersedia — dialog akan muncul di HomePage
     }
   } catch (_) {}
+}
+
+class _PinGate extends StatefulWidget {
+  final User user;
+  const _PinGate({required this.user});
+
+  @override
+  State<_PinGate> createState() => _PinGateState();
+}
+
+class _PinGateState extends State<_PinGate> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<LocalAuthBloc>().add(CheckPinEvent(widget.user.id!));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<LocalAuthBloc, LocalAuthState>(
+      builder: (context, state) {
+        if (state is LocalAuthLoading || state is LocalAuthInitial) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is PinNotSet) {
+          return FutureBuilder<bool>(
+            future: context.read<SyncBloc>().isInitialSyncDone,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.data == true) {
+                return const HomePage();
+              }
+              return const InitialSyncPage(destination: HomePage());
+            },
+          );
+        }
+
+        return PinVerifyPage(
+          userId: widget.user.id!,
+          onVerified: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const HomePage()),
+              (route) => false,
+            );
+          },
+          onSkip: () {
+            context.read<LocalAuthBloc>().add(RemovePinEvent(widget.user.id!));
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const HomePage()),
+              (route) => false,
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 void main() async {
@@ -110,42 +180,35 @@ class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver
               ),
               BlocProvider(create: (context) => sl<SyncBloc>()),
             ],
-            child: MaterialApp(
-              navigatorKey: _navigatorKey,
-              title: 'HendKasir',
-              debugShowCheckedModeBanner: false,
-              themeMode: themeMode,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              home: BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  if (state is AuthInitial ||
-                      state is AuthLoading &&
-                          state is! Authenticated &&
-                          state is! Unauthenticated) {
-                    return const Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  if (state is Authenticated) {
-                    return FutureBuilder<bool>(
-                      future: context.read<SyncBloc>().isInitialSyncDone,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Scaffold(
-                            body: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        if (snapshot.data == true) {
-                          return const HomePage();
-                        }
-                        return const InitialSyncPage(destination: HomePage());
-                      },
-                    );
-                  }
-                  return const LoginPage();
-                },
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => sl<LocalAuthBloc>(),
+                ),
+              ],
+              child: MaterialApp(
+                navigatorKey: _navigatorKey,
+                title: 'HendKasir',
+                debugShowCheckedModeBanner: false,
+                themeMode: themeMode,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                home: BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    if (state is AuthInitial ||
+                        state is AuthLoading &&
+                            state is! Authenticated &&
+                            state is! Unauthenticated) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (state is Authenticated) {
+                      return _PinGate(user: state.user);
+                    }
+                    return const LoginPage();
+                  },
+                ),
               ),
             ),
           );
