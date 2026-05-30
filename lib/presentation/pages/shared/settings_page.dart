@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/di/injection.dart';
@@ -321,6 +322,35 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                     builder: (context, state) {
                       final isSyncing = state is SyncInProgress;
+                      final isError = state is SyncError;
+                      final lastSync = state is SyncIdle
+                          ? state.lastSync
+                          : state is SyncSuccess
+                              ? state.lastSync
+                              : state is SyncError
+                                  ? state.lastSync
+                                  : null;
+
+                      String subtitle;
+                      if (isSyncing) {
+                        subtitle = 'Sedang menyelaraskan data dengan cloud...';
+                      } else if (isError) {
+                        subtitle = 'Gagal: ${state.message}';
+                      } else if (lastSync != null) {
+                        final diff = DateTime.now().difference(lastSync);
+                        String ago;
+                        if (diff.inSeconds < 60) {
+                          ago = '${diff.inSeconds} detik yang lalu';
+                        } else if (diff.inMinutes < 60) {
+                          ago = '${diff.inMinutes} menit yang lalu';
+                        } else {
+                          ago = DateFormat('HH:mm, dd/MM').format(lastSync);
+                        }
+                        subtitle = 'Terakhir sinkron: $ago';
+                      } else {
+                        subtitle = 'Kirim data lokal & unduh data dari cloud';
+                      }
+
                       return ListTile(
                         leading: isSyncing
                             ? const SizedBox(
@@ -331,16 +361,21 @@ class _SettingsPageState extends State<SettingsPage> {
                                   color: AppTheme.primaryGreen,
                                 ),
                               )
-                            : const Icon(Icons.cloud_sync, color: AppTheme.primaryGreen),
+                            : Icon(
+                                isError ? Icons.cloud_off : Icons.cloud_sync,
+                                color: isError ? AppTheme.warningRed : AppTheme.primaryGreen,
+                              ),
                         title: const Text('Sinkronisasi Cloud'),
                         subtitle: Text(
-                          isSyncing
-                              ? 'Sedang menyelaraskan data dengan cloud...'
-                              : 'Kirim data lokal & unduh data dari cloud',
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isError ? AppTheme.warningRed : null,
+                          ),
                         ),
                         trailing: isSyncing
                             ? const SizedBox.shrink()
-                            : const Icon(Icons.sync),
+                            : Icon(isError ? Icons.refresh : Icons.sync),
                         onTap: isSyncing
                             ? null
                             : () {

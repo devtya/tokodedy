@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
@@ -76,7 +77,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final Connectivity _connectivity;
   StreamSubscription? _connectivitySub;
   Timer? _periodicTimer;
+  Timer? _retryTimer;
   final List<SyncLogEntry> _logs = [];
+  int _syncAttempts = 0;
+  DateTime? _lastSync;
 
   SyncBloc({
     required SupabaseSyncService syncService,
@@ -87,6 +91,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<SyncTriggered>(_onSyncTriggered);
     on<SyncStatusChanged>(_onSyncStatusChanged);
     on<InitialSyncTriggered>(_onInitialSyncTriggered);
+    on<ClearSyncError>(_onClearError);
 
     _init();
   }
@@ -112,11 +117,23 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     Emitter<SyncState> emit,
   ) async {
     final current = state;
-    final online = current is SyncInitial ? false : (current as dynamic).isOnline ?? false;
+    final online = current is SyncInitial
+        ? _syncAttempts == 0
+        : (current is SyncIdle
+            ? current.isOnline
+            : current is SyncError
+                ? current.isOnline
+                : (current as dynamic).isOnline ?? false);
 
     if (!online) {
       _addLog(SyncLogEntry.error('Tidak ada koneksi internet'));
-      emit(SyncError(message: 'Tidak ada koneksi internet', isOnline: false, logs: List.of(_logs)));
+      emit(SyncError(
+        message: 'Tidak ada koneksi internet',
+        isOnline: false,
+        lastSync: _lastSync,
+        logs: List.of(_logs),
+      ));
+      _scheduleRetry(emit);
       return;
     }
 
@@ -140,19 +157,47 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       _addLog(SyncLogEntry.pullDone(pullResults.length));
       emit(SyncInProgress(isOnline: online, logs: List.of(_logs)));
 
+      _syncAttempts = 0;
+      _lastSync = DateTime.now();
       emit(SyncSuccess(
         isOnline: online,
-        lastSync: DateTime.now(),
+        lastSync: _lastSync!,
         logs: List.of(_logs),
       ));
     } catch (e) {
+      _syncAttempts++;
       _addLog(SyncLogEntry.error(e.toString()));
       emit(SyncError(
         message: e.toString(),
         isOnline: online,
+        lastSync: _lastSync,
         logs: List.of(_logs),
       ));
+      _scheduleRetry(emit);
     }
+  }
+
+  void _scheduleRetry(Emitter<SyncState> emit) {
+    _retryTimer?.cancel();
+    if (_syncAttempts >= 10) return; // max 10 retry
+
+    final delay = Duration(seconds: min(pow(2, _syncAttempts).toInt(), 60));
+    _retryTimer = Timer(delay, () {
+      if (!isClosed) add(const SyncTriggered());
+    });
+  }
+
+  @override
+  void onEvent(SyncEvent event) {
+    // Reset retry count for user-triggered or connectivity-triggered events
+    if (event is SyncTriggered || event is SyncStatusChanged) {
+      _retryTimer?.cancel();
+    }
+    // Reset retry count on successful connectivity
+    if (event is SyncStatusChanged && event.isOnline) {
+      _syncAttempts = 0;
+    }
+    super.onEvent(event);
   }
 
   Future<void> _onInitialSyncTriggered(
@@ -191,18 +236,35 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     SyncStatusChanged event,
     Emitter<SyncState> emit,
   ) async {
-    if (event.isOnline && state is SyncIdle) {
+    if (event.isOnline) {
+      _syncAttempts = 0;
       add(const SyncTriggered());
     }
     if (state is SyncInitial) {
-      emit(SyncIdle(isOnline: event.isOnline));
+      emit(SyncIdle(isOnline: event.isOnline, lastSync: _lastSync));
     }
+    // Update isOnline on current state for UI
+    if (state is SyncIdle && !event.isOnline) {
+      emit(SyncIdle(isOnline: false, lastSync: _lastSync));
+    }
+  }
+
+  Future<void> _onClearError(
+    ClearSyncError event,
+    Emitter<SyncState> emit,
+  ) async {
+    emit(SyncIdle(
+      isOnline: await _syncService.isOnline,
+      lastSync: _lastSync,
+      logs: List.of(_logs),
+    ));
   }
 
   @override
   Future<void> close() {
     _connectivitySub?.cancel();
     _periodicTimer?.cancel();
+    _retryTimer?.cancel();
     return super.close();
   }
 }

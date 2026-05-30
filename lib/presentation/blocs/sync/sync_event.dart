@@ -22,3 +22,7 @@ class SyncStatusChanged extends SyncEvent {
 class InitialSyncTriggered extends SyncEvent {
   const InitialSyncTriggered();
 }
+
+class ClearSyncError extends SyncEvent {
+  const ClearSyncError();
+}

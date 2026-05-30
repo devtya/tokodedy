@@ -58,9 +58,10 @@ class SyncSuccess extends SyncState {
 class SyncError extends SyncState {
   final String message;
   final bool isOnline;
+  final DateTime? lastSync;
 
-  const SyncError({required this.message, this.isOnline = false, super.logs});
+  const SyncError({required this.message, this.isOnline = false, this.lastSync, super.logs});
 
   @override
-  List<Object?> get props => [message, isOnline, logs];
+  List<Object?> get props => [message, isOnline, lastSync, logs];
 }
