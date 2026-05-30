@@ -14,6 +14,7 @@ import '../../blocs/theme/theme_cubit.dart';
 import '../../blocs/sync/sync_bloc.dart';
 import 'backup_page.dart';
 import 'login_page.dart';
+import 'pin_settings_page.dart';
 import 'pengaturan_toko_page.dart';
 import 'printer_settings_page.dart';
 import 'user_management_page.dart';
@@ -300,6 +301,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const UserManagementPage()),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
+                    title: const Text('Pengaturan PIN'),
+                    subtitle: const Text('Atur PIN & sidik jari untuk login'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PinSettingsPage()),
                     ),
                   ),
                   const Divider(height: 1),
