@@ -47,3 +47,20 @@ prompt_edit_pembelian.md
 # Test/debug scripts
 test_db.dart
 test_item.dart
+
+# ===== Cleanup additions =====
+# Build artifacts
+build_log.txt
+
+# Sensitive store data
+*_supabase.json
+*.data.json
+
+# Script sementara di root
+import_json.dart
+
+# Design mockups di root
+*.html
+
+# Markdown drafts di root (kecuali README dan AGENTS)
+theme.md

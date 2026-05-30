@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS toko (
   alamat     TEXT,
   telepon    TEXT,
   owner_id   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  stok_minimum_global INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS produk (
   harga_beli  NUMERIC(15,2) NOT NULL DEFAULT 0,
   harga_jual  NUMERIC(15,2) NOT NULL DEFAULT 0,
   stok        INTEGER NOT NULL DEFAULT 0,
+  stok_minimum INTEGER,
   kategori    TEXT,
   satuan      TEXT NOT NULL DEFAULT 'pcs',
   updated_at  TIMESTAMPTZ DEFAULT NOW(),
@@ -717,6 +719,12 @@ ALTER TABLE item_pembelian ADD COLUMN IF NOT EXISTS konversi NUMERIC(15,4) NOT N
 
 ALTER TABLE pending_pembelian_item ADD COLUMN IF NOT EXISTS satuan_id UUID REFERENCES satuan_produk(id) ON DELETE SET NULL;
 ALTER TABLE pending_pembelian_item ADD COLUMN IF NOT EXISTS konversi NUMERIC(15,4) NOT NULL DEFAULT 1;
+
+-- ============================================================
+-- MIGRATION: Add stok_minimum_global and stok_minimum
+-- ============================================================
+ALTER TABLE toko ADD COLUMN IF NOT EXISTS stok_minimum_global INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE produk ADD COLUMN IF NOT EXISTS stok_minimum INTEGER;
 
 -- Reload PostgREST schema cache agar kolom baru langsung dikenali
 NOTIFY pgrst, 'reload schema';
