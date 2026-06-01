@@ -228,7 +228,7 @@ class ProdukRepositoryImpl implements ProdukRepository {
   }
 
   @override
-  Future<void> addSatuan(domain.SatuanProduk satuan) async {
+  Future<String> addSatuan(domain.SatuanProduk satuan) async {
     final id = satuan.id ?? _syncService.generateId();
     await _db.into(_db.satuanProdukTable).insert(
           SatuanProdukTableCompanion.insert(
@@ -252,6 +252,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
       'harga_beli': satuan.hargaBeli,
       'harga_jual': satuan.hargaJual,
     });
+    
+    return id;
   }
 
   @override

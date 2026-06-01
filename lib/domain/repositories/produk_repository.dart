@@ -13,7 +13,7 @@ abstract class ProdukRepository {
   Future<void> updateStok(String produkId, int jumlah);
 
   Future<List<SatuanProduk>> getSatuanByProdukId(String produkId);
-  Future<void> addSatuan(SatuanProduk satuan);
+  Future<String> addSatuan(SatuanProduk satuan);
   Future<void> updateSatuan(SatuanProduk satuan);
   Future<void> deleteSatuan(String id);
   Future<void> deleteSatuanByProdukId(String produkId);

@@ -15,6 +15,7 @@ class CariProdukDialog extends StatefulWidget {
   final void Function(
     String produkId,
     String namaProduk,
+    String satuanName,
     double harga,
     double hargaBeli,
     int qty, {
@@ -123,7 +124,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
       context: context,
       produk: produk,
       isPembelian: widget.isPembelian,
-      onSelected: (id, nama, harga, satuanId, konversi) {
+      onSelected: (id, namaProduk, satuanName, harga, satuanId, konversi) {
         final satuan = produk.satuanList?.where((s) => s.id == satuanId).firstOrNull;
         final finalHargaJual = satuan?.hargaJual ?? (produk.hargaJual * konversi);
         final finalHargaBeli = (satuan?.hargaBeli != null && satuan!.hargaBeli > 0)
@@ -132,11 +133,12 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
 
         DialogUtils.showQuantityDialog(
           context: context,
-          namaProduk: nama,
+          namaProduk: '$namaProduk - $satuanName',
           onSubmitted: (qty) {
             widget.onAddToCart(
               id,
-              nama,
+              namaProduk,
+              satuanName,
               finalHargaJual,
               finalHargaBeli,
               qty,

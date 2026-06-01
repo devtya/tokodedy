@@ -16,7 +16,8 @@ class DialogUtils {
     required bool isPembelian,
     required Function(
       String produkId,
-      String nama,
+      String namaProduk,
+      String satuanName,
       double harga,
       String? satuanId,
       double konversi,
@@ -28,7 +29,7 @@ class DialogUtils {
         .toList();
 
     if (satuans.isEmpty) {
-      onSelected(produk.id!, '${produk.nama} - ${produk.satuan}', hargaDasar, null, 1.0);
+      onSelected(produk.id!, produk.nama, produk.satuan ?? 'pcs', hargaDasar, null, 1.0);
       return;
     }
 
@@ -45,10 +46,11 @@ class DialogUtils {
               trailing: const Icon(Icons.add_circle, color: AppTheme.accentGreen),
               onTap: () {
                 final id = produk.id!;
-                final nama = '${produk.nama} - ${produk.satuan}';
+                final namaProduk = produk.nama;
+                final satuanName = produk.satuan ?? 'pcs';
                 final harga = hargaDasar;
                 Navigator.pop(ctx);
-                onSelected(id, nama, harga, null, 1.0);
+                onSelected(id, namaProduk, satuanName, harga, null, 1.0);
               },
             ),
             ...satuans.map((s) {
@@ -68,12 +70,13 @@ class DialogUtils {
                 ),
                 onTap: () {
                   final pId = produk.id!;
-                  final pNama = '${produk.nama} - ${s.nama}';
+                  final pNamaProduk = produk.nama;
+                  final pSatuanName = s.nama;
                   final pHarga = hargaSatuan;
                   final pSatuanId = s.id;
                   final pKonversi = s.konversi;
                   Navigator.pop(ctx);
-                  onSelected(pId, pNama, pHarga, pSatuanId, pKonversi);
+                  onSelected(pId, pNamaProduk, pSatuanName, pHarga, pSatuanId, pKonversi);
                 },
               );
             }),

@@ -25,6 +25,7 @@ import 'produk_form_page.dart';
 import 'supplier_page.dart';
 import '../../../domain/repositories/supplier_repository.dart';
 import '../../../domain/repositories/pembelian_repository.dart';
+import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/repositories/pending_pembelian_repository.dart';
 import '../../../domain/entities/pending_pembelian.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -121,6 +122,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 ItemPembelianForm(
                   produkId: item.produkId,
                   namaProduk: item.namaProduk,
+                  satuanName: item.satuanId != null ? 'Konversi' : 'Dasar',
                   jumlah: item.jumlah,
                   hargaBeliSatuan: item.hargaBeliSatuan,
                   hargaBeliLama: item.hargaBeliLama,
@@ -170,6 +172,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             ItemPembelianForm(
               produkId: item.produkId,
               namaProduk: item.namaProduk ?? '',
+              satuanName: 'pcs',
               jumlah: item.jumlah,
               hargaBeliSatuan: item.hargaBeliSatuan,
               hargaBeliLama: item.hargaBeliSatuan,
@@ -226,6 +229,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               ItemPembelianForm(
                 produkId: p.id!,
                 namaProduk: p.nama,
+                satuanName: p.satuan ?? 'pcs',
                 jumlah: 1,
                 hargaBeliSatuan: p.hargaBeli,
                 hargaBeliLama: p.hargaBeli,
@@ -243,6 +247,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             ItemPembelianForm(
               produkId: p.id!,
               namaProduk: p.nama,
+              satuanName: p.satuan ?? 'pcs',
               jumlah: 1,
               hargaBeliSatuan: p.hargaBeli,
               hargaBeliLama: p.hargaBeli,
@@ -301,6 +306,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 ItemPembelianForm(
                   produkId: p.id!,
                   namaProduk: p.nama,
+                  satuanName: p.satuan ?? 'pcs',
                   jumlah: 1,
                   hargaBeliSatuan: p.hargaBeli,
                   hargaBeliLama: p.hargaBeli,
@@ -317,10 +323,10 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       context: context,
       produk: produk,
       isPembelian: true,
-      onSelected: (id, nama, harga, satuanId, konversi) {
+      onSelected: (id, namaProduk, satuanName, harga, satuanId, konversi) {
         DialogUtils.showQuantityDialog(
           context: context,
-          namaProduk: nama,
+          namaProduk: '$namaProduk - $satuanName',
           onSubmitted: (qty) {
             setState(() {
               final existing = _items.indexWhere(
@@ -337,7 +343,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 _items.add(
                   ItemPembelianForm(
                     produkId: id,
-                    namaProduk: nama,
+                    namaProduk: namaProduk,
+                    satuanName: satuanName,
                     jumlah: qty,
                     hargaBeliSatuan: harga,
                     hargaBeliLama: harga,
@@ -408,6 +415,200 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showUbahSatuanBottomSheet(int index, ItemPembelianForm item) async {
+    final produk = await sl<GetProdukById>().call(item.produkId);
+    if (produk == null || !mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        final satuans = produk.satuanList ?? [];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Pilih Satuan - ${produk.nama}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
+                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
+                trailing: item.satuanId == null
+                    ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
+                    : null,
+                onTap: () {
+                  setState(() {
+                    _items[index] = item.copyWith(
+                      satuanName: produk.satuan ?? 'pcs',
+                      satuanId: null,
+                      konversi: 1.0,
+                    );
+                  });
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...satuans.map((s) {
+                return ListTile(
+                  title: Text(s.nama),
+                  subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
+                  trailing: item.satuanId == s.id
+                      ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _items[index] = item.copyWith(
+                        satuanName: s.nama,
+                        satuanId: s.id,
+                        konversi: s.konversi,
+                      );
+                    });
+                    Navigator.pop(ctx);
+                  },
+                );
+              }),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primary),
+                title: const Text(
+                  'Tambah Satuan Baru',
+                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showTambahSatuanDialog(index, item, produk);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTambahSatuanDialog(int index, ItemPembelianForm item, Produk produk) {
+    final namaSatuanController = TextEditingController();
+    final konversiController = TextEditingController();
+    final hargaBeliController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Tambah Satuan - ${produk.nama}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: namaSatuanController,
+              decoration: const InputDecoration(
+                labelText: 'Nama Satuan (mis: PAK, DUS)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: konversiController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Isi per Satuan Baru',
+                suffixText: produk.satuan ?? 'pcs',
+                hintText: 'mis: 12',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: hargaBeliController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Harga Beli (Opsional)',
+                prefixText: 'Rp ',
+                hintText: 'Biarkan kosong jika mengikuti satuan dasar',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final nama = namaSatuanController.text.trim().toUpperCase();
+              final konversi = double.tryParse(konversiController.text) ?? 0;
+              final hargaBeli = double.tryParse(hargaBeliController.text) ?? 0;
+
+              if (nama.isEmpty || konversi <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Nama dan konversi harus diisi dengan benar')),
+                );
+                return;
+              }
+
+              Navigator.pop(ctx);
+              await _saveSatuanKeProduk(index, item, produk, nama, konversi, hargaBeli);
+            },
+            child: const Text('Simpan & Pilih'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveSatuanKeProduk(
+    int index,
+    ItemPembelianForm item,
+    Produk produk,
+    String namaSatuan,
+    double konversi,
+    double hargaBeli,
+  ) async {
+    try {
+      final satuanProduk = SatuanProduk(
+        produkId: produk.id!,
+        tokoId: sl<TokoService>().tokoId ?? '',
+        nama: namaSatuan,
+        konversi: konversi,
+        hargaJual: 0, // Akan di-update nanti jika diperlukan di form produk
+        hargaBeli: hargaBeli,
+      );
+
+      final repo = sl<ProdukRepository>();
+      final newSatuanId = await repo.addSatuan(satuanProduk);
+
+      if (mounted) {
+        setState(() {
+          _items[index] = item.copyWith(
+            satuanName: namaSatuan,
+            satuanId: newSatuanId,
+            konversi: konversi,
+            // Jika harga beli diset, gunakan itu. Jika tidak, gunakan estimasi (harga dasar * konversi)
+            hargaBeliSatuan: hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
+          );
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Satuan $namaSatuan berhasil ditambahkan')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menambahkan satuan: $e')),
+        );
+      }
+    }
   }
 
   void _showEditItemDialog(int index, ItemPembelianForm item) {
@@ -580,6 +781,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               hargaBeliLama: item.hargaBeliLama,
               diskonTipe: item.diskonTipe,
               diskonValue: item.diskonValue,
+              satuanId: item.satuanId,
+              konversi: item.konversi,
             ),
           );
         }
@@ -646,17 +849,57 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       final allProduk = await sl<GetAllProduk>().call();
       if (!mounted) return;
       final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
+      
+      // Validation for Harga Jual == 0
+      final List<ItemPembelianForm> zeroPriceItems = [];
       final List<ItemPembelianForm> changedItems = [];
 
       for (int i = 0; i < _items.length; i++) {
         final item = _items[i];
         final itemData = itemsData[i];
+        
+        // Check zero price
+        final p = produkMap[item.produkId];
+        if (p != null) {
+          final s = p.satuanList?.where((sl) => sl.id == item.satuanId).firstOrNull;
+          final hJual = s != null ? s.hargaJual : (p.hargaJual * item.konversi);
+          if (hJual <= 0) {
+            zeroPriceItems.add(item);
+          }
+        }
+
         if (itemData.hargaBeliSatuan > item.hargaBeliLama) {
           changedItems.add(item.copyWith(hargaBeliSatuan: itemData.hargaBeliSatuan));
         }
       }
 
+      if (zeroPriceItems.isNotEmpty) {
+        final errList = zeroPriceItems.map((e) => '- ${e.namaProduk} (${e.satuanName})').join('\n');
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Harga Jual 0'),
+            content: Text(
+              'Ada item dengan satuan yang belum memiliki harga jual (Rp 0):\n\n$errList\n\nPastikan untuk mengatur harga jual di menu Produk nanti. Tetap lanjutkan pembelian ini?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.warningRed),
+                child: const Text('Tetap Lanjutkan', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+      }
+
       if (changedItems.isNotEmpty) {
+        if (!mounted) return;
         final proceed = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
@@ -802,6 +1045,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               hargaBeliLama: item.hargaBeliLama,
               diskonTipe: item.diskonTipe,
               diskonValue: item.diskonValue,
+              satuanId: item.satuanId,
+              konversi: item.konversi,
             ),
           );
         }
@@ -988,7 +1233,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         searchProduk: sl(),
         isPembelian: true,
         supplierId: _selectedSupplier?.id,
-        onAddToCart: (id, nama, hargaJual, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
+        onAddToCart: (id, namaProduk, satuanName, hargaJual, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
           setState(() {
             final existing = _items.indexWhere(
               (i) => i.produkId == id && i.satuanId == satuanId,
@@ -1004,7 +1249,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               _items.add(
                 ItemPembelianForm(
                   produkId: id,
-                  namaProduk: nama,
+                  namaProduk: namaProduk,
+                  satuanName: satuanName,
                   jumlah: qty,
                   hargaBeliSatuan: hargaBeli,
                   hargaBeliLama: hargaBeli,
@@ -1061,8 +1307,6 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       );
     }
     return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _items.length,
       itemBuilder: (context, index) {
@@ -1076,11 +1320,45 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
-                        item.namaProduk,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            item.namaProduk,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () => _showUbahSatuanBottomSheet(index, item),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    item.satuanName,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
@@ -1498,6 +1776,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 class ItemPembelianForm {
   final String produkId;
   final String namaProduk;
+  final String satuanName;
   final int jumlah;
   final double hargaBeliSatuan;
   final double hargaBeliLama; // harga beli sebelum transaksi ini (per satuan yang dipilih)
@@ -1512,23 +1791,29 @@ class ItemPembelianForm {
   const ItemPembelianForm({
     required this.produkId,
     required this.namaProduk,
+    required this.satuanName,
     required this.jumlah,
     required this.hargaBeliSatuan,
     required this.hargaBeliLama,
     required this.totalHarga,
     this.diskonTipe = 0,
-    this.diskonValue = 0,
+    this.diskonValue = 0.0,
     this.satuanId,
     this.konversi = 1.0,
   });
 
+  double get diskonRp => diskonTipe == 1
+      ? subtotal * diskonValue / 100
+      : diskonTipe == 2
+          ? diskonValue
+          : 0.0;
+
   double get subtotal => totalHarga;
-  double get diskonRp =>
-      diskonTipe == 1 ? subtotal * diskonValue / 100 : diskonValue;
 
   ItemPembelianForm copyWith({
     String? produkId,
     String? namaProduk,
+    String? satuanName,
     int? jumlah,
     double? hargaBeliSatuan,
     double? hargaBeliLama,
@@ -1541,6 +1826,7 @@ class ItemPembelianForm {
     return ItemPembelianForm(
       produkId: produkId ?? this.produkId,
       namaProduk: namaProduk ?? this.namaProduk,
+      satuanName: satuanName ?? this.satuanName,
       jumlah: jumlah ?? this.jumlah,
       hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
       hargaBeliLama: hargaBeliLama ?? this.hargaBeliLama,

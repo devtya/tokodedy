@@ -458,14 +458,16 @@ class _CashierPageState extends State<CashierPage> {
       builder: (ctx) => CariProdukDialog(
         getAllProduk: sl(),
         searchProduk: sl(),
-        onAddToCart: (id, nama, harga, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
+        onAddToCart: (id, namaProduk, satuanName, harga, hargaBeli, qty, {String? satuanId, double konversi = 1.0}) {
           context.read<CashierBloc>().add(
             AddToCart(
               produkId: id,
-              namaProduk: nama,
+              namaProduk: '$namaProduk - $satuanName',
               hargaJual: harga,
               hargaPokok: pokok ?? hargaBeli,
               jumlah: qty,
+              satuan: satuanId,
+              konversi: konversi,
             ),
           );
         },
@@ -491,7 +493,8 @@ class _CashierPageState extends State<CashierPage> {
         context: context,
         produk: produk,
         isPembelian: false,
-        onSelected: (id, nama, harga, satuanId, konversi) {
+        onSelected: (id, namaProduk, satuanName, harga, satuanId, konversi) {
+          final nama = '$namaProduk - $satuanName';
           DialogUtils.showQuantityDialog(
             context: context,
             namaProduk: nama,
@@ -503,6 +506,8 @@ class _CashierPageState extends State<CashierPage> {
                   hargaJual: harga,
                   hargaPokok: pokok,
                   jumlah: qty,
+                  satuan: satuanId,
+                  konversi: konversi,
                 ),
               );
             },

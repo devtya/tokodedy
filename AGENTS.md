@@ -77,6 +77,8 @@ lib/
 - **Commit**: WAJIB selalu tanya konfirmasi sebelum melakukan commit. Jangan pernah commit tanpa persetujuan eksplisit.
 - **Sebelum ubah kode**: WAJIB konfirmasi ke user dan jelaskan alasan/kenapa kode tersebut perlu diubah sebelum melakukan perubahan. Sertakan juga dampak dari perubahan tersebut.
 - **Todo List**: Sebelum mengerjakan perbaikan arsitektur atau tech debt, WAJIB mengupdate file `IMPROVEMENTS.md` dengan menandai bagian yang akan dikerjakan beserta ringkasan cara/metode yang akan digunakan.
+- **i18n & Localization**: WAJIB menghindari teks *hardcoded* pada UI (terutama di dalam `Text()`, `SnackBar`, dll). Semua teks bahasa yang digunakan di halaman antarmuka harus didaftarkan melalui file `lib/i18n/strings.i18n.json` dan digenerate menggunakan `dart run slang`.
+
 
 ## Pembelian Pages Layout Rules (LOCKED — DO NOT CHANGE)
 
@@ -110,7 +112,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.7.0**
+Current: **1.7.2**
 
 ## Log Konvensi
 
@@ -119,6 +121,12 @@ Current: **1.7.0**
 > - Fitur: `### Fitur: <nama>` dengan deskripsi, cara pakai, files, date
 
 ## Bug Fixes Log
+
+### Bug: Pembelian — Satuan dasar tergantikan oleh satuan konversi saat simpan ke pending
+- **Root cause**: Saat fitur tambah satuan digunakan di keranjang (misal: "PAK"), satuan ditambahkan dengan benar. Namun saat disimpan ke *Pending Pembelian*, argumen `satuanId` dan `konversi` tidak dimasukkan ke dalam `PendingPembelianItemData` sehingga nilai di database menjadi null. Akibatnya saat pending dibuka kembali, sistem mengira produk tersebut menggunakan "satuan dasar", merusak update HPP produk utama dan membingungkan kasir (nama "Dasar" dengan harga "PAK"). Selain itu, di Kasir (Penjualan), `satuanId` dan `konversi` juga tidak diteruskan ke `AddToCart` sehingga pemotongan stok untuk item konversi menjadi salah (hanya terpotong 1, bukan sesuai nilai konversi).
+- **Fix**: Menambahkan passing data `satuanId` dan `konversi` ke `PendingPembelianItemData` di `pembelian_form_page.dart` ketika `_submit()` pending. Mengubah event `AddToCart` di `cashier_page.dart` (baik via scan maupun cari produk) agar menyertakan parameter `satuanId` dan `konversi`.
+- **Files**: `lib/presentation/pages/shared/pembelian_form_page.dart`, `lib/presentation/pages/shared/cashier_page.dart`
+- **Date**: 2026-06-01
 
 ### Fitur: Background Sync (Workmanager)
 - **Deskripsi**: Menambahkan background sinkronisasi menggunakan package `workmanager` yang berjalan setiap 15 menit. Fungsi ini memanggil `flushQueue()` pada `SupabaseSyncService` untuk memproses antrean data ke Supabase tanpa harus membuka aplikasi.
@@ -199,6 +207,12 @@ Current: **1.7.0**
 - **Date**: 2026-05-25
 
 ## Features Log
+
+### Fitur: Ubah & Tambah Satuan Inline + Validasi Harga Jual di Pembelian
+- **Deskripsi**: (1) Memungkinkan kasir untuk mengubah dan menambah satuan produk baru langsung dari dalam keranjang form pembelian (bottom sheet). Jika user menekan "+ Tambah Satuan", data satuan baru langsung disimpan ke database (via `ProdukRepository`) dan terpilih otomatis di form. (2) Validasi tambahan: jika user memproses pembelian barang yang menggunakan satuan dengan harga jual 0 (karena baru ditambahkan atau belum diset), akan muncul peringatan validasi sebelum pembelian disimpan.
+- **Cara pakai**: Di Pembelian Barang → cari/tambah produk → tap lencana unit (misal: BKS/PCS) pada list keranjang → pilih satuan dari daftar atau tap "+ Tambah Satuan Baru".
+- **Files**: `pembelian_form_page.dart`, `dialog_utils.dart`, `cari_produk_dialog.dart`, `cashier_page.dart`
+- **Date**: 2026-05-31
 
 ### Fitur: Printer Bluetooth — Selektor tipe printer di Settings
 - **Deskripsi**: `BluetoothPrinterService` sudah ada dan lengkap (scan, connect, disconnect, testPrint, printReceipt via ESC/POS) tapi sebelumnya tidak bisa dipilih di UI. Sekarang ada radio button Network/Bluetooth di `PrinterSettingsPage`.
