@@ -6,14 +6,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../presentation/blocs/theme/theme_cubit.dart';
 import '../../data/database/app_database.dart';
-import '../../data/database/supplier_products_dao.dart';
-import '../services/toko_service.dart';
-import '../services/update_service.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';
 import '../../data/services/network_printer_service.dart';
 import '../../data/services/bluetooth_printer_service.dart';
-import '../../data/services/receipt_generator.dart';
 
 import 'injection.config.dart';
 

@@ -269,6 +269,8 @@ const _pullOrder = [
   'pembelian',
   'pending_order',
   'pending_pembelian',
+  'online_customers',
+  'online_orders',
 ];
 
 const _appendOnlyTables = [
@@ -278,6 +280,7 @@ const _appendOnlyTables = [
   'notifikasi',
   'pending_order_item',
   'pending_pembelian_item',
+  'online_order_items',
 ];
 
 // ─────────────────────────────────────────────────
@@ -467,6 +470,44 @@ final Map<String, _Inserter> _inserters = {
       hargaBeliLama: Value((r['harga_beli_lama'] as num).toDouble()),
       diskonTipe: Value(r['diskon_tipe'] as int? ?? 0),
       diskonValue: Value((r['diskon_value'] as num? ?? 0).toDouble()),
+      satuanId: Value(r['satuan_id'] as String?),
+      konversi: Value((r['konversi'] as num? ?? 1.0).toDouble()),
+    ));
+  },
+  'online_customers': (db, r) async {
+    await db.into(db.onlineCustomerTable).insertOnConflictUpdate(OnlineCustomerTableCompanion(
+      id: Value(r['id'] as String),
+      nama: Value(r['nama'] as String),
+      telepon: Value(r['telepon'] as String?),
+      alamat: Value(r['alamat'] as String?),
+      updatedAt: Value(_parseDate(r['updated_at'])),
+      createdAt: Value(_parseDate(r['created_at'])),
+    ));
+  },
+  'online_orders': (db, r) async {
+    await db.into(db.onlineOrderTable).insertOnConflictUpdate(OnlineOrderTableCompanion(
+      id: Value(r['id'] as String),
+      tokoId: Value(r['toko_id'] as String),
+      customerId: Value(r['customer_id'] as String),
+      status: Value(r['status'] as String? ?? 'pending'),
+      totalHarga: Value((r['total_harga'] as num).toDouble()),
+      metodePengiriman: Value(r['metode_pengiriman'] as String? ?? 'pickup'),
+      alamatPengiriman: Value(r['alamat_pengiriman'] as String?),
+      catatan: Value(r['catatan'] as String?),
+      updatedAt: Value(_parseDate(r['updated_at'])),
+      createdAt: Value(_parseDate(r['created_at'])),
+    ));
+  },
+  'online_order_items': (db, r) async {
+    await db.into(db.onlineOrderItemTable).insertOnConflictUpdate(OnlineOrderItemTableCompanion(
+      id: Value(r['id'] as String),
+      tokoId: Value(r['toko_id'] as String),
+      onlineOrderId: Value(r['online_order_id'] as String),
+      produkId: Value(r['produk_id'] as String),
+      namaProduk: Value(r['nama_produk'] as String),
+      hargaSatuan: Value((r['harga_satuan'] as num).toDouble()),
+      jumlah: Value(r['jumlah'] as int),
+      subtotal: Value((r['subtotal'] as num).toDouble()),
       satuanId: Value(r['satuan_id'] as String?),
       konversi: Value((r['konversi'] as num? ?? 1.0).toDouble()),
     ));

@@ -93,6 +93,54 @@ class DigitalReceiptWidget extends StatelessWidget {
           // Item List Section
           _buildSectionTitle('Daftar Item yang Dibeli'),
           ...receipt.items.map((item) {
+            final totalItem = (item.jumlah * item.harga) - item.diskon;
+            if (showCompactItems) {
+              // Format pembelian: qty satuan | nama barang | total harga
+              final satuanLabel = item.satuan != null && item.satuan!.isNotEmpty
+                  ? item.satuan!
+                  : '';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Kolom qty + satuan
+                    SizedBox(
+                      width: 64,
+                      child: Text(
+                        '${item.jumlah} $satuanLabel'.trimRight(),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    // Kolom nama barang
+                    Expanded(
+                      child: Text(
+                        item.nama,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    // Kolom total harga
+                    Text(
+                      currency.format(totalItem),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ],
+                ),
+              );
+            }
+            // Format kasir (default): nama + qty x harga | subtotal
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -100,30 +148,25 @@ class DigitalReceiptWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: showCompactItems
-                        ? Text(
-                            '${item.nama} - ${item.jumlah} ${item.satuan ?? ''}'.trimRight(),
-                            style: const TextStyle(fontSize: 14, color: Colors.black87),
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.nama,
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${item.jumlah} x ${currency.format(item.harga)}',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
-                          ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.nama,
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${item.jumlah} x ${currency.format(item.harga)}',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
                   ),
                   Expanded(
                     flex: 1,
                     child: Text(
-                      currency.format((item.jumlah * item.harga) - item.diskon),
+                      currency.format(totalItem),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

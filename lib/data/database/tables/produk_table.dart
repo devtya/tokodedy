@@ -6,11 +6,12 @@ class ProdukTable extends Table {
   TextColumn get nama     => text()();
   TextColumn? get barcode => text().nullable()();
   RealColumn get hargaBeli => real().withDefault(const Constant(0))();
-  RealColumn get hargaJual => real().withDefault(const Constant(0))();
+  RealColumn get hargaJual => real().withDefault(const Constant(0.0))();
   IntColumn get stok      => integer().withDefault(const Constant(0))();
+  IntColumn? get stokMinimum => integer().nullable()();
   TextColumn? get kategori => text().nullable()();
   TextColumn get satuan   => text().withDefault(const Constant('pcs'))();
-  IntColumn? get stokMinimum => integer().nullable()();
+  TextColumn? get imageUrl => text().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 

@@ -9,6 +9,9 @@
 - **Barcode**: mobile_scanner ^6.0
 - **Linting**: flutter_lints ^6.0
 
+## Related Projects
+- **HendStore** (`d:\PROJECT\hendstore`): Proyek front-end toko online untuk pembeli yang terhubung dengan database Supabase HendKasir. Segala bentuk koordinasi, todo list bersama, dan protokol sinkronisasi antar agen terdapat pada file `hendsync.md` di folder HendStore.
+
 ## Project structure (Clean Architecture)
 
 ```
@@ -112,7 +115,7 @@ Gunakan notasi berikut untuk menyebut huruf versi yang ingin dinaikkan:
 - **y** — Minor (fitur baru, reset z ke 0)
 - **z** — Patch (bug fix / perbaikan kecil)
 
-Current: **1.7.2**
+Current: **1.7.3**
 
 ## Log Konvensi
 

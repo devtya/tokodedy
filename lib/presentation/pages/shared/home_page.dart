@@ -25,6 +25,7 @@ import '../../blocs/transaksi/transaksi_bloc.dart';
 import '../../blocs/dashboard/dashboard_bloc.dart';
 import '../../blocs/dashboard/dashboard_event.dart';
 import '../../blocs/dashboard/dashboard_state.dart';
+import '../../blocs/online_order/online_order_bloc.dart';
 import 'cashier_page.dart';
 import 'hutang_page.dart';
 import 'laporan_page.dart';
@@ -49,6 +50,9 @@ class HomePage extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => sl<DashboardBloc>()..add(LoadDashboardMetrics()),
+        ),
+        BlocProvider(
+          create: (context) => sl<OnlineOrderBloc>()..add(LoadPendingOnlineOrders()),
         ),
       ],
       child: const _HomeMobileView(),
@@ -170,6 +174,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     if (mounted) {
       context.read<NotifikasiBloc>().add(LoadNotifikasi());
       context.read<DashboardBloc>().add(LoadDashboardMetrics());
+      context.read<OnlineOrderBloc>().add(LoadPendingOnlineOrders());
     }
   }
 
@@ -660,6 +665,61 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                           },
                         ),
                         const SizedBox(height: 24),
+
+                        // Online Orders
+                        BlocBuilder<OnlineOrderBloc, OnlineOrderState>(
+                          builder: (context, state) {
+                            if (state is OnlineOrderLoaded && state.orders.isNotEmpty) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Pesanan Online Baru',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: state.orders.length,
+                                    itemBuilder: (context, index) {
+                                      final order = state.orders[index];
+                                      final formatCurrency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+                                      return Card(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        child: ListTile(
+                                          leading: const CircleAvatar(
+                                            backgroundColor: Colors.orange,
+                                            child: Icon(Icons.shopping_cart, color: Colors.white),
+                                          ),
+                                          title: Text(order.namaCustomer, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          subtitle: Text('Total: ${formatCurrency.format(order.totalHarga)} • ${order.metodePengiriman.toUpperCase()}'),
+                                          trailing: ElevatedButton(
+                                            onPressed: () {
+                                              // Accept order (ubah status dari pending ke processing)
+                                              context.read<OnlineOrderBloc>().add(ProcessOnlineOrder(order.id, 'processing'));
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Pesanan dari ${order.namaCustomer} diproses')),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppTheme.primaryGreen,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: const Text('Proses'),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
 
                         // Quick Actions
                         Text(

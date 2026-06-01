@@ -878,7 +878,7 @@ class $ProdukTableTable extends ProdukTable
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(0),
+    defaultValue: const Constant(0.0),
   );
   static const VerificationMeta _stokMeta = const VerificationMeta('stok');
   @override
@@ -889,6 +889,17 @@ class $ProdukTableTable extends ProdukTable
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _stokMinimumMeta = const VerificationMeta(
+    'stokMinimum',
+  );
+  @override
+  late final GeneratedColumn<int> stokMinimum = GeneratedColumn<int>(
+    'stok_minimum',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _kategoriMeta = const VerificationMeta(
     'kategori',
@@ -911,15 +922,15 @@ class $ProdukTableTable extends ProdukTable
     requiredDuringInsert: false,
     defaultValue: const Constant('pcs'),
   );
-  static const VerificationMeta _stokMinimumMeta = const VerificationMeta(
-    'stokMinimum',
+  static const VerificationMeta _imageUrlMeta = const VerificationMeta(
+    'imageUrl',
   );
   @override
-  late final GeneratedColumn<int> stokMinimum = GeneratedColumn<int>(
-    'stok_minimum',
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+    'image_url',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
@@ -955,9 +966,10 @@ class $ProdukTableTable extends ProdukTable
     hargaBeli,
     hargaJual,
     stok,
+    stokMinimum,
     kategori,
     satuan,
-    stokMinimum,
+    imageUrl,
     updatedAt,
     createdAt,
   ];
@@ -1018,6 +1030,15 @@ class $ProdukTableTable extends ProdukTable
         stok.isAcceptableOrUnknown(data['stok']!, _stokMeta),
       );
     }
+    if (data.containsKey('stok_minimum')) {
+      context.handle(
+        _stokMinimumMeta,
+        stokMinimum.isAcceptableOrUnknown(
+          data['stok_minimum']!,
+          _stokMinimumMeta,
+        ),
+      );
+    }
     if (data.containsKey('kategori')) {
       context.handle(
         _kategoriMeta,
@@ -1030,13 +1051,10 @@ class $ProdukTableTable extends ProdukTable
         satuan.isAcceptableOrUnknown(data['satuan']!, _satuanMeta),
       );
     }
-    if (data.containsKey('stok_minimum')) {
+    if (data.containsKey('image_url')) {
       context.handle(
-        _stokMinimumMeta,
-        stokMinimum.isAcceptableOrUnknown(
-          data['stok_minimum']!,
-          _stokMinimumMeta,
-        ),
+        _imageUrlMeta,
+        imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
     if (data.containsKey('updated_at')) {
@@ -1088,6 +1106,10 @@ class $ProdukTableTable extends ProdukTable
         DriftSqlType.int,
         data['${effectivePrefix}stok'],
       )!,
+      stokMinimum: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}stok_minimum'],
+      ),
       kategori: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}kategori'],
@@ -1096,9 +1118,9 @@ class $ProdukTableTable extends ProdukTable
         DriftSqlType.string,
         data['${effectivePrefix}satuan'],
       )!,
-      stokMinimum: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}stok_minimum'],
+      imageUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_url'],
       ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -1125,9 +1147,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   final double hargaBeli;
   final double hargaJual;
   final int stok;
+  final int? stokMinimum;
   final String? kategori;
   final String satuan;
-  final int? stokMinimum;
+  final String? imageUrl;
   final DateTime updatedAt;
   final DateTime createdAt;
   const ProdukTableData({
@@ -1138,9 +1161,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     required this.hargaBeli,
     required this.hargaJual,
     required this.stok,
+    this.stokMinimum,
     this.kategori,
     required this.satuan,
-    this.stokMinimum,
+    this.imageUrl,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -1156,12 +1180,15 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     map['harga_beli'] = Variable<double>(hargaBeli);
     map['harga_jual'] = Variable<double>(hargaJual);
     map['stok'] = Variable<int>(stok);
+    if (!nullToAbsent || stokMinimum != null) {
+      map['stok_minimum'] = Variable<int>(stokMinimum);
+    }
     if (!nullToAbsent || kategori != null) {
       map['kategori'] = Variable<String>(kategori);
     }
     map['satuan'] = Variable<String>(satuan);
-    if (!nullToAbsent || stokMinimum != null) {
-      map['stok_minimum'] = Variable<int>(stokMinimum);
+    if (!nullToAbsent || imageUrl != null) {
+      map['image_url'] = Variable<String>(imageUrl);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -1179,13 +1206,16 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       hargaBeli: Value(hargaBeli),
       hargaJual: Value(hargaJual),
       stok: Value(stok),
+      stokMinimum: stokMinimum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stokMinimum),
       kategori: kategori == null && nullToAbsent
           ? const Value.absent()
           : Value(kategori),
       satuan: Value(satuan),
-      stokMinimum: stokMinimum == null && nullToAbsent
+      imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
-          : Value(stokMinimum),
+          : Value(imageUrl),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -1204,9 +1234,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       hargaBeli: serializer.fromJson<double>(json['hargaBeli']),
       hargaJual: serializer.fromJson<double>(json['hargaJual']),
       stok: serializer.fromJson<int>(json['stok']),
+      stokMinimum: serializer.fromJson<int?>(json['stokMinimum']),
       kategori: serializer.fromJson<String?>(json['kategori']),
       satuan: serializer.fromJson<String>(json['satuan']),
-      stokMinimum: serializer.fromJson<int?>(json['stokMinimum']),
+      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -1222,9 +1253,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       'hargaBeli': serializer.toJson<double>(hargaBeli),
       'hargaJual': serializer.toJson<double>(hargaJual),
       'stok': serializer.toJson<int>(stok),
+      'stokMinimum': serializer.toJson<int?>(stokMinimum),
       'kategori': serializer.toJson<String?>(kategori),
       'satuan': serializer.toJson<String>(satuan),
-      'stokMinimum': serializer.toJson<int?>(stokMinimum),
+      'imageUrl': serializer.toJson<String?>(imageUrl),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -1238,9 +1270,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     double? hargaBeli,
     double? hargaJual,
     int? stok,
+    Value<int?> stokMinimum = const Value.absent(),
     Value<String?> kategori = const Value.absent(),
     String? satuan,
-    Value<int?> stokMinimum = const Value.absent(),
+    Value<String?> imageUrl = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ProdukTableData(
@@ -1251,9 +1284,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     hargaBeli: hargaBeli ?? this.hargaBeli,
     hargaJual: hargaJual ?? this.hargaJual,
     stok: stok ?? this.stok,
+    stokMinimum: stokMinimum.present ? stokMinimum.value : this.stokMinimum,
     kategori: kategori.present ? kategori.value : this.kategori,
     satuan: satuan ?? this.satuan,
-    stokMinimum: stokMinimum.present ? stokMinimum.value : this.stokMinimum,
+    imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1266,11 +1300,12 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       hargaBeli: data.hargaBeli.present ? data.hargaBeli.value : this.hargaBeli,
       hargaJual: data.hargaJual.present ? data.hargaJual.value : this.hargaJual,
       stok: data.stok.present ? data.stok.value : this.stok,
-      kategori: data.kategori.present ? data.kategori.value : this.kategori,
-      satuan: data.satuan.present ? data.satuan.value : this.satuan,
       stokMinimum: data.stokMinimum.present
           ? data.stokMinimum.value
           : this.stokMinimum,
+      kategori: data.kategori.present ? data.kategori.value : this.kategori,
+      satuan: data.satuan.present ? data.satuan.value : this.satuan,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -1286,9 +1321,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ..write('hargaBeli: $hargaBeli, ')
           ..write('hargaJual: $hargaJual, ')
           ..write('stok: $stok, ')
+          ..write('stokMinimum: $stokMinimum, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
-          ..write('stokMinimum: $stokMinimum, ')
+          ..write('imageUrl: $imageUrl, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1304,9 +1340,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     hargaBeli,
     hargaJual,
     stok,
+    stokMinimum,
     kategori,
     satuan,
-    stokMinimum,
+    imageUrl,
     updatedAt,
     createdAt,
   );
@@ -1321,9 +1358,10 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           other.hargaBeli == this.hargaBeli &&
           other.hargaJual == this.hargaJual &&
           other.stok == this.stok &&
+          other.stokMinimum == this.stokMinimum &&
           other.kategori == this.kategori &&
           other.satuan == this.satuan &&
-          other.stokMinimum == this.stokMinimum &&
+          other.imageUrl == this.imageUrl &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -1336,9 +1374,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   final Value<double> hargaBeli;
   final Value<double> hargaJual;
   final Value<int> stok;
+  final Value<int?> stokMinimum;
   final Value<String?> kategori;
   final Value<String> satuan;
-  final Value<int?> stokMinimum;
+  final Value<String?> imageUrl;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -1350,9 +1389,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.hargaBeli = const Value.absent(),
     this.hargaJual = const Value.absent(),
     this.stok = const Value.absent(),
+    this.stokMinimum = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
-    this.stokMinimum = const Value.absent(),
+    this.imageUrl = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1365,9 +1405,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.hargaBeli = const Value.absent(),
     this.hargaJual = const Value.absent(),
     this.stok = const Value.absent(),
+    this.stokMinimum = const Value.absent(),
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
-    this.stokMinimum = const Value.absent(),
+    this.imageUrl = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1382,9 +1423,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Expression<double>? hargaBeli,
     Expression<double>? hargaJual,
     Expression<int>? stok,
+    Expression<int>? stokMinimum,
     Expression<String>? kategori,
     Expression<String>? satuan,
-    Expression<int>? stokMinimum,
+    Expression<String>? imageUrl,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -1397,9 +1439,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       if (hargaBeli != null) 'harga_beli': hargaBeli,
       if (hargaJual != null) 'harga_jual': hargaJual,
       if (stok != null) 'stok': stok,
+      if (stokMinimum != null) 'stok_minimum': stokMinimum,
       if (kategori != null) 'kategori': kategori,
       if (satuan != null) 'satuan': satuan,
-      if (stokMinimum != null) 'stok_minimum': stokMinimum,
+      if (imageUrl != null) 'image_url': imageUrl,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -1414,9 +1457,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Value<double>? hargaBeli,
     Value<double>? hargaJual,
     Value<int>? stok,
+    Value<int?>? stokMinimum,
     Value<String?>? kategori,
     Value<String>? satuan,
-    Value<int?>? stokMinimum,
+    Value<String?>? imageUrl,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -1429,9 +1473,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       hargaBeli: hargaBeli ?? this.hargaBeli,
       hargaJual: hargaJual ?? this.hargaJual,
       stok: stok ?? this.stok,
+      stokMinimum: stokMinimum ?? this.stokMinimum,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
-      stokMinimum: stokMinimum ?? this.stokMinimum,
+      imageUrl: imageUrl ?? this.imageUrl,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -1462,14 +1507,17 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     if (stok.present) {
       map['stok'] = Variable<int>(stok.value);
     }
+    if (stokMinimum.present) {
+      map['stok_minimum'] = Variable<int>(stokMinimum.value);
+    }
     if (kategori.present) {
       map['kategori'] = Variable<String>(kategori.value);
     }
     if (satuan.present) {
       map['satuan'] = Variable<String>(satuan.value);
     }
-    if (stokMinimum.present) {
-      map['stok_minimum'] = Variable<int>(stokMinimum.value);
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
@@ -1493,9 +1541,10 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
           ..write('hargaBeli: $hargaBeli, ')
           ..write('hargaJual: $hargaJual, ')
           ..write('stok: $stok, ')
+          ..write('stokMinimum: $stokMinimum, ')
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
-          ..write('stokMinimum: $stokMinimum, ')
+          ..write('imageUrl: $imageUrl, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -10049,6 +10098,1649 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   }
 }
 
+class $OnlineCustomerTableTable extends OnlineCustomerTable
+    with TableInfo<$OnlineCustomerTableTable, OnlineCustomer> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OnlineCustomerTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _namaMeta = const VerificationMeta('nama');
+  @override
+  late final GeneratedColumn<String> nama = GeneratedColumn<String>(
+    'nama',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _teleponMeta = const VerificationMeta(
+    'telepon',
+  );
+  @override
+  late final GeneratedColumn<String> telepon = GeneratedColumn<String>(
+    'telepon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _alamatMeta = const VerificationMeta('alamat');
+  @override
+  late final GeneratedColumn<String> alamat = GeneratedColumn<String>(
+    'alamat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nama,
+    telepon,
+    alamat,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'online_customers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OnlineCustomer> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('nama')) {
+      context.handle(
+        _namaMeta,
+        nama.isAcceptableOrUnknown(data['nama']!, _namaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_namaMeta);
+    }
+    if (data.containsKey('telepon')) {
+      context.handle(
+        _teleponMeta,
+        telepon.isAcceptableOrUnknown(data['telepon']!, _teleponMeta),
+      );
+    }
+    if (data.containsKey('alamat')) {
+      context.handle(
+        _alamatMeta,
+        alamat.isAcceptableOrUnknown(data['alamat']!, _alamatMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OnlineCustomer map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OnlineCustomer(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nama: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama'],
+      )!,
+      telepon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}telepon'],
+      ),
+      alamat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alamat'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OnlineCustomerTableTable createAlias(String alias) {
+    return $OnlineCustomerTableTable(attachedDatabase, alias);
+  }
+}
+
+class OnlineCustomer extends DataClass implements Insertable<OnlineCustomer> {
+  final String id;
+  final String nama;
+  final String? telepon;
+  final String? alamat;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const OnlineCustomer({
+    required this.id,
+    required this.nama,
+    this.telepon,
+    this.alamat,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['nama'] = Variable<String>(nama);
+    if (!nullToAbsent || telepon != null) {
+      map['telepon'] = Variable<String>(telepon);
+    }
+    if (!nullToAbsent || alamat != null) {
+      map['alamat'] = Variable<String>(alamat);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  OnlineCustomerTableCompanion toCompanion(bool nullToAbsent) {
+    return OnlineCustomerTableCompanion(
+      id: Value(id),
+      nama: Value(nama),
+      telepon: telepon == null && nullToAbsent
+          ? const Value.absent()
+          : Value(telepon),
+      alamat: alamat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alamat),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory OnlineCustomer.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OnlineCustomer(
+      id: serializer.fromJson<String>(json['id']),
+      nama: serializer.fromJson<String>(json['nama']),
+      telepon: serializer.fromJson<String?>(json['telepon']),
+      alamat: serializer.fromJson<String?>(json['alamat']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nama': serializer.toJson<String>(nama),
+      'telepon': serializer.toJson<String?>(telepon),
+      'alamat': serializer.toJson<String?>(alamat),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  OnlineCustomer copyWith({
+    String? id,
+    String? nama,
+    Value<String?> telepon = const Value.absent(),
+    Value<String?> alamat = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => OnlineCustomer(
+    id: id ?? this.id,
+    nama: nama ?? this.nama,
+    telepon: telepon.present ? telepon.value : this.telepon,
+    alamat: alamat.present ? alamat.value : this.alamat,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  OnlineCustomer copyWithCompanion(OnlineCustomerTableCompanion data) {
+    return OnlineCustomer(
+      id: data.id.present ? data.id.value : this.id,
+      nama: data.nama.present ? data.nama.value : this.nama,
+      telepon: data.telepon.present ? data.telepon.value : this.telepon,
+      alamat: data.alamat.present ? data.alamat.value : this.alamat,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineCustomer(')
+          ..write('id: $id, ')
+          ..write('nama: $nama, ')
+          ..write('telepon: $telepon, ')
+          ..write('alamat: $alamat, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, nama, telepon, alamat, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OnlineCustomer &&
+          other.id == this.id &&
+          other.nama == this.nama &&
+          other.telepon == this.telepon &&
+          other.alamat == this.alamat &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class OnlineCustomerTableCompanion extends UpdateCompanion<OnlineCustomer> {
+  final Value<String> id;
+  final Value<String> nama;
+  final Value<String?> telepon;
+  final Value<String?> alamat;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const OnlineCustomerTableCompanion({
+    this.id = const Value.absent(),
+    this.nama = const Value.absent(),
+    this.telepon = const Value.absent(),
+    this.alamat = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OnlineCustomerTableCompanion.insert({
+    required String id,
+    required String nama,
+    this.telepon = const Value.absent(),
+    this.alamat = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nama = Value(nama);
+  static Insertable<OnlineCustomer> custom({
+    Expression<String>? id,
+    Expression<String>? nama,
+    Expression<String>? telepon,
+    Expression<String>? alamat,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nama != null) 'nama': nama,
+      if (telepon != null) 'telepon': telepon,
+      if (alamat != null) 'alamat': alamat,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OnlineCustomerTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nama,
+    Value<String?>? telepon,
+    Value<String?>? alamat,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return OnlineCustomerTableCompanion(
+      id: id ?? this.id,
+      nama: nama ?? this.nama,
+      telepon: telepon ?? this.telepon,
+      alamat: alamat ?? this.alamat,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nama.present) {
+      map['nama'] = Variable<String>(nama.value);
+    }
+    if (telepon.present) {
+      map['telepon'] = Variable<String>(telepon.value);
+    }
+    if (alamat.present) {
+      map['alamat'] = Variable<String>(alamat.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineCustomerTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nama: $nama, ')
+          ..write('telepon: $telepon, ')
+          ..write('alamat: $alamat, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OnlineOrderTableTable extends OnlineOrderTable
+    with TableInfo<$OnlineOrderTableTable, OnlineOrder> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OnlineOrderTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES toko_table (id)',
+    ),
+  );
+  static const VerificationMeta _customerIdMeta = const VerificationMeta(
+    'customerId',
+  );
+  @override
+  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
+    'customer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES online_customers (id)',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _totalHargaMeta = const VerificationMeta(
+    'totalHarga',
+  );
+  @override
+  late final GeneratedColumn<double> totalHarga = GeneratedColumn<double>(
+    'total_harga',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _metodePengirimanMeta = const VerificationMeta(
+    'metodePengiriman',
+  );
+  @override
+  late final GeneratedColumn<String> metodePengiriman = GeneratedColumn<String>(
+    'metode_pengiriman',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pickup'),
+  );
+  static const VerificationMeta _alamatPengirimanMeta = const VerificationMeta(
+    'alamatPengiriman',
+  );
+  @override
+  late final GeneratedColumn<String> alamatPengiriman = GeneratedColumn<String>(
+    'alamat_pengiriman',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _catatanMeta = const VerificationMeta(
+    'catatan',
+  );
+  @override
+  late final GeneratedColumn<String> catatan = GeneratedColumn<String>(
+    'catatan',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    customerId,
+    status,
+    totalHarga,
+    metodePengiriman,
+    alamatPengiriman,
+    catatan,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'online_orders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OnlineOrder> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('customer_id')) {
+      context.handle(
+        _customerIdMeta,
+        customerId.isAcceptableOrUnknown(data['customer_id']!, _customerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_customerIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('total_harga')) {
+      context.handle(
+        _totalHargaMeta,
+        totalHarga.isAcceptableOrUnknown(data['total_harga']!, _totalHargaMeta),
+      );
+    }
+    if (data.containsKey('metode_pengiriman')) {
+      context.handle(
+        _metodePengirimanMeta,
+        metodePengiriman.isAcceptableOrUnknown(
+          data['metode_pengiriman']!,
+          _metodePengirimanMeta,
+        ),
+      );
+    }
+    if (data.containsKey('alamat_pengiriman')) {
+      context.handle(
+        _alamatPengirimanMeta,
+        alamatPengiriman.isAcceptableOrUnknown(
+          data['alamat_pengiriman']!,
+          _alamatPengirimanMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catatan')) {
+      context.handle(
+        _catatanMeta,
+        catatan.isAcceptableOrUnknown(data['catatan']!, _catatanMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OnlineOrder map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OnlineOrder(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      customerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      totalHarga: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_harga'],
+      )!,
+      metodePengiriman: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metode_pengiriman'],
+      )!,
+      alamatPengiriman: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alamat_pengiriman'],
+      ),
+      catatan: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catatan'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OnlineOrderTableTable createAlias(String alias) {
+    return $OnlineOrderTableTable(attachedDatabase, alias);
+  }
+}
+
+class OnlineOrder extends DataClass implements Insertable<OnlineOrder> {
+  final String id;
+  final String tokoId;
+  final String customerId;
+  final String status;
+  final double totalHarga;
+  final String metodePengiriman;
+  final String? alamatPengiriman;
+  final String? catatan;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const OnlineOrder({
+    required this.id,
+    required this.tokoId,
+    required this.customerId,
+    required this.status,
+    required this.totalHarga,
+    required this.metodePengiriman,
+    this.alamatPengiriman,
+    this.catatan,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['customer_id'] = Variable<String>(customerId);
+    map['status'] = Variable<String>(status);
+    map['total_harga'] = Variable<double>(totalHarga);
+    map['metode_pengiriman'] = Variable<String>(metodePengiriman);
+    if (!nullToAbsent || alamatPengiriman != null) {
+      map['alamat_pengiriman'] = Variable<String>(alamatPengiriman);
+    }
+    if (!nullToAbsent || catatan != null) {
+      map['catatan'] = Variable<String>(catatan);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  OnlineOrderTableCompanion toCompanion(bool nullToAbsent) {
+    return OnlineOrderTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      customerId: Value(customerId),
+      status: Value(status),
+      totalHarga: Value(totalHarga),
+      metodePengiriman: Value(metodePengiriman),
+      alamatPengiriman: alamatPengiriman == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alamatPengiriman),
+      catatan: catatan == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catatan),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory OnlineOrder.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OnlineOrder(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      customerId: serializer.fromJson<String>(json['customerId']),
+      status: serializer.fromJson<String>(json['status']),
+      totalHarga: serializer.fromJson<double>(json['totalHarga']),
+      metodePengiriman: serializer.fromJson<String>(json['metodePengiriman']),
+      alamatPengiriman: serializer.fromJson<String?>(json['alamatPengiriman']),
+      catatan: serializer.fromJson<String?>(json['catatan']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'customerId': serializer.toJson<String>(customerId),
+      'status': serializer.toJson<String>(status),
+      'totalHarga': serializer.toJson<double>(totalHarga),
+      'metodePengiriman': serializer.toJson<String>(metodePengiriman),
+      'alamatPengiriman': serializer.toJson<String?>(alamatPengiriman),
+      'catatan': serializer.toJson<String?>(catatan),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  OnlineOrder copyWith({
+    String? id,
+    String? tokoId,
+    String? customerId,
+    String? status,
+    double? totalHarga,
+    String? metodePengiriman,
+    Value<String?> alamatPengiriman = const Value.absent(),
+    Value<String?> catatan = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => OnlineOrder(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    customerId: customerId ?? this.customerId,
+    status: status ?? this.status,
+    totalHarga: totalHarga ?? this.totalHarga,
+    metodePengiriman: metodePengiriman ?? this.metodePengiriman,
+    alamatPengiriman: alamatPengiriman.present
+        ? alamatPengiriman.value
+        : this.alamatPengiriman,
+    catatan: catatan.present ? catatan.value : this.catatan,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  OnlineOrder copyWithCompanion(OnlineOrderTableCompanion data) {
+    return OnlineOrder(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      customerId: data.customerId.present
+          ? data.customerId.value
+          : this.customerId,
+      status: data.status.present ? data.status.value : this.status,
+      totalHarga: data.totalHarga.present
+          ? data.totalHarga.value
+          : this.totalHarga,
+      metodePengiriman: data.metodePengiriman.present
+          ? data.metodePengiriman.value
+          : this.metodePengiriman,
+      alamatPengiriman: data.alamatPengiriman.present
+          ? data.alamatPengiriman.value
+          : this.alamatPengiriman,
+      catatan: data.catatan.present ? data.catatan.value : this.catatan,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineOrder(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('customerId: $customerId, ')
+          ..write('status: $status, ')
+          ..write('totalHarga: $totalHarga, ')
+          ..write('metodePengiriman: $metodePengiriman, ')
+          ..write('alamatPengiriman: $alamatPengiriman, ')
+          ..write('catatan: $catatan, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    customerId,
+    status,
+    totalHarga,
+    metodePengiriman,
+    alamatPengiriman,
+    catatan,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OnlineOrder &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.customerId == this.customerId &&
+          other.status == this.status &&
+          other.totalHarga == this.totalHarga &&
+          other.metodePengiriman == this.metodePengiriman &&
+          other.alamatPengiriman == this.alamatPengiriman &&
+          other.catatan == this.catatan &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class OnlineOrderTableCompanion extends UpdateCompanion<OnlineOrder> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> customerId;
+  final Value<String> status;
+  final Value<double> totalHarga;
+  final Value<String> metodePengiriman;
+  final Value<String?> alamatPengiriman;
+  final Value<String?> catatan;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const OnlineOrderTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.customerId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.totalHarga = const Value.absent(),
+    this.metodePengiriman = const Value.absent(),
+    this.alamatPengiriman = const Value.absent(),
+    this.catatan = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OnlineOrderTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    required String customerId,
+    this.status = const Value.absent(),
+    this.totalHarga = const Value.absent(),
+    this.metodePengiriman = const Value.absent(),
+    this.alamatPengiriman = const Value.absent(),
+    this.catatan = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       customerId = Value(customerId);
+  static Insertable<OnlineOrder> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? customerId,
+    Expression<String>? status,
+    Expression<double>? totalHarga,
+    Expression<String>? metodePengiriman,
+    Expression<String>? alamatPengiriman,
+    Expression<String>? catatan,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (customerId != null) 'customer_id': customerId,
+      if (status != null) 'status': status,
+      if (totalHarga != null) 'total_harga': totalHarga,
+      if (metodePengiriman != null) 'metode_pengiriman': metodePengiriman,
+      if (alamatPengiriman != null) 'alamat_pengiriman': alamatPengiriman,
+      if (catatan != null) 'catatan': catatan,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OnlineOrderTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? customerId,
+    Value<String>? status,
+    Value<double>? totalHarga,
+    Value<String>? metodePengiriman,
+    Value<String?>? alamatPengiriman,
+    Value<String?>? catatan,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return OnlineOrderTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      customerId: customerId ?? this.customerId,
+      status: status ?? this.status,
+      totalHarga: totalHarga ?? this.totalHarga,
+      metodePengiriman: metodePengiriman ?? this.metodePengiriman,
+      alamatPengiriman: alamatPengiriman ?? this.alamatPengiriman,
+      catatan: catatan ?? this.catatan,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (customerId.present) {
+      map['customer_id'] = Variable<String>(customerId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (totalHarga.present) {
+      map['total_harga'] = Variable<double>(totalHarga.value);
+    }
+    if (metodePengiriman.present) {
+      map['metode_pengiriman'] = Variable<String>(metodePengiriman.value);
+    }
+    if (alamatPengiriman.present) {
+      map['alamat_pengiriman'] = Variable<String>(alamatPengiriman.value);
+    }
+    if (catatan.present) {
+      map['catatan'] = Variable<String>(catatan.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineOrderTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('customerId: $customerId, ')
+          ..write('status: $status, ')
+          ..write('totalHarga: $totalHarga, ')
+          ..write('metodePengiriman: $metodePengiriman, ')
+          ..write('alamatPengiriman: $alamatPengiriman, ')
+          ..write('catatan: $catatan, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OnlineOrderItemTableTable extends OnlineOrderItemTable
+    with TableInfo<$OnlineOrderItemTableTable, OnlineOrderItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OnlineOrderItemTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tokoIdMeta = const VerificationMeta('tokoId');
+  @override
+  late final GeneratedColumn<String> tokoId = GeneratedColumn<String>(
+    'toko_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES toko_table (id)',
+    ),
+  );
+  static const VerificationMeta _onlineOrderIdMeta = const VerificationMeta(
+    'onlineOrderId',
+  );
+  @override
+  late final GeneratedColumn<String> onlineOrderId = GeneratedColumn<String>(
+    'online_order_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES online_orders (id)',
+    ),
+  );
+  static const VerificationMeta _produkIdMeta = const VerificationMeta(
+    'produkId',
+  );
+  @override
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
+    'produk_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES produk_table (id)',
+    ),
+  );
+  static const VerificationMeta _namaProdukMeta = const VerificationMeta(
+    'namaProduk',
+  );
+  @override
+  late final GeneratedColumn<String> namaProduk = GeneratedColumn<String>(
+    'nama_produk',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hargaSatuanMeta = const VerificationMeta(
+    'hargaSatuan',
+  );
+  @override
+  late final GeneratedColumn<double> hargaSatuan = GeneratedColumn<double>(
+    'harga_satuan',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
+  @override
+  late final GeneratedColumn<int> jumlah = GeneratedColumn<int>(
+    'jumlah',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _subtotalMeta = const VerificationMeta(
+    'subtotal',
+  );
+  @override
+  late final GeneratedColumn<double> subtotal = GeneratedColumn<double>(
+    'subtotal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _satuanIdMeta = const VerificationMeta(
+    'satuanId',
+  );
+  @override
+  late final GeneratedColumn<String> satuanId = GeneratedColumn<String>(
+    'satuan_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES satuan_produk_table (id)',
+    ),
+  );
+  static const VerificationMeta _konversiMeta = const VerificationMeta(
+    'konversi',
+  );
+  @override
+  late final GeneratedColumn<double> konversi = GeneratedColumn<double>(
+    'konversi',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tokoId,
+    onlineOrderId,
+    produkId,
+    namaProduk,
+    hargaSatuan,
+    jumlah,
+    subtotal,
+    satuanId,
+    konversi,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'online_order_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OnlineOrderItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('toko_id')) {
+      context.handle(
+        _tokoIdMeta,
+        tokoId.isAcceptableOrUnknown(data['toko_id']!, _tokoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokoIdMeta);
+    }
+    if (data.containsKey('online_order_id')) {
+      context.handle(
+        _onlineOrderIdMeta,
+        onlineOrderId.isAcceptableOrUnknown(
+          data['online_order_id']!,
+          _onlineOrderIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_onlineOrderIdMeta);
+    }
+    if (data.containsKey('produk_id')) {
+      context.handle(
+        _produkIdMeta,
+        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('nama_produk')) {
+      context.handle(
+        _namaProdukMeta,
+        namaProduk.isAcceptableOrUnknown(data['nama_produk']!, _namaProdukMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_namaProdukMeta);
+    }
+    if (data.containsKey('harga_satuan')) {
+      context.handle(
+        _hargaSatuanMeta,
+        hargaSatuan.isAcceptableOrUnknown(
+          data['harga_satuan']!,
+          _hargaSatuanMeta,
+        ),
+      );
+    }
+    if (data.containsKey('jumlah')) {
+      context.handle(
+        _jumlahMeta,
+        jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
+      );
+    }
+    if (data.containsKey('subtotal')) {
+      context.handle(
+        _subtotalMeta,
+        subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
+      );
+    }
+    if (data.containsKey('satuan_id')) {
+      context.handle(
+        _satuanIdMeta,
+        satuanId.isAcceptableOrUnknown(data['satuan_id']!, _satuanIdMeta),
+      );
+    }
+    if (data.containsKey('konversi')) {
+      context.handle(
+        _konversiMeta,
+        konversi.isAcceptableOrUnknown(data['konversi']!, _konversiMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OnlineOrderItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OnlineOrderItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      tokoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}toko_id'],
+      )!,
+      onlineOrderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}online_order_id'],
+      )!,
+      produkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}produk_id'],
+      )!,
+      namaProduk: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama_produk'],
+      )!,
+      hargaSatuan: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_satuan'],
+      )!,
+      jumlah: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}jumlah'],
+      )!,
+      subtotal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}subtotal'],
+      )!,
+      satuanId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}satuan_id'],
+      ),
+      konversi: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}konversi'],
+      )!,
+    );
+  }
+
+  @override
+  $OnlineOrderItemTableTable createAlias(String alias) {
+    return $OnlineOrderItemTableTable(attachedDatabase, alias);
+  }
+}
+
+class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
+  final String id;
+  final String tokoId;
+  final String onlineOrderId;
+  final String produkId;
+  final String namaProduk;
+  final double hargaSatuan;
+  final int jumlah;
+  final double subtotal;
+  final String? satuanId;
+  final double konversi;
+  const OnlineOrderItem({
+    required this.id,
+    required this.tokoId,
+    required this.onlineOrderId,
+    required this.produkId,
+    required this.namaProduk,
+    required this.hargaSatuan,
+    required this.jumlah,
+    required this.subtotal,
+    this.satuanId,
+    required this.konversi,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['toko_id'] = Variable<String>(tokoId);
+    map['online_order_id'] = Variable<String>(onlineOrderId);
+    map['produk_id'] = Variable<String>(produkId);
+    map['nama_produk'] = Variable<String>(namaProduk);
+    map['harga_satuan'] = Variable<double>(hargaSatuan);
+    map['jumlah'] = Variable<int>(jumlah);
+    map['subtotal'] = Variable<double>(subtotal);
+    if (!nullToAbsent || satuanId != null) {
+      map['satuan_id'] = Variable<String>(satuanId);
+    }
+    map['konversi'] = Variable<double>(konversi);
+    return map;
+  }
+
+  OnlineOrderItemTableCompanion toCompanion(bool nullToAbsent) {
+    return OnlineOrderItemTableCompanion(
+      id: Value(id),
+      tokoId: Value(tokoId),
+      onlineOrderId: Value(onlineOrderId),
+      produkId: Value(produkId),
+      namaProduk: Value(namaProduk),
+      hargaSatuan: Value(hargaSatuan),
+      jumlah: Value(jumlah),
+      subtotal: Value(subtotal),
+      satuanId: satuanId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(satuanId),
+      konversi: Value(konversi),
+    );
+  }
+
+  factory OnlineOrderItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OnlineOrderItem(
+      id: serializer.fromJson<String>(json['id']),
+      tokoId: serializer.fromJson<String>(json['tokoId']),
+      onlineOrderId: serializer.fromJson<String>(json['onlineOrderId']),
+      produkId: serializer.fromJson<String>(json['produkId']),
+      namaProduk: serializer.fromJson<String>(json['namaProduk']),
+      hargaSatuan: serializer.fromJson<double>(json['hargaSatuan']),
+      jumlah: serializer.fromJson<int>(json['jumlah']),
+      subtotal: serializer.fromJson<double>(json['subtotal']),
+      satuanId: serializer.fromJson<String?>(json['satuanId']),
+      konversi: serializer.fromJson<double>(json['konversi']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'tokoId': serializer.toJson<String>(tokoId),
+      'onlineOrderId': serializer.toJson<String>(onlineOrderId),
+      'produkId': serializer.toJson<String>(produkId),
+      'namaProduk': serializer.toJson<String>(namaProduk),
+      'hargaSatuan': serializer.toJson<double>(hargaSatuan),
+      'jumlah': serializer.toJson<int>(jumlah),
+      'subtotal': serializer.toJson<double>(subtotal),
+      'satuanId': serializer.toJson<String?>(satuanId),
+      'konversi': serializer.toJson<double>(konversi),
+    };
+  }
+
+  OnlineOrderItem copyWith({
+    String? id,
+    String? tokoId,
+    String? onlineOrderId,
+    String? produkId,
+    String? namaProduk,
+    double? hargaSatuan,
+    int? jumlah,
+    double? subtotal,
+    Value<String?> satuanId = const Value.absent(),
+    double? konversi,
+  }) => OnlineOrderItem(
+    id: id ?? this.id,
+    tokoId: tokoId ?? this.tokoId,
+    onlineOrderId: onlineOrderId ?? this.onlineOrderId,
+    produkId: produkId ?? this.produkId,
+    namaProduk: namaProduk ?? this.namaProduk,
+    hargaSatuan: hargaSatuan ?? this.hargaSatuan,
+    jumlah: jumlah ?? this.jumlah,
+    subtotal: subtotal ?? this.subtotal,
+    satuanId: satuanId.present ? satuanId.value : this.satuanId,
+    konversi: konversi ?? this.konversi,
+  );
+  OnlineOrderItem copyWithCompanion(OnlineOrderItemTableCompanion data) {
+    return OnlineOrderItem(
+      id: data.id.present ? data.id.value : this.id,
+      tokoId: data.tokoId.present ? data.tokoId.value : this.tokoId,
+      onlineOrderId: data.onlineOrderId.present
+          ? data.onlineOrderId.value
+          : this.onlineOrderId,
+      produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      namaProduk: data.namaProduk.present
+          ? data.namaProduk.value
+          : this.namaProduk,
+      hargaSatuan: data.hargaSatuan.present
+          ? data.hargaSatuan.value
+          : this.hargaSatuan,
+      jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
+      subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      satuanId: data.satuanId.present ? data.satuanId.value : this.satuanId,
+      konversi: data.konversi.present ? data.konversi.value : this.konversi,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineOrderItem(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('onlineOrderId: $onlineOrderId, ')
+          ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
+          ..write('hargaSatuan: $hargaSatuan, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('subtotal: $subtotal, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    tokoId,
+    onlineOrderId,
+    produkId,
+    namaProduk,
+    hargaSatuan,
+    jumlah,
+    subtotal,
+    satuanId,
+    konversi,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OnlineOrderItem &&
+          other.id == this.id &&
+          other.tokoId == this.tokoId &&
+          other.onlineOrderId == this.onlineOrderId &&
+          other.produkId == this.produkId &&
+          other.namaProduk == this.namaProduk &&
+          other.hargaSatuan == this.hargaSatuan &&
+          other.jumlah == this.jumlah &&
+          other.subtotal == this.subtotal &&
+          other.satuanId == this.satuanId &&
+          other.konversi == this.konversi);
+}
+
+class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
+  final Value<String> id;
+  final Value<String> tokoId;
+  final Value<String> onlineOrderId;
+  final Value<String> produkId;
+  final Value<String> namaProduk;
+  final Value<double> hargaSatuan;
+  final Value<int> jumlah;
+  final Value<double> subtotal;
+  final Value<String?> satuanId;
+  final Value<double> konversi;
+  final Value<int> rowid;
+  const OnlineOrderItemTableCompanion({
+    this.id = const Value.absent(),
+    this.tokoId = const Value.absent(),
+    this.onlineOrderId = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.namaProduk = const Value.absent(),
+    this.hargaSatuan = const Value.absent(),
+    this.jumlah = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OnlineOrderItemTableCompanion.insert({
+    required String id,
+    required String tokoId,
+    required String onlineOrderId,
+    required String produkId,
+    required String namaProduk,
+    this.hargaSatuan = const Value.absent(),
+    this.jumlah = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.satuanId = const Value.absent(),
+    this.konversi = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tokoId = Value(tokoId),
+       onlineOrderId = Value(onlineOrderId),
+       produkId = Value(produkId),
+       namaProduk = Value(namaProduk);
+  static Insertable<OnlineOrderItem> custom({
+    Expression<String>? id,
+    Expression<String>? tokoId,
+    Expression<String>? onlineOrderId,
+    Expression<String>? produkId,
+    Expression<String>? namaProduk,
+    Expression<double>? hargaSatuan,
+    Expression<int>? jumlah,
+    Expression<double>? subtotal,
+    Expression<String>? satuanId,
+    Expression<double>? konversi,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tokoId != null) 'toko_id': tokoId,
+      if (onlineOrderId != null) 'online_order_id': onlineOrderId,
+      if (produkId != null) 'produk_id': produkId,
+      if (namaProduk != null) 'nama_produk': namaProduk,
+      if (hargaSatuan != null) 'harga_satuan': hargaSatuan,
+      if (jumlah != null) 'jumlah': jumlah,
+      if (subtotal != null) 'subtotal': subtotal,
+      if (satuanId != null) 'satuan_id': satuanId,
+      if (konversi != null) 'konversi': konversi,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OnlineOrderItemTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? tokoId,
+    Value<String>? onlineOrderId,
+    Value<String>? produkId,
+    Value<String>? namaProduk,
+    Value<double>? hargaSatuan,
+    Value<int>? jumlah,
+    Value<double>? subtotal,
+    Value<String?>? satuanId,
+    Value<double>? konversi,
+    Value<int>? rowid,
+  }) {
+    return OnlineOrderItemTableCompanion(
+      id: id ?? this.id,
+      tokoId: tokoId ?? this.tokoId,
+      onlineOrderId: onlineOrderId ?? this.onlineOrderId,
+      produkId: produkId ?? this.produkId,
+      namaProduk: namaProduk ?? this.namaProduk,
+      hargaSatuan: hargaSatuan ?? this.hargaSatuan,
+      jumlah: jumlah ?? this.jumlah,
+      subtotal: subtotal ?? this.subtotal,
+      satuanId: satuanId ?? this.satuanId,
+      konversi: konversi ?? this.konversi,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (tokoId.present) {
+      map['toko_id'] = Variable<String>(tokoId.value);
+    }
+    if (onlineOrderId.present) {
+      map['online_order_id'] = Variable<String>(onlineOrderId.value);
+    }
+    if (produkId.present) {
+      map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (namaProduk.present) {
+      map['nama_produk'] = Variable<String>(namaProduk.value);
+    }
+    if (hargaSatuan.present) {
+      map['harga_satuan'] = Variable<double>(hargaSatuan.value);
+    }
+    if (jumlah.present) {
+      map['jumlah'] = Variable<int>(jumlah.value);
+    }
+    if (subtotal.present) {
+      map['subtotal'] = Variable<double>(subtotal.value);
+    }
+    if (satuanId.present) {
+      map['satuan_id'] = Variable<String>(satuanId.value);
+    }
+    if (konversi.present) {
+      map['konversi'] = Variable<double>(konversi.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OnlineOrderItemTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tokoId: $tokoId, ')
+          ..write('onlineOrderId: $onlineOrderId, ')
+          ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
+          ..write('hargaSatuan: $hargaSatuan, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('subtotal: $subtotal, ')
+          ..write('satuanId: $satuanId, ')
+          ..write('konversi: $konversi, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10087,6 +11779,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RiwayatHargaTableTable riwayatHargaTable =
       $RiwayatHargaTableTable(this);
   late final $LocalAuthTableTable localAuthTable = $LocalAuthTableTable(this);
+  late final $OnlineCustomerTableTable onlineCustomerTable =
+      $OnlineCustomerTableTable(this);
+  late final $OnlineOrderTableTable onlineOrderTable = $OnlineOrderTableTable(
+    this,
+  );
+  late final $OnlineOrderItemTableTable onlineOrderItemTable =
+      $OnlineOrderItemTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10112,6 +11811,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pendingSyncQueueTable,
     riwayatHargaTable,
     localAuthTable,
+    onlineCustomerTable,
+    onlineOrderTable,
+    onlineOrderItemTable,
   ];
 }
 
@@ -10137,6 +11839,59 @@ typedef $$TokoTableTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
+
+final class $$TokoTableTableReferences
+    extends BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData> {
+  $$TokoTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$OnlineOrderTableTable, List<OnlineOrder>>
+  _onlineOrderTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.onlineOrderTable,
+    aliasName: $_aliasNameGenerator(
+      db.tokoTable.id,
+      db.onlineOrderTable.tokoId,
+    ),
+  );
+
+  $$OnlineOrderTableTableProcessedTableManager get onlineOrderTableRefs {
+    final manager = $$OnlineOrderTableTableTableManager(
+      $_db,
+      $_db.onlineOrderTable,
+    ).filter((f) => f.tokoId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$OnlineOrderItemTableTable, List<OnlineOrderItem>>
+  _onlineOrderItemTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.onlineOrderItemTable,
+        aliasName: $_aliasNameGenerator(
+          db.tokoTable.id,
+          db.onlineOrderItemTable.tokoId,
+        ),
+      );
+
+  $$OnlineOrderItemTableTableProcessedTableManager
+  get onlineOrderItemTableRefs {
+    final manager = $$OnlineOrderItemTableTableTableManager(
+      $_db,
+      $_db.onlineOrderItemTable,
+    ).filter((f) => f.tokoId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderItemTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$TokoTableTableFilterComposer
     extends Composer<_$AppDatabase, $TokoTableTable> {
@@ -10181,6 +11936,56 @@ class $$TokoTableTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> onlineOrderTableRefs(
+    Expression<bool> Function($$OnlineOrderTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.tokoId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> onlineOrderItemTableRefs(
+    Expression<bool> Function($$OnlineOrderItemTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderItemTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderItemTable,
+      getReferencedColumn: (t) => t.tokoId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderItemTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderItemTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TokoTableTableOrderingComposer
@@ -10259,6 +12064,57 @@ class $$TokoTableTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> onlineOrderTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.tokoId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> onlineOrderItemTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderItemTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderItemTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.onlineOrderItemTable,
+          getReferencedColumn: (t) => t.tokoId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineOrderItemTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.onlineOrderItemTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$TokoTableTableTableManager
@@ -10272,12 +12128,12 @@ class $$TokoTableTableTableManager
           $$TokoTableTableAnnotationComposer,
           $$TokoTableTableCreateCompanionBuilder,
           $$TokoTableTableUpdateCompanionBuilder,
-          (
-            TokoTableData,
-            BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
-          ),
+          (TokoTableData, $$TokoTableTableReferences),
           TokoTableData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool onlineOrderTableRefs,
+            bool onlineOrderItemTableRefs,
+          })
         > {
   $$TokoTableTableTableManager(_$AppDatabase db, $TokoTableTable table)
     : super(
@@ -10331,9 +12187,73 @@ class $$TokoTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TokoTableTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                onlineOrderTableRefs = false,
+                onlineOrderItemTableRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (onlineOrderTableRefs) db.onlineOrderTable,
+                    if (onlineOrderItemTableRefs) db.onlineOrderItemTable,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (onlineOrderTableRefs)
+                        await $_getPrefetchedData<
+                          TokoTableData,
+                          $TokoTableTable,
+                          OnlineOrder
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TokoTableTableReferences
+                              ._onlineOrderTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TokoTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).onlineOrderTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.tokoId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (onlineOrderItemTableRefs)
+                        await $_getPrefetchedData<
+                          TokoTableData,
+                          $TokoTableTable,
+                          OnlineOrderItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TokoTableTableReferences
+                              ._onlineOrderItemTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TokoTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).onlineOrderItemTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.tokoId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -10348,12 +12268,12 @@ typedef $$TokoTableTableProcessedTableManager =
       $$TokoTableTableAnnotationComposer,
       $$TokoTableTableCreateCompanionBuilder,
       $$TokoTableTableUpdateCompanionBuilder,
-      (
-        TokoTableData,
-        BaseReferences<_$AppDatabase, $TokoTableTable, TokoTableData>,
-      ),
+      (TokoTableData, $$TokoTableTableReferences),
       TokoTableData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool onlineOrderTableRefs,
+        bool onlineOrderItemTableRefs,
+      })
     >;
 typedef $$UserTableTableCreateCompanionBuilder =
     UserTableCompanion Function({
@@ -10564,9 +12484,10 @@ typedef $$ProdukTableTableCreateCompanionBuilder =
       Value<double> hargaBeli,
       Value<double> hargaJual,
       Value<int> stok,
+      Value<int?> stokMinimum,
       Value<String?> kategori,
       Value<String> satuan,
-      Value<int?> stokMinimum,
+      Value<String?> imageUrl,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -10580,13 +12501,44 @@ typedef $$ProdukTableTableUpdateCompanionBuilder =
       Value<double> hargaBeli,
       Value<double> hargaJual,
       Value<int> stok,
+      Value<int?> stokMinimum,
       Value<String?> kategori,
       Value<String> satuan,
-      Value<int?> stokMinimum,
+      Value<String?> imageUrl,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
+
+final class $$ProdukTableTableReferences
+    extends BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData> {
+  $$ProdukTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$OnlineOrderItemTableTable, List<OnlineOrderItem>>
+  _onlineOrderItemTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.onlineOrderItemTable,
+        aliasName: $_aliasNameGenerator(
+          db.produkTable.id,
+          db.onlineOrderItemTable.produkId,
+        ),
+      );
+
+  $$OnlineOrderItemTableTableProcessedTableManager
+  get onlineOrderItemTableRefs {
+    final manager = $$OnlineOrderItemTableTableTableManager(
+      $_db,
+      $_db.onlineOrderItemTable,
+    ).filter((f) => f.produkId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderItemTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$ProdukTableTableFilterComposer
     extends Composer<_$AppDatabase, $ProdukTableTable> {
@@ -10632,6 +12584,11 @@ class $$ProdukTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get kategori => $composableBuilder(
     column: $table.kategori,
     builder: (column) => ColumnFilters(column),
@@ -10642,8 +12599,8 @@ class $$ProdukTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get stokMinimum => $composableBuilder(
-    column: $table.stokMinimum,
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10656,6 +12613,31 @@ class $$ProdukTableTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> onlineOrderItemTableRefs(
+    Expression<bool> Function($$OnlineOrderItemTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderItemTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderItemTable,
+      getReferencedColumn: (t) => t.produkId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderItemTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderItemTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProdukTableTableOrderingComposer
@@ -10702,6 +12684,11 @@ class $$ProdukTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get kategori => $composableBuilder(
     column: $table.kategori,
     builder: (column) => ColumnOrderings(column),
@@ -10712,8 +12699,8 @@ class $$ProdukTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get stokMinimum => $composableBuilder(
-    column: $table.stokMinimum,
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+    column: $table.imageUrl,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -10758,22 +12745,51 @@ class $$ProdukTableTableAnnotationComposer
   GeneratedColumn<int> get stok =>
       $composableBuilder(column: $table.stok, builder: (column) => column);
 
+  GeneratedColumn<int> get stokMinimum => $composableBuilder(
+    column: $table.stokMinimum,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get kategori =>
       $composableBuilder(column: $table.kategori, builder: (column) => column);
 
   GeneratedColumn<String> get satuan =>
       $composableBuilder(column: $table.satuan, builder: (column) => column);
 
-  GeneratedColumn<int> get stokMinimum => $composableBuilder(
-    column: $table.stokMinimum,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> onlineOrderItemTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderItemTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderItemTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.onlineOrderItemTable,
+          getReferencedColumn: (t) => t.produkId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineOrderItemTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.onlineOrderItemTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ProdukTableTableTableManager
@@ -10787,12 +12803,9 @@ class $$ProdukTableTableTableManager
           $$ProdukTableTableAnnotationComposer,
           $$ProdukTableTableCreateCompanionBuilder,
           $$ProdukTableTableUpdateCompanionBuilder,
-          (
-            ProdukTableData,
-            BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData>,
-          ),
+          (ProdukTableData, $$ProdukTableTableReferences),
           ProdukTableData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool onlineOrderItemTableRefs})
         > {
   $$ProdukTableTableTableManager(_$AppDatabase db, $ProdukTableTable table)
     : super(
@@ -10814,9 +12827,10 @@ class $$ProdukTableTableTableManager
                 Value<double> hargaBeli = const Value.absent(),
                 Value<double> hargaJual = const Value.absent(),
                 Value<int> stok = const Value.absent(),
+                Value<int?> stokMinimum = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
-                Value<int?> stokMinimum = const Value.absent(),
+                Value<String?> imageUrl = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10828,9 +12842,10 @@ class $$ProdukTableTableTableManager
                 hargaBeli: hargaBeli,
                 hargaJual: hargaJual,
                 stok: stok,
+                stokMinimum: stokMinimum,
                 kategori: kategori,
                 satuan: satuan,
-                stokMinimum: stokMinimum,
+                imageUrl: imageUrl,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -10844,9 +12859,10 @@ class $$ProdukTableTableTableManager
                 Value<double> hargaBeli = const Value.absent(),
                 Value<double> hargaJual = const Value.absent(),
                 Value<int> stok = const Value.absent(),
+                Value<int?> stokMinimum = const Value.absent(),
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
-                Value<int?> stokMinimum = const Value.absent(),
+                Value<String?> imageUrl = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10858,17 +12874,54 @@ class $$ProdukTableTableTableManager
                 hargaBeli: hargaBeli,
                 hargaJual: hargaJual,
                 stok: stok,
+                stokMinimum: stokMinimum,
                 kategori: kategori,
                 satuan: satuan,
-                stokMinimum: stokMinimum,
+                imageUrl: imageUrl,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProdukTableTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({onlineOrderItemTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (onlineOrderItemTableRefs) db.onlineOrderItemTable,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (onlineOrderItemTableRefs)
+                    await $_getPrefetchedData<
+                      ProdukTableData,
+                      $ProdukTableTable,
+                      OnlineOrderItem
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ProdukTableTableReferences
+                          ._onlineOrderItemTableRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ProdukTableTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).onlineOrderItemTableRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.produkId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -10883,12 +12936,9 @@ typedef $$ProdukTableTableProcessedTableManager =
       $$ProdukTableTableAnnotationComposer,
       $$ProdukTableTableCreateCompanionBuilder,
       $$ProdukTableTableUpdateCompanionBuilder,
-      (
-        ProdukTableData,
-        BaseReferences<_$AppDatabase, $ProdukTableTable, ProdukTableData>,
-      ),
+      (ProdukTableData, $$ProdukTableTableReferences),
       ProdukTableData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool onlineOrderItemTableRefs})
     >;
 typedef $$SatuanProdukTableTableCreateCompanionBuilder =
     SatuanProdukTableCompanion Function({
@@ -10914,6 +12964,45 @@ typedef $$SatuanProdukTableTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
+
+final class $$SatuanProdukTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $SatuanProdukTableTable,
+          SatuanProdukTableData
+        > {
+  $$SatuanProdukTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$OnlineOrderItemTableTable, List<OnlineOrderItem>>
+  _onlineOrderItemTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.onlineOrderItemTable,
+        aliasName: $_aliasNameGenerator(
+          db.satuanProdukTable.id,
+          db.onlineOrderItemTable.satuanId,
+        ),
+      );
+
+  $$OnlineOrderItemTableTableProcessedTableManager
+  get onlineOrderItemTableRefs {
+    final manager = $$OnlineOrderItemTableTableTableManager(
+      $_db,
+      $_db.onlineOrderItemTable,
+    ).filter((f) => f.satuanId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderItemTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$SatuanProdukTableTableFilterComposer
     extends Composer<_$AppDatabase, $SatuanProdukTableTable> {
@@ -10963,6 +13052,31 @@ class $$SatuanProdukTableTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> onlineOrderItemTableRefs(
+    Expression<bool> Function($$OnlineOrderItemTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderItemTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderItemTable,
+      getReferencedColumn: (t) => t.satuanId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderItemTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderItemTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$SatuanProdukTableTableOrderingComposer
@@ -11047,6 +13161,32 @@ class $$SatuanProdukTableTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> onlineOrderItemTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderItemTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderItemTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.onlineOrderItemTable,
+          getReferencedColumn: (t) => t.satuanId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineOrderItemTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.onlineOrderItemTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$SatuanProdukTableTableTableManager
@@ -11060,16 +13200,9 @@ class $$SatuanProdukTableTableTableManager
           $$SatuanProdukTableTableAnnotationComposer,
           $$SatuanProdukTableTableCreateCompanionBuilder,
           $$SatuanProdukTableTableUpdateCompanionBuilder,
-          (
-            SatuanProdukTableData,
-            BaseReferences<
-              _$AppDatabase,
-              $SatuanProdukTableTable,
-              SatuanProdukTableData
-            >,
-          ),
+          (SatuanProdukTableData, $$SatuanProdukTableTableReferences),
           SatuanProdukTableData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool onlineOrderItemTableRefs})
         > {
   $$SatuanProdukTableTableTableManager(
     _$AppDatabase db,
@@ -11132,9 +13265,45 @@ class $$SatuanProdukTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SatuanProdukTableTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({onlineOrderItemTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (onlineOrderItemTableRefs) db.onlineOrderItemTable,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (onlineOrderItemTableRefs)
+                    await $_getPrefetchedData<
+                      SatuanProdukTableData,
+                      $SatuanProdukTableTable,
+                      OnlineOrderItem
+                    >(
+                      currentTable: table,
+                      referencedTable: $$SatuanProdukTableTableReferences
+                          ._onlineOrderItemTableRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$SatuanProdukTableTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).onlineOrderItemTableRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.satuanId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -11149,16 +13318,9 @@ typedef $$SatuanProdukTableTableProcessedTableManager =
       $$SatuanProdukTableTableAnnotationComposer,
       $$SatuanProdukTableTableCreateCompanionBuilder,
       $$SatuanProdukTableTableUpdateCompanionBuilder,
-      (
-        SatuanProdukTableData,
-        BaseReferences<
-          _$AppDatabase,
-          $SatuanProdukTableTable,
-          SatuanProdukTableData
-        >,
-      ),
+      (SatuanProdukTableData, $$SatuanProdukTableTableReferences),
       SatuanProdukTableData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool onlineOrderItemTableRefs})
     >;
 typedef $$SupplierTableTableCreateCompanionBuilder =
     SupplierTableCompanion Function({
@@ -15472,6 +17634,1719 @@ typedef $$LocalAuthTableTableProcessedTableManager =
       LocalAuthTableData,
       PrefetchHooks Function()
     >;
+typedef $$OnlineCustomerTableTableCreateCompanionBuilder =
+    OnlineCustomerTableCompanion Function({
+      required String id,
+      required String nama,
+      Value<String?> telepon,
+      Value<String?> alamat,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$OnlineCustomerTableTableUpdateCompanionBuilder =
+    OnlineCustomerTableCompanion Function({
+      Value<String> id,
+      Value<String> nama,
+      Value<String?> telepon,
+      Value<String?> alamat,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$OnlineCustomerTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $OnlineCustomerTableTable,
+          OnlineCustomer
+        > {
+  $$OnlineCustomerTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$OnlineOrderTableTable, List<OnlineOrder>>
+  _onlineOrderTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.onlineOrderTable,
+    aliasName: $_aliasNameGenerator(
+      db.onlineCustomerTable.id,
+      db.onlineOrderTable.customerId,
+    ),
+  );
+
+  $$OnlineOrderTableTableProcessedTableManager get onlineOrderTableRefs {
+    final manager = $$OnlineOrderTableTableTableManager(
+      $_db,
+      $_db.onlineOrderTable,
+    ).filter((f) => f.customerId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$OnlineCustomerTableTableFilterComposer
+    extends Composer<_$AppDatabase, $OnlineCustomerTableTable> {
+  $$OnlineCustomerTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> onlineOrderTableRefs(
+    Expression<bool> Function($$OnlineOrderTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.customerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OnlineCustomerTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $OnlineCustomerTableTable> {
+  $$OnlineCustomerTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nama => $composableBuilder(
+    column: $table.nama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get telepon => $composableBuilder(
+    column: $table.telepon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alamat => $composableBuilder(
+    column: $table.alamat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OnlineCustomerTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OnlineCustomerTableTable> {
+  $$OnlineCustomerTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nama =>
+      $composableBuilder(column: $table.nama, builder: (column) => column);
+
+  GeneratedColumn<String> get telepon =>
+      $composableBuilder(column: $table.telepon, builder: (column) => column);
+
+  GeneratedColumn<String> get alamat =>
+      $composableBuilder(column: $table.alamat, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> onlineOrderTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.customerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OnlineCustomerTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OnlineCustomerTableTable,
+          OnlineCustomer,
+          $$OnlineCustomerTableTableFilterComposer,
+          $$OnlineCustomerTableTableOrderingComposer,
+          $$OnlineCustomerTableTableAnnotationComposer,
+          $$OnlineCustomerTableTableCreateCompanionBuilder,
+          $$OnlineCustomerTableTableUpdateCompanionBuilder,
+          (OnlineCustomer, $$OnlineCustomerTableTableReferences),
+          OnlineCustomer,
+          PrefetchHooks Function({bool onlineOrderTableRefs})
+        > {
+  $$OnlineCustomerTableTableTableManager(
+    _$AppDatabase db,
+    $OnlineCustomerTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OnlineCustomerTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OnlineCustomerTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OnlineCustomerTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nama = const Value.absent(),
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> alamat = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineCustomerTableCompanion(
+                id: id,
+                nama: nama,
+                telepon: telepon,
+                alamat: alamat,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nama,
+                Value<String?> telepon = const Value.absent(),
+                Value<String?> alamat = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineCustomerTableCompanion.insert(
+                id: id,
+                nama: nama,
+                telepon: telepon,
+                alamat: alamat,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OnlineCustomerTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({onlineOrderTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (onlineOrderTableRefs) db.onlineOrderTable,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (onlineOrderTableRefs)
+                    await $_getPrefetchedData<
+                      OnlineCustomer,
+                      $OnlineCustomerTableTable,
+                      OnlineOrder
+                    >(
+                      currentTable: table,
+                      referencedTable: $$OnlineCustomerTableTableReferences
+                          ._onlineOrderTableRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$OnlineCustomerTableTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).onlineOrderTableRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.customerId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OnlineCustomerTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OnlineCustomerTableTable,
+      OnlineCustomer,
+      $$OnlineCustomerTableTableFilterComposer,
+      $$OnlineCustomerTableTableOrderingComposer,
+      $$OnlineCustomerTableTableAnnotationComposer,
+      $$OnlineCustomerTableTableCreateCompanionBuilder,
+      $$OnlineCustomerTableTableUpdateCompanionBuilder,
+      (OnlineCustomer, $$OnlineCustomerTableTableReferences),
+      OnlineCustomer,
+      PrefetchHooks Function({bool onlineOrderTableRefs})
+    >;
+typedef $$OnlineOrderTableTableCreateCompanionBuilder =
+    OnlineOrderTableCompanion Function({
+      required String id,
+      required String tokoId,
+      required String customerId,
+      Value<String> status,
+      Value<double> totalHarga,
+      Value<String> metodePengiriman,
+      Value<String?> alamatPengiriman,
+      Value<String?> catatan,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$OnlineOrderTableTableUpdateCompanionBuilder =
+    OnlineOrderTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> customerId,
+      Value<String> status,
+      Value<double> totalHarga,
+      Value<String> metodePengiriman,
+      Value<String?> alamatPengiriman,
+      Value<String?> catatan,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$OnlineOrderTableTableReferences
+    extends BaseReferences<_$AppDatabase, $OnlineOrderTableTable, OnlineOrder> {
+  $$OnlineOrderTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TokoTableTable _tokoIdTable(_$AppDatabase db) =>
+      db.tokoTable.createAlias(
+        $_aliasNameGenerator(db.onlineOrderTable.tokoId, db.tokoTable.id),
+      );
+
+  $$TokoTableTableProcessedTableManager get tokoId {
+    final $_column = $_itemColumn<String>('toko_id')!;
+
+    final manager = $$TokoTableTableTableManager(
+      $_db,
+      $_db.tokoTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tokoIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $OnlineCustomerTableTable _customerIdTable(_$AppDatabase db) =>
+      db.onlineCustomerTable.createAlias(
+        $_aliasNameGenerator(
+          db.onlineOrderTable.customerId,
+          db.onlineCustomerTable.id,
+        ),
+      );
+
+  $$OnlineCustomerTableTableProcessedTableManager get customerId {
+    final $_column = $_itemColumn<String>('customer_id')!;
+
+    final manager = $$OnlineCustomerTableTableTableManager(
+      $_db,
+      $_db.onlineCustomerTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_customerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$OnlineOrderItemTableTable, List<OnlineOrderItem>>
+  _onlineOrderItemTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.onlineOrderItemTable,
+        aliasName: $_aliasNameGenerator(
+          db.onlineOrderTable.id,
+          db.onlineOrderItemTable.onlineOrderId,
+        ),
+      );
+
+  $$OnlineOrderItemTableTableProcessedTableManager
+  get onlineOrderItemTableRefs {
+    final manager = $$OnlineOrderItemTableTableTableManager(
+      $_db,
+      $_db.onlineOrderItemTable,
+    ).filter((f) => f.onlineOrderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _onlineOrderItemTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$OnlineOrderTableTableFilterComposer
+    extends Composer<_$AppDatabase, $OnlineOrderTableTable> {
+  $$OnlineOrderTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalHarga => $composableBuilder(
+    column: $table.totalHarga,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metodePengiriman => $composableBuilder(
+    column: $table.metodePengiriman,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alamatPengiriman => $composableBuilder(
+    column: $table.alamatPengiriman,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catatan => $composableBuilder(
+    column: $table.catatan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TokoTableTableFilterComposer get tokoId {
+    final $$TokoTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableFilterComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineCustomerTableTableFilterComposer get customerId {
+    final $$OnlineCustomerTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.customerId,
+      referencedTable: $db.onlineCustomerTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineCustomerTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineCustomerTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> onlineOrderItemTableRefs(
+    Expression<bool> Function($$OnlineOrderItemTableTableFilterComposer f) f,
+  ) {
+    final $$OnlineOrderItemTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.onlineOrderItemTable,
+      getReferencedColumn: (t) => t.onlineOrderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderItemTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderItemTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$OnlineOrderTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $OnlineOrderTableTable> {
+  $$OnlineOrderTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalHarga => $composableBuilder(
+    column: $table.totalHarga,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metodePengiriman => $composableBuilder(
+    column: $table.metodePengiriman,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alamatPengiriman => $composableBuilder(
+    column: $table.alamatPengiriman,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catatan => $composableBuilder(
+    column: $table.catatan,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TokoTableTableOrderingComposer get tokoId {
+    final $$TokoTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineCustomerTableTableOrderingComposer get customerId {
+    final $$OnlineCustomerTableTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.customerId,
+          referencedTable: $db.onlineCustomerTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineCustomerTableTableOrderingComposer(
+                $db: $db,
+                $table: $db.onlineCustomerTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$OnlineOrderTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OnlineOrderTableTable> {
+  $$OnlineOrderTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get totalHarga => $composableBuilder(
+    column: $table.totalHarga,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metodePengiriman => $composableBuilder(
+    column: $table.metodePengiriman,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get alamatPengiriman => $composableBuilder(
+    column: $table.alamatPengiriman,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catatan =>
+      $composableBuilder(column: $table.catatan, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$TokoTableTableAnnotationComposer get tokoId {
+    final $$TokoTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineCustomerTableTableAnnotationComposer get customerId {
+    final $$OnlineCustomerTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.customerId,
+          referencedTable: $db.onlineCustomerTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineCustomerTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.onlineCustomerTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  Expression<T> onlineOrderItemTableRefs<T extends Object>(
+    Expression<T> Function($$OnlineOrderItemTableTableAnnotationComposer a) f,
+  ) {
+    final $$OnlineOrderItemTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.onlineOrderItemTable,
+          getReferencedColumn: (t) => t.onlineOrderId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OnlineOrderItemTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.onlineOrderItemTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$OnlineOrderTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OnlineOrderTableTable,
+          OnlineOrder,
+          $$OnlineOrderTableTableFilterComposer,
+          $$OnlineOrderTableTableOrderingComposer,
+          $$OnlineOrderTableTableAnnotationComposer,
+          $$OnlineOrderTableTableCreateCompanionBuilder,
+          $$OnlineOrderTableTableUpdateCompanionBuilder,
+          (OnlineOrder, $$OnlineOrderTableTableReferences),
+          OnlineOrder,
+          PrefetchHooks Function({
+            bool tokoId,
+            bool customerId,
+            bool onlineOrderItemTableRefs,
+          })
+        > {
+  $$OnlineOrderTableTableTableManager(
+    _$AppDatabase db,
+    $OnlineOrderTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OnlineOrderTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OnlineOrderTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OnlineOrderTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> customerId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<double> totalHarga = const Value.absent(),
+                Value<String> metodePengiriman = const Value.absent(),
+                Value<String?> alamatPengiriman = const Value.absent(),
+                Value<String?> catatan = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineOrderTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                customerId: customerId,
+                status: status,
+                totalHarga: totalHarga,
+                metodePengiriman: metodePengiriman,
+                alamatPengiriman: alamatPengiriman,
+                catatan: catatan,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                required String customerId,
+                Value<String> status = const Value.absent(),
+                Value<double> totalHarga = const Value.absent(),
+                Value<String> metodePengiriman = const Value.absent(),
+                Value<String?> alamatPengiriman = const Value.absent(),
+                Value<String?> catatan = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineOrderTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                customerId: customerId,
+                status: status,
+                totalHarga: totalHarga,
+                metodePengiriman: metodePengiriman,
+                alamatPengiriman: alamatPengiriman,
+                catatan: catatan,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OnlineOrderTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                tokoId = false,
+                customerId = false,
+                onlineOrderItemTableRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (onlineOrderItemTableRefs) db.onlineOrderItemTable,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (tokoId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.tokoId,
+                                    referencedTable:
+                                        $$OnlineOrderTableTableReferences
+                                            ._tokoIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderTableTableReferences
+                                            ._tokoIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (customerId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.customerId,
+                                    referencedTable:
+                                        $$OnlineOrderTableTableReferences
+                                            ._customerIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderTableTableReferences
+                                            ._customerIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (onlineOrderItemTableRefs)
+                        await $_getPrefetchedData<
+                          OnlineOrder,
+                          $OnlineOrderTableTable,
+                          OnlineOrderItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OnlineOrderTableTableReferences
+                              ._onlineOrderItemTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OnlineOrderTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).onlineOrderItemTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.onlineOrderId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$OnlineOrderTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OnlineOrderTableTable,
+      OnlineOrder,
+      $$OnlineOrderTableTableFilterComposer,
+      $$OnlineOrderTableTableOrderingComposer,
+      $$OnlineOrderTableTableAnnotationComposer,
+      $$OnlineOrderTableTableCreateCompanionBuilder,
+      $$OnlineOrderTableTableUpdateCompanionBuilder,
+      (OnlineOrder, $$OnlineOrderTableTableReferences),
+      OnlineOrder,
+      PrefetchHooks Function({
+        bool tokoId,
+        bool customerId,
+        bool onlineOrderItemTableRefs,
+      })
+    >;
+typedef $$OnlineOrderItemTableTableCreateCompanionBuilder =
+    OnlineOrderItemTableCompanion Function({
+      required String id,
+      required String tokoId,
+      required String onlineOrderId,
+      required String produkId,
+      required String namaProduk,
+      Value<double> hargaSatuan,
+      Value<int> jumlah,
+      Value<double> subtotal,
+      Value<String?> satuanId,
+      Value<double> konversi,
+      Value<int> rowid,
+    });
+typedef $$OnlineOrderItemTableTableUpdateCompanionBuilder =
+    OnlineOrderItemTableCompanion Function({
+      Value<String> id,
+      Value<String> tokoId,
+      Value<String> onlineOrderId,
+      Value<String> produkId,
+      Value<String> namaProduk,
+      Value<double> hargaSatuan,
+      Value<int> jumlah,
+      Value<double> subtotal,
+      Value<String?> satuanId,
+      Value<double> konversi,
+      Value<int> rowid,
+    });
+
+final class $$OnlineOrderItemTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $OnlineOrderItemTableTable,
+          OnlineOrderItem
+        > {
+  $$OnlineOrderItemTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TokoTableTable _tokoIdTable(_$AppDatabase db) =>
+      db.tokoTable.createAlias(
+        $_aliasNameGenerator(db.onlineOrderItemTable.tokoId, db.tokoTable.id),
+      );
+
+  $$TokoTableTableProcessedTableManager get tokoId {
+    final $_column = $_itemColumn<String>('toko_id')!;
+
+    final manager = $$TokoTableTableTableManager(
+      $_db,
+      $_db.tokoTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tokoIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $OnlineOrderTableTable _onlineOrderIdTable(_$AppDatabase db) =>
+      db.onlineOrderTable.createAlias(
+        $_aliasNameGenerator(
+          db.onlineOrderItemTable.onlineOrderId,
+          db.onlineOrderTable.id,
+        ),
+      );
+
+  $$OnlineOrderTableTableProcessedTableManager get onlineOrderId {
+    final $_column = $_itemColumn<String>('online_order_id')!;
+
+    final manager = $$OnlineOrderTableTableTableManager(
+      $_db,
+      $_db.onlineOrderTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_onlineOrderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ProdukTableTable _produkIdTable(_$AppDatabase db) =>
+      db.produkTable.createAlias(
+        $_aliasNameGenerator(
+          db.onlineOrderItemTable.produkId,
+          db.produkTable.id,
+        ),
+      );
+
+  $$ProdukTableTableProcessedTableManager get produkId {
+    final $_column = $_itemColumn<String>('produk_id')!;
+
+    final manager = $$ProdukTableTableTableManager(
+      $_db,
+      $_db.produkTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_produkIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SatuanProdukTableTable _satuanIdTable(_$AppDatabase db) =>
+      db.satuanProdukTable.createAlias(
+        $_aliasNameGenerator(
+          db.onlineOrderItemTable.satuanId,
+          db.satuanProdukTable.id,
+        ),
+      );
+
+  $$SatuanProdukTableTableProcessedTableManager? get satuanId {
+    final $_column = $_itemColumn<String>('satuan_id');
+    if ($_column == null) return null;
+    final manager = $$SatuanProdukTableTableTableManager(
+      $_db,
+      $_db.satuanProdukTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_satuanIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$OnlineOrderItemTableTableFilterComposer
+    extends Composer<_$AppDatabase, $OnlineOrderItemTableTable> {
+  $$OnlineOrderItemTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaSatuan => $composableBuilder(
+    column: $table.hargaSatuan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get subtotal => $composableBuilder(
+    column: $table.subtotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get konversi => $composableBuilder(
+    column: $table.konversi,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TokoTableTableFilterComposer get tokoId {
+    final $$TokoTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableFilterComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineOrderTableTableFilterComposer get onlineOrderId {
+    final $$OnlineOrderTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.onlineOrderId,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableFilterComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProdukTableTableFilterComposer get produkId {
+    final $$ProdukTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.produkId,
+      referencedTable: $db.produkTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProdukTableTableFilterComposer(
+            $db: $db,
+            $table: $db.produkTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SatuanProdukTableTableFilterComposer get satuanId {
+    final $$SatuanProdukTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.satuanId,
+      referencedTable: $db.satuanProdukTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SatuanProdukTableTableFilterComposer(
+            $db: $db,
+            $table: $db.satuanProdukTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OnlineOrderItemTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $OnlineOrderItemTableTable> {
+  $$OnlineOrderItemTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaSatuan => $composableBuilder(
+    column: $table.hargaSatuan,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get subtotal => $composableBuilder(
+    column: $table.subtotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get konversi => $composableBuilder(
+    column: $table.konversi,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TokoTableTableOrderingComposer get tokoId {
+    final $$TokoTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineOrderTableTableOrderingComposer get onlineOrderId {
+    final $$OnlineOrderTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.onlineOrderId,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProdukTableTableOrderingComposer get produkId {
+    final $$ProdukTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.produkId,
+      referencedTable: $db.produkTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProdukTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.produkTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SatuanProdukTableTableOrderingComposer get satuanId {
+    final $$SatuanProdukTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.satuanId,
+      referencedTable: $db.satuanProdukTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SatuanProdukTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.satuanProdukTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OnlineOrderItemTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OnlineOrderItemTableTable> {
+  $$OnlineOrderItemTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hargaSatuan => $composableBuilder(
+    column: $table.hargaSatuan,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get jumlah =>
+      $composableBuilder(column: $table.jumlah, builder: (column) => column);
+
+  GeneratedColumn<double> get subtotal =>
+      $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumn<double> get konversi =>
+      $composableBuilder(column: $table.konversi, builder: (column) => column);
+
+  $$TokoTableTableAnnotationComposer get tokoId {
+    final $$TokoTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tokoId,
+      referencedTable: $db.tokoTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TokoTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tokoTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$OnlineOrderTableTableAnnotationComposer get onlineOrderId {
+    final $$OnlineOrderTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.onlineOrderId,
+      referencedTable: $db.onlineOrderTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OnlineOrderTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.onlineOrderTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProdukTableTableAnnotationComposer get produkId {
+    final $$ProdukTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.produkId,
+      referencedTable: $db.produkTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProdukTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.produkTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SatuanProdukTableTableAnnotationComposer get satuanId {
+    final $$SatuanProdukTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.satuanId,
+          referencedTable: $db.satuanProdukTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SatuanProdukTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.satuanProdukTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$OnlineOrderItemTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OnlineOrderItemTableTable,
+          OnlineOrderItem,
+          $$OnlineOrderItemTableTableFilterComposer,
+          $$OnlineOrderItemTableTableOrderingComposer,
+          $$OnlineOrderItemTableTableAnnotationComposer,
+          $$OnlineOrderItemTableTableCreateCompanionBuilder,
+          $$OnlineOrderItemTableTableUpdateCompanionBuilder,
+          (OnlineOrderItem, $$OnlineOrderItemTableTableReferences),
+          OnlineOrderItem,
+          PrefetchHooks Function({
+            bool tokoId,
+            bool onlineOrderId,
+            bool produkId,
+            bool satuanId,
+          })
+        > {
+  $$OnlineOrderItemTableTableTableManager(
+    _$AppDatabase db,
+    $OnlineOrderItemTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OnlineOrderItemTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OnlineOrderItemTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OnlineOrderItemTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> tokoId = const Value.absent(),
+                Value<String> onlineOrderId = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
+                Value<String> namaProduk = const Value.absent(),
+                Value<double> hargaSatuan = const Value.absent(),
+                Value<int> jumlah = const Value.absent(),
+                Value<double> subtotal = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineOrderItemTableCompanion(
+                id: id,
+                tokoId: tokoId,
+                onlineOrderId: onlineOrderId,
+                produkId: produkId,
+                namaProduk: namaProduk,
+                hargaSatuan: hargaSatuan,
+                jumlah: jumlah,
+                subtotal: subtotal,
+                satuanId: satuanId,
+                konversi: konversi,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String tokoId,
+                required String onlineOrderId,
+                required String produkId,
+                required String namaProduk,
+                Value<double> hargaSatuan = const Value.absent(),
+                Value<int> jumlah = const Value.absent(),
+                Value<double> subtotal = const Value.absent(),
+                Value<String?> satuanId = const Value.absent(),
+                Value<double> konversi = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OnlineOrderItemTableCompanion.insert(
+                id: id,
+                tokoId: tokoId,
+                onlineOrderId: onlineOrderId,
+                produkId: produkId,
+                namaProduk: namaProduk,
+                hargaSatuan: hargaSatuan,
+                jumlah: jumlah,
+                subtotal: subtotal,
+                satuanId: satuanId,
+                konversi: konversi,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OnlineOrderItemTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                tokoId = false,
+                onlineOrderId = false,
+                produkId = false,
+                satuanId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (tokoId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.tokoId,
+                                    referencedTable:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._tokoIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._tokoIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (onlineOrderId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.onlineOrderId,
+                                    referencedTable:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._onlineOrderIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._onlineOrderIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (produkId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.produkId,
+                                    referencedTable:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._produkIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._produkIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (satuanId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.satuanId,
+                                    referencedTable:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._satuanIdTable(db),
+                                    referencedColumn:
+                                        $$OnlineOrderItemTableTableReferences
+                                            ._satuanIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$OnlineOrderItemTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OnlineOrderItemTableTable,
+      OnlineOrderItem,
+      $$OnlineOrderItemTableTableFilterComposer,
+      $$OnlineOrderItemTableTableOrderingComposer,
+      $$OnlineOrderItemTableTableAnnotationComposer,
+      $$OnlineOrderItemTableTableCreateCompanionBuilder,
+      $$OnlineOrderItemTableTableUpdateCompanionBuilder,
+      (OnlineOrderItem, $$OnlineOrderItemTableTableReferences),
+      OnlineOrderItem,
+      PrefetchHooks Function({
+        bool tokoId,
+        bool onlineOrderId,
+        bool produkId,
+        bool satuanId,
+      })
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15519,4 +19394,10 @@ class $AppDatabaseManager {
       $$RiwayatHargaTableTableTableManager(_db, _db.riwayatHargaTable);
   $$LocalAuthTableTableTableManager get localAuthTable =>
       $$LocalAuthTableTableTableManager(_db, _db.localAuthTable);
+  $$OnlineCustomerTableTableTableManager get onlineCustomerTable =>
+      $$OnlineCustomerTableTableTableManager(_db, _db.onlineCustomerTable);
+  $$OnlineOrderTableTableTableManager get onlineOrderTable =>
+      $$OnlineOrderTableTableTableManager(_db, _db.onlineOrderTable);
+  $$OnlineOrderItemTableTableTableManager get onlineOrderItemTable =>
+      $$OnlineOrderItemTableTableTableManager(_db, _db.onlineOrderItemTable);
 }

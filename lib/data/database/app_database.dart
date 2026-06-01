@@ -25,6 +25,9 @@ import 'tables/transaksi_table.dart';
 import 'tables/notifikasi_table.dart';
 import 'tables/user_table.dart';
 import 'tables/local_auth_table.dart';
+import 'tables/online_customer_table.dart';
+import 'tables/online_order_table.dart';
+import 'tables/online_order_item_table.dart';
 
 part 'app_database.g.dart';
 
@@ -50,13 +53,16 @@ part 'app_database.g.dart';
     PendingSyncQueueTable,
     RiwayatHargaTable,
     LocalAuthTable,
+    OnlineCustomerTable,
+    OnlineOrderTable,
+    OnlineOrderItemTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -114,6 +120,15 @@ class AppDatabase extends _$AppDatabase {
         try {
           await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.satuanId);
           await m.addColumn(pendingPembelianItemTable, pendingPembelianItemTable.konversi);
+        } catch (_) {}
+      }
+
+      if (from < 19) {
+        try {
+          await m.createTable(onlineCustomerTable);
+          await m.createTable(onlineOrderTable);
+          await m.createTable(onlineOrderItemTable);
+          await m.addColumn(produkTable, produkTable.imageUrl);
         } catch (_) {}
       }
     },
