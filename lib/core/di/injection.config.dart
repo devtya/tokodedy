@@ -23,6 +23,7 @@ import '../../data/repositories/hutang_piutang_repository_impl.dart' as _i294;
 import '../../data/repositories/laporan_repository_impl.dart' as _i880;
 import '../../data/repositories/local_auth_repository_impl.dart' as _i486;
 import '../../data/repositories/notifikasi_repository_impl.dart' as _i833;
+import '../../data/repositories/online_order_repository_impl.dart' as _i576;
 import '../../data/repositories/pembelian_repository_impl.dart' as _i810;
 import '../../data/repositories/pending_order_repository_impl.dart' as _i803;
 import '../../data/repositories/pending_pembelian_repository_impl.dart' as _i54;
@@ -40,6 +41,7 @@ import '../../domain/repositories/hutang_piutang_repository.dart' as _i36;
 import '../../domain/repositories/laporan_repository.dart' as _i620;
 import '../../domain/repositories/local_auth_repository.dart' as _i517;
 import '../../domain/repositories/notifikasi_repository.dart' as _i895;
+import '../../domain/repositories/online_order_repository.dart' as _i674;
 import '../../domain/repositories/pembelian_repository.dart' as _i228;
 import '../../domain/repositories/pending_order_repository.dart' as _i803;
 import '../../domain/repositories/pending_pembelian_repository.dart' as _i258;
@@ -85,6 +87,7 @@ import '../../presentation/blocs/hutang/hutang_bloc.dart' as _i318;
 import '../../presentation/blocs/laporan/laporan_bloc.dart' as _i17;
 import '../../presentation/blocs/local_auth/local_auth_bloc.dart' as _i546;
 import '../../presentation/blocs/notifikasi/notifikasi_bloc.dart' as _i166;
+import '../../presentation/blocs/online_order/online_order_bloc.dart' as _i86;
 import '../../presentation/blocs/pembelian/pembelian_bloc.dart' as _i1061;
 import '../../presentation/blocs/produk/produk_bloc.dart' as _i308;
 import '../../presentation/blocs/stok/stok_bloc.dart' as _i360;
@@ -198,6 +201,13 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i803.PendingOrderRepository>(
       () => _i803.PendingOrderRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+        gh<_i997.TokoService>(),
+      ),
+    );
+    gh.lazySingleton<_i674.OnlineOrderRepository>(
+      () => _i576.OnlineOrderRepositoryImpl(
         gh<_i160.AppDatabase>(),
         gh<_i345.SupabaseSyncService>(),
         gh<_i997.TokoService>(),
@@ -396,6 +406,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i784.GetLastPembelianByProduk>(
       () => _i784.GetLastPembelianByProduk(gh<_i228.PembelianRepository>()),
+    );
+    gh.factory<_i86.OnlineOrderBloc>(
+      () => _i86.OnlineOrderBloc(gh<_i674.OnlineOrderRepository>()),
     );
     gh.lazySingleton<_i995.TambahStok>(
       () => _i995.TambahStok(

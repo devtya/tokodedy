@@ -235,7 +235,7 @@ class _PembelianPageState extends State<PembelianPage> {
               final parts = nama.split(' - ');
               final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
               return ReceiptItem(
-                nama: nama,
+                nama: parts[0],
                 jumlah: item.jumlah,
                 harga: item.hargaBeliSatuan,
                 satuan: unitName,
@@ -291,7 +291,7 @@ class _PembelianPageState extends State<PembelianPage> {
             final parts = nama.split(' - ');
             final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
             return ReceiptItem(
-              nama: nama,
+              nama: parts[0],
               jumlah: item.jumlah,
               harga: item.hargaBeliSatuan,
               satuan: unitName,
