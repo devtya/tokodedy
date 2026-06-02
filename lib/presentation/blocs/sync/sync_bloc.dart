@@ -240,6 +240,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   ) async {
     if (event.isOnline) {
       _syncAttempts = 0;
+      _syncService.initRealtimeListeners();
       add(const SyncTriggered());
     }
     if (state is SyncInitial) {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
@@ -24,7 +25,10 @@ class SupabaseSyncService {
   final SupabaseClient _supabase;
   final SharedPreferences _prefs;
   final TokoService _tokoService;
-  final Uuid _uuid = const Uuid();
+  final _uuid = const Uuid();
+
+  final _onlineOrderEventController = StreamController<void>.broadcast();
+  Stream<void> get onOnlineOrderReceived => _onlineOrderEventController.stream;
 
   static const _lastSyncKey = 'last_sync_v2';
 
@@ -138,6 +142,43 @@ class SupabaseSyncService {
 
     await _prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
     return pulledTables;
+  }
+
+  bool _isRealtimeInitialized = false;
+
+  /// Initialize realtime listener for Supabase
+  void initRealtimeListeners() {
+    if (_tokoId.isEmpty || _isRealtimeInitialized) return;
+    _isRealtimeInitialized = true;
+
+    _supabase
+        .channel('public:online_orders:$_tokoId')
+        .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'online_orders',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'toko_id',
+              value: _tokoId,
+            ),
+            callback: (payload) async {
+              final newRecord = payload.newRecord;
+              if (newRecord['status'] == 'pending') {
+                // Add Notification to local DB
+                await _db.into(_db.notifikasiTable).insert(NotifikasiTableCompanion.insert(
+                  id: _uuid.v4(),
+                  tokoId: _tokoId,
+                  judul: 'Pesanan Online Baru',
+                  pesan: 'Ada pesanan online baru (Total: Rp ${newRecord['total_harga']}).',
+                  tipe: const Value('ORDER'),
+                  createdAt: Value(DateTime.now()),
+                ));
+                // Notify listeners
+                _onlineOrderEventController.add(null);
+              }
+            })
+        .subscribe();
   }
 
   /// Full sync: download semua data toko dari Supabase (untuk install baru)

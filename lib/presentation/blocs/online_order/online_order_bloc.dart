@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import '../../../domain/entities/online_order.dart';
 import '../../../domain/repositories/online_order_repository.dart';
+import 'dart:async';
+import '../../../data/services/supabase_sync_service.dart';
 
 part 'online_order_event.dart';
 part 'online_order_state.dart';
@@ -10,10 +12,22 @@ part 'online_order_state.dart';
 @injectable
 class OnlineOrderBloc extends Bloc<OnlineOrderEvent, OnlineOrderState> {
   final OnlineOrderRepository _repository;
+  final SupabaseSyncService _syncService;
+  StreamSubscription? _realtimeSub;
 
-  OnlineOrderBloc(this._repository) : super(OnlineOrderInitial()) {
+  OnlineOrderBloc(this._repository, this._syncService) : super(OnlineOrderInitial()) {
     on<LoadPendingOnlineOrders>(_onLoadPendingOnlineOrders);
     on<ProcessOnlineOrder>(_onProcessOnlineOrder);
+
+    _realtimeSub = _syncService.onOnlineOrderReceived.listen((_) {
+      add(LoadPendingOnlineOrders());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _realtimeSub?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadPendingOnlineOrders(
