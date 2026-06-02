@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
-import '../../core/services/toko_service.dart';
 import '../../domain/entities/pending_pembelian.dart';
 import '../../domain/repositories/pending_pembelian_repository.dart';
 
@@ -11,16 +10,12 @@ import '../../domain/repositories/pending_pembelian_repository.dart';
 class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;
-  final TokoService _tokoService;
 
-  PendingPembelianRepositoryImpl(this._db, this._syncService, this._tokoService);
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+  PendingPembelianRepositoryImpl(this._db, this._syncService);
 
   PendingPembelian _map(PendingPembelianTableData data) {
     return PendingPembelian(
       id: data.id,
-      tokoId: data.tokoId,
       supplierId: data.supplierId,
       namaSupplier: data.namaSupplier,
       createdAt: data.createdAt,
@@ -34,7 +29,7 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
 
   @override
   Future<List<PendingPembelian>> getAllPending() async {
-    final data = await (_db.select(_db.pendingPembelianTable)..where((t) => t.tokoId.equals(_tokoId))).get();
+    final data = await _db.select(_db.pendingPembelianTable).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_map).toList();
   }
@@ -42,7 +37,7 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
   @override
   Future<PendingPembelian?> getPendingById(String id) async {
     final data = await (_db.select(_db.pendingPembelianTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     return data != null ? _map(data) : null;
   }
@@ -53,8 +48,7 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
     await _db.into(_db.pendingPembelianTable).insert(
           PendingPembelianTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            supplierId: Value(pending.supplierId),
+                  supplierId: Value(pending.supplierId),
             namaSupplier: Value(pending.namaSupplier),
             isPpnEnabled: Value(pending.isPpnEnabled),
             ppnPercent: Value(pending.ppnPercent),
@@ -67,7 +61,6 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
     // Sync to Supabase
     await _syncService.upsert('pending_pembelian', {
       'id': id,
-      'toko_id': _tokoId,
       'supplier_id': pending.supplierId,
       'nama_supplier': pending.namaSupplier,
       'is_ppn_enabled': pending.isPpnEnabled,
@@ -90,12 +83,12 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
       }
     }
     await (_db.delete(_db.pendingPembelianItemTable)
-      ..where((t) => t.pendingPembelianId.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.pendingPembelianId.equals(id)))
         .go();
 
     // Delete parent
     await (_db.delete(_db.pendingPembelianTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .go();
 
     // Sync to Supabase
@@ -107,7 +100,7 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
     String pendingId,
   ) async {
     final data = await (_db.select(_db.pendingPembelianItemTable)
-      ..where((t) => t.pendingPembelianId.equals(pendingId) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.pendingPembelianId.equals(pendingId)))
         .get();
 
     return data
@@ -134,8 +127,7 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
     await _db.into(_db.pendingPembelianItemTable).insert(
           PendingPembelianItemTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            pendingPembelianId: pendingId,
+                  pendingPembelianId: pendingId,
             produkId: item.produkId,
             namaProduk: item.namaProduk,
             jumlah: Value(item.jumlah),
@@ -151,7 +143,6 @@ class PendingPembelianRepositoryImpl implements PendingPembelianRepository {
     // Sync to Supabase
     await _syncService.upsert('pending_pembelian_item', {
       'id': id,
-      'toko_id': _tokoId,
       'pending_pembelian_id': pendingId,
       'produk_id': item.produkId,
       'nama_produk': item.namaProduk,

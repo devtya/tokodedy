@@ -9,7 +9,7 @@ import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../../i18n/strings.g.dart';
 import 'home_page.dart';
-import 'register_store_page.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
                 await Supabase.instance.client.auth
                     .resetPasswordForEmail(
                   email,
-                  redirectTo: 'io.hendkasir.app://reset-callback',
+                  redirectTo: 'io.tokodedy.app://reset-callback',
                 );
                 if (ctx.mounted) {
                   Navigator.pop(ctx);
@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is Authenticated || state is StoreRegistered) {
+          if (state is Authenticated) {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const HomePage()),
@@ -222,18 +222,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RegisterStorePage(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add_business),
-                  label: const Text('Buat Toko Baru'),
-                ),
               ],
             ),
           ),

@@ -8,8 +8,6 @@ Future<void> seedDatabase(AppDatabase db) async {
   if (existing.isNotEmpty) return;
 
   const uuid = Uuid();
-  const defaultTokoId = '1';
-
   // ── Seeding Products ──
   final productIds = List.generate(_produkData.length, (_) => uuid.v4());
 
@@ -18,7 +16,6 @@ Future<void> seedDatabase(AppDatabase db) async {
     await db.into(db.produkTable).insert(
       ProdukTableCompanion.insert(
         id: productIds[i],
-        tokoId: defaultTokoId,
         nama: p.nama,
         barcode: Value(p.barcode),
         hargaBeli: Value(p.hargaBeli),
@@ -35,7 +32,6 @@ Future<void> seedDatabase(AppDatabase db) async {
     await db.into(db.satuanProdukTable).insert(
       SatuanProdukTableCompanion.insert(
         id: uuid.v4(),
-        tokoId: defaultTokoId,
         produkId: productIds[s.produkIndex],
         nama: s.nama,
         konversi: Value(s.konversi),
@@ -53,7 +49,6 @@ Future<void> seedDatabase(AppDatabase db) async {
     await db.into(db.supplierTable).insert(
       SupplierTableCompanion.insert(
         id: uuid.v4(),
-        tokoId: defaultTokoId,
         nama: s.nama,
         telepon: Value(s.telepon),
         alamat: Value(s.alamat),

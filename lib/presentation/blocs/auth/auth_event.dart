@@ -20,22 +20,3 @@ class LoginEvent extends AuthEvent {
 }
 
 class LogoutEvent extends AuthEvent {}
-
-class RegisterStoreEvent extends AuthEvent {
-  final String namaToko;
-  final String? alamat;
-  final String email;
-  final String password;
-  final String? nama;
-
-  const RegisterStoreEvent({
-    required this.namaToko,
-    this.alamat,
-    required this.email,
-    required this.password,
-    this.nama,
-  });
-
-  @override
-  List<Object?> get props => [namaToko, alamat, email, password, nama];
-}

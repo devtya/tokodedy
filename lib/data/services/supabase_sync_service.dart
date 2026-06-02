@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../database/app_database.dart';
-import '../../core/services/toko_service.dart';
 
 import 'package:injectable/injectable.dart';
 
@@ -24,7 +23,6 @@ class SupabaseSyncService {
   final AppDatabase _db;
   final SupabaseClient _supabase;
   final SharedPreferences _prefs;
-  final TokoService _tokoService;
   final _uuid = const Uuid();
 
   final _onlineOrderEventController = StreamController<void>.broadcast();
@@ -36,13 +34,9 @@ class SupabaseSyncService {
     required AppDatabase db,
     required SupabaseClient supabase,
     required SharedPreferences prefs,
-    required TokoService tokoService,
   })  : _db = db,
         _supabase = supabase,
-        _prefs = prefs,
-        _tokoService = tokoService;
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+        _prefs = prefs;
 
   // ─────────────────────────────────────────────────
   // PUBLIC API
@@ -59,9 +53,6 @@ class SupabaseSyncService {
 
   /// Push: upsert record ke Supabase atau antri jika offline
   Future<void> upsert(String tableName, Map<String, dynamic> data) async {
-    // Pastikan toko_id selalu ada
-    data['toko_id'] = _tokoId;
-
     // Inject timestamp agar proses pull() di device lain bisa mendeteksi perubahan
     final now = DateTime.now().toUtc().toIso8601String();
     if (_pullOrder.contains(tableName)) {
@@ -100,7 +91,6 @@ class SupabaseSyncService {
   Future<List<String>> pull({
     void Function(String table, int count)? onTablePulled,
   }) async {
-    if (_tokoId.isEmpty) return [];
     final lastSync = _prefs.getString(_lastSyncKey) ?? '1970-01-01T00:00:00Z';
     final pulledTables = <String>[];
 
@@ -109,7 +99,6 @@ class SupabaseSyncService {
         final rows = await _supabase
             .from(table)
             .select()
-            .eq('toko_id', _tokoId)
             .gte('updated_at', lastSync)
             .order('updated_at');
 
@@ -129,7 +118,6 @@ class SupabaseSyncService {
         final rows = await _supabase
             .from(table)
             .select()
-            .eq('toko_id', _tokoId)
             .gte('created_at', lastSync)
             .order('created_at');
 
@@ -148,27 +136,21 @@ class SupabaseSyncService {
 
   /// Initialize realtime listener for Supabase
   void initRealtimeListeners() {
-    if (_tokoId.isEmpty || _isRealtimeInitialized) return;
+    if (_isRealtimeInitialized) return;
     _isRealtimeInitialized = true;
 
     _supabase
-        .channel('public:online_orders:$_tokoId')
+        .channel('public:online_orders')
         .onPostgresChanges(
             event: PostgresChangeEvent.insert,
             schema: 'public',
             table: 'online_orders',
-            filter: PostgresChangeFilter(
-              type: PostgresChangeFilterType.eq,
-              column: 'toko_id',
-              value: _tokoId,
-            ),
             callback: (payload) async {
               final newRecord = payload.newRecord;
               if (newRecord['status'] == 'pending') {
                 // Add Notification to local DB
                 await _db.into(_db.notifikasiTable).insert(NotifikasiTableCompanion.insert(
                   id: _uuid.v4(),
-                  tokoId: _tokoId,
                   judul: 'Pesanan Online Baru',
                   pesan: 'Ada pesanan online baru (Total: Rp ${newRecord['total_harga']}).',
                   tipe: const Value('ORDER'),
@@ -185,8 +167,6 @@ class SupabaseSyncService {
   Future<void> performInitialSync({
     required void Function(int fetched, int total) onProgress,
   }) async {
-    if (_tokoId.isEmpty) return;
-
     const allTables = [
       ...(_pullOrder),
       ...(_appendOnlyTables),
@@ -201,7 +181,6 @@ class SupabaseSyncService {
         final rows = await _supabase
             .from(table)
             .select()
-            .eq('toko_id', _tokoId)
             .order('created_at');
 
         if ((rows as List).isNotEmpty) {
@@ -213,16 +192,14 @@ class SupabaseSyncService {
       onProgress(done, total);
     }
 
-    // Juga pull profiles (tidak punya toko_id tapi punya toko_id FK)
+    // Pull profiles
     try {
       final profiles = await _supabase
           .from('profiles')
-          .select()
-          .eq('toko_id', _tokoId);
+          .select();
       for (final p in profiles as List) {
         await _db.into(_db.userTable).insertOnConflictUpdate(UserTableCompanion(
           id: Value(p['id'] as String),
-          tokoId: Value(p['toko_id'] as String),
           nama: Value(p['nama'] as String?),
           role: Value(p['role'] as String? ?? 'kasir'),
         ));
@@ -240,7 +217,6 @@ class SupabaseSyncService {
   /// Flush antrian operasi yang belum berhasil di-sync
   Future<int> flushQueue() async {
     if (!(await isOnline)) return 0;
-    if (_tokoId.isEmpty) return 0;
 
     final queue = await _db.select(_db.pendingSyncQueueTable).get();
     int flushed = 0;
@@ -308,6 +284,7 @@ const _pullOrder = [
   'transaksi',
   'hutang_piutang',
   'pembelian',
+  'purchase_orders',
   'pending_order',
   'pending_pembelian',
   'online_customers',
@@ -317,6 +294,7 @@ const _pullOrder = [
 const _appendOnlyTables = [
   'item_transaksi',
   'item_pembelian',
+  'purchase_order_items',
   'riwayat_stok',
   'notifikasi',
   'pending_order_item',
@@ -334,7 +312,6 @@ final Map<String, _Inserter> _inserters = {
   'produk': (db, r) async {
     await db.into(db.produkTable).insertOnConflictUpdate(ProdukTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       nama: Value(r['nama'] as String),
       barcode: Value(r['barcode'] as String?),
       hargaBeli: Value((r['harga_beli'] as num).toDouble()),
@@ -350,7 +327,6 @@ final Map<String, _Inserter> _inserters = {
   'satuan_produk': (db, r) async {
     await db.into(db.satuanProdukTable).insertOnConflictUpdate(SatuanProdukTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       produkId: Value(r['produk_id'] as String),
       nama: Value(r['nama'] as String),
       konversi: Value((r['konversi'] as num).toDouble()),
@@ -362,7 +338,6 @@ final Map<String, _Inserter> _inserters = {
   'supplier': (db, r) async {
     await db.into(db.supplierTable).insertOnConflictUpdate(SupplierTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       nama: Value(r['nama'] as String),
       telepon: Value(r['telepon'] as String?),
       alamat: Value(r['alamat'] as String?),
@@ -373,7 +348,6 @@ final Map<String, _Inserter> _inserters = {
   'supplier_products': (db, r) async {
     await db.into(db.supplierProductsTable).insertOnConflictUpdate(SupplierProductsTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       supplierId: Value(r['supplier_id'] as String),
       produkId: Value(r['produk_id'] as String),
       harga: Value((r['harga'] as num).toDouble()),
@@ -383,7 +357,6 @@ final Map<String, _Inserter> _inserters = {
   'transaksi': (db, r) async {
     await db.into(db.transaksiTable).insertOnConflictUpdate(TransaksiTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       kasirId: Value(r['kasir_id'] as String?),
       totalHarga: Value((r['total_harga'] as num).toDouble()),
       jumlahBayar: Value((r['jumlah_bayar'] as num).toDouble()),
@@ -396,7 +369,6 @@ final Map<String, _Inserter> _inserters = {
   'item_transaksi': (db, r) async {
     await db.into(db.itemTransaksiTable).insertOnConflictUpdate(ItemTransaksiTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       transaksiId: Value(r['transaksi_id'] as String),
       produkId: Value(r['produk_id'] as String),
       jumlah: Value(r['jumlah'] as int),
@@ -407,7 +379,6 @@ final Map<String, _Inserter> _inserters = {
   'hutang_piutang': (db, r) async {
     await db.into(db.hutangPiutangTable).insertOnConflictUpdate(HutangPiutangTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       transaksiId: Value(r['transaksi_id'] as String?),
       namaPelanggan: Value(r['nama_pelanggan'] as String),
       jumlah: Value((r['jumlah'] as num).toDouble()),
@@ -422,7 +393,6 @@ final Map<String, _Inserter> _inserters = {
   'pembelian': (db, r) async {
     await db.into(db.pembelianTable).insertOnConflictUpdate(PembelianTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       supplierId: Value(r['supplier_id'] as String?),
       namaSupplier: Value(r['nama_supplier'] as String?),
       totalHarga: Value((r['total_harga'] as num).toDouble()),
@@ -433,7 +403,6 @@ final Map<String, _Inserter> _inserters = {
   'item_pembelian': (db, r) async {
     await db.into(db.itemPembelianTable).insertOnConflictUpdate(ItemPembelianTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       pembelianId: Value(r['pembelian_id'] as String),
       produkId: Value(r['produk_id'] as String),
       jumlah: Value(r['jumlah'] as int),
@@ -446,7 +415,6 @@ final Map<String, _Inserter> _inserters = {
   'riwayat_stok': (db, r) async {
     await db.into(db.riwayatStokTable).insertOnConflictUpdate(RiwayatStokTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       produkId: Value(r['produk_id'] as String),
       tipe: Value(r['tipe'] as String),
       jumlah: Value(r['jumlah'] as int),
@@ -457,7 +425,6 @@ final Map<String, _Inserter> _inserters = {
   'notifikasi': (db, r) async {
     await db.into(db.notifikasiTable).insertOnConflictUpdate(NotifikasiTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       judul: Value(r['judul'] as String),
       pesan: Value(r['pesan'] as String),
       tipe: Value(r['tipe'] as String? ?? 'INFO'),
@@ -468,7 +435,6 @@ final Map<String, _Inserter> _inserters = {
   'pending_order': (db, r) async {
     await db.into(db.pendingOrderTable).insertOnConflictUpdate(PendingOrderTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       namaPelanggan: Value(r['nama_pelanggan'] as String),
       catatan: Value(r['catatan'] as String?),
       createdAt: Value(_parseDate(r['created_at'])),
@@ -477,7 +443,6 @@ final Map<String, _Inserter> _inserters = {
   'pending_order_item': (db, r) async {
     await db.into(db.pendingOrderItemTable).insertOnConflictUpdate(PendingOrderItemTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       pendingOrderId: Value(r['pending_order_id'] as String),
       produkId: Value(r['produk_id'] as String),
       namaProduk: Value(r['nama_produk'] as String),
@@ -488,10 +453,35 @@ final Map<String, _Inserter> _inserters = {
       subtotal: Value((r['subtotal'] as num).toDouble()),
     ));
   },
+  'purchase_orders': (db, r) async {
+    await db.into(db.purchaseOrderTable).insertOnConflictUpdate(PurchaseOrderTableCompanion(
+      id: Value(r['id'] as String),
+      supplierId: Value(r['supplier_id'] as String?),
+      namaSupplier: Value(r['nama_supplier'] as String?),
+      status: Value(r['status'] as String? ?? 'open'),
+      totalHarga: Value((r['total_harga'] as num).toDouble()),
+      notes: Value(r['notes'] as String?),
+      updatedAt: Value(_parseDate(r['updated_at'])),
+      createdAt: Value(_parseDate(r['created_at'])),
+    ));
+  },
+  'purchase_order_items': (db, r) async {
+    await db.into(db.purchaseOrderItemTable).insertOnConflictUpdate(PurchaseOrderItemTableCompanion(
+      id: Value(r['id'] as String),
+      poId: Value(r['po_id'] as String),
+      produkId: Value(r['produk_id'] as String),
+      namaProduk: Value(r['nama_produk'] as String?),
+      qtyPesan: Value(r['qty_pesan'] as int),
+      qtyTerima: Value((r['qty_terima'] as num?)?.toInt() ?? 0),
+      hargaSatuan: Value((r['harga_satuan'] as num).toDouble()),
+      subtotal: Value((r['subtotal'] as num).toDouble()),
+      satuanId: Value(r['satuan_id'] as String?),
+      konversi: Value((r['konversi'] as num? ?? 1.0).toDouble()),
+    ));
+  },
   'pending_pembelian': (db, r) async {
     await db.into(db.pendingPembelianTable).insertOnConflictUpdate(PendingPembelianTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       supplierId: Value(r['supplier_id'] as String?),
       namaSupplier: Value(r['nama_supplier'] as String?),
       isPpnEnabled: Value(r['is_ppn_enabled'] as bool? ?? false),
@@ -502,7 +492,6 @@ final Map<String, _Inserter> _inserters = {
   'pending_pembelian_item': (db, r) async {
     await db.into(db.pendingPembelianItemTable).insertOnConflictUpdate(PendingPembelianItemTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       pendingPembelianId: Value(r['pending_pembelian_id'] as String),
       produkId: Value(r['produk_id'] as String),
       namaProduk: Value(r['nama_produk'] as String),
@@ -528,7 +517,6 @@ final Map<String, _Inserter> _inserters = {
   'online_orders': (db, r) async {
     await db.into(db.onlineOrderTable).insertOnConflictUpdate(OnlineOrderTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       customerId: Value(r['customer_id'] as String),
       status: Value(r['status'] as String? ?? 'pending'),
       totalHarga: Value((r['total_harga'] as num).toDouble()),
@@ -542,7 +530,6 @@ final Map<String, _Inserter> _inserters = {
   'online_order_items': (db, r) async {
     await db.into(db.onlineOrderItemTable).insertOnConflictUpdate(OnlineOrderItemTableCompanion(
       id: Value(r['id'] as String),
-      tokoId: Value(r['toko_id'] as String),
       onlineOrderId: Value(r['online_order_id'] as String),
       produkId: Value(r['produk_id'] as String),
       namaProduk: Value(r['nama_produk'] as String),

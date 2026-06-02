@@ -8,9 +8,11 @@ import '../../../core/di/injection.dart';
 import '../../blocs/pembelian/pembelian_bloc.dart';
 import '../../blocs/pembelian/pembelian_event.dart';
 import '../../blocs/pembelian/pembelian_state.dart';
+import '../../blocs/purchase_order/purchase_order_bloc.dart';
 import '../../blocs/produk/produk_bloc.dart';
 import 'pembelian_form_page.dart';
 import 'pending_pembelian_page.dart';
+import 'purchase_order_page.dart';
 import '../../../domain/repositories/pending_pembelian_repository.dart';
 import '../../../data/models/receipt_data.dart';
 import '../../../data/services/printer_service.dart';
@@ -46,6 +48,67 @@ class _PembelianPageState extends State<PembelianPage> {
     if (mounted) {
       setState(() => _pendingCount = pendingList.length);
     }
+  }
+
+  void _showAddChoiceDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pilih Metode'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.shopping_cart, color: AppTheme.primaryGreen),
+              title: const Text('Beli Langsung'),
+              subtitle: const Text('Barang ready, langsung dibeli'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(value: context.read<PembelianBloc>()),
+                        BlocProvider.value(value: sl<ProdukBloc>()),
+                      ],
+                      child: const PembelianFormPage(),
+                    ),
+                  ),
+                ).then((_) => _loadPendingCount());
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.receipt_long, color: Colors.orange),
+              title: const Text('Pesan ke Supplier (PO)'),
+              subtitle: const Text('Barang kosong/indent, pesan dulu'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider(create: (_) => sl<PurchaseOrderBloc>()),
+                        BlocProvider.value(value: sl<ProdukBloc>()),
+                      ],
+                      child: const PurchaseOrderPage(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showDetailDialog(Pembelian p) {
@@ -400,20 +463,7 @@ class _PembelianPageState extends State<PembelianPage> {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: context.read<PembelianBloc>()),
-                      BlocProvider.value(value: sl<ProdukBloc>()),
-                    ],
-                    child: const PembelianFormPage(),
-                  ),
-                ),
-              ).then((_) => _loadPendingCount());
-            },
+            onPressed: () => _showAddChoiceDialog(),
             tooltip: 'Tambah Pembelian',
           ),
         ],

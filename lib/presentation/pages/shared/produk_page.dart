@@ -9,7 +9,6 @@ import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/produk/produk_event.dart';
 import '../../blocs/produk/produk_state.dart';
 import '../../../core/di/injection.dart';
-import '../../../core/services/toko_service.dart';
 import '../../blocs/stok/stok_bloc.dart';
 import '../../widgets/produk_card.dart';
 import '../../widgets/produk_log_dialog.dart';
@@ -99,8 +98,7 @@ class _ProdukPageState extends State<ProdukPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
-        final isAdmin = (authState is Authenticated && authState.user.isOwner) ||
-            (authState is StoreRegistered && authState.user.isOwner);
+        final isAdmin = (authState is Authenticated && authState.user.isOwner);
 
         return Scaffold(
           appBar: AppBar(
@@ -311,7 +309,7 @@ class _ProdukPageState extends State<ProdukPage> {
 
   void _openGlobalStockSettings() {
     final controller = TextEditingController(
-      text: sl<TokoService>().stokMinimumGlobal.toString(),
+      text: '0',
     );
 
     showDialog(
@@ -342,12 +340,10 @@ class _ProdukPageState extends State<ProdukPage> {
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () async {
-              final val = int.tryParse(controller.text) ?? 0;
-              await sl<TokoService>().updateStokMinimumGlobal(val);
+            onPressed: () {
               if (ctx.mounted && mounted) {
                 Navigator.pop(ctx);
-                setState(() {}); // Update the UI to reflect new minimum stock
+                setState(() {});
               }
             },
             child: const Text('Simpan'),

@@ -20,7 +20,7 @@ class UpdateInfo {
 @lazySingleton
 class UpdateService {
   String repoOwner = 'devtya';
-  String repoName = 'hend_kasir';
+  String repoName = 'tokodedy';
   static const String _assetName = 'app-release.apk';
 
   Future<UpdateInfo?> checkForUpdate() async {
@@ -52,7 +52,7 @@ class UpdateService {
       for (final asset in assets) {
         final name = asset['name'] as String? ?? '';
         final lowerName = name.toLowerCase();
-        if (lowerName.startsWith('hend') && lowerName.endsWith('.apk')) {
+        if (lowerName.startsWith('tokodedy') && lowerName.endsWith('.apk')) {
           downloadUrl = asset['browser_download_url'] as String?;
           foundAssetName = name;
           break;

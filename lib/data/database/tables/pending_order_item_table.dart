@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 class PendingOrderItemTable extends Table {
   TextColumn get id             => text()(); // UUID
-  TextColumn get tokoId         => text()(); // UUID FK ke toko
   TextColumn get pendingOrderId => text()(); // UUID FK ke pending_order
   TextColumn get produkId       => text()(); // UUID FK ke produk
   TextColumn get namaProduk     => text()();

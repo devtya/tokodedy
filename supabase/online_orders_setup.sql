@@ -1,5 +1,5 @@
 -- ============================================================
--- HendKasir & HendStore — Online Orders Setup SQL
+-- Tokodedy & DedyStore — Online Orders Setup SQL
 -- ============================================================
 
 -- ============================================================
@@ -12,7 +12,7 @@ NOTIFY pgrst, 'reload schema';
 
 -- ============================================================
 -- 2. ONLINE CUSTOMERS
--- Profil pelanggan HendStore. ID-nya adalah ID dari auth.users
+-- Profil pelanggan DedyStore. ID-nya adalah ID dari auth.users
 -- ============================================================
 CREATE TABLE IF NOT EXISTS online_customers (
   id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -28,11 +28,10 @@ CREATE TRIGGER set_updated_at_online_customers BEFORE UPDATE ON online_customers
 
 -- RLS online_customers
 ALTER TABLE online_customers ENABLE ROW LEVEL SECURITY;
--- Pelanggan (HendStore) hanya bisa melihat dan mengedit data miliknya sendiri.
+-- Pelanggan (DedyStore) hanya bisa melihat dan mengedit data miliknya sendiri.
 CREATE POLICY "customer_self_access" ON online_customers
   FOR ALL USING (id = auth.uid()) WITH CHECK (id = auth.uid());
--- Kasir (HendKasir) bisa melihat profil semua customer, tapi tidak bisa edit (readonly)
--- Tidak ada toko_id di online_customers, karena customer bersifat global lintas toko.
+-- Kasir (Tokodedy) bisa melihat profil semua customer, tapi tidak bisa edit (readonly)
 CREATE POLICY "kasir_read_customers" ON online_customers
   FOR SELECT USING (
     EXISTS (
@@ -45,7 +44,6 @@ CREATE POLICY "kasir_read_customers" ON online_customers
 -- ============================================================
 CREATE TABLE IF NOT EXISTS online_orders (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  toko_id          UUID NOT NULL REFERENCES toko(id) ON DELETE CASCADE,
   customer_id      UUID NOT NULL REFERENCES online_customers(id) ON DELETE RESTRICT,
   status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'completed', 'cancelled')),
   total_harga      NUMERIC(15,2) NOT NULL DEFAULT 0,
@@ -60,7 +58,7 @@ CREATE TRIGGER set_updated_at_online_orders BEFORE UPDATE ON online_orders FOR E
 
 -- RLS online_orders
 ALTER TABLE online_orders ENABLE ROW LEVEL SECURITY;
--- Pelanggan (HendStore) dapat membaca orderannya dan membuat order baru
+-- Pelanggan (DedyStore) dapat membaca orderannya dan membuat order baru
 CREATE POLICY "customer_read_orders" ON online_orders
   FOR SELECT USING (customer_id = auth.uid());
 CREATE POLICY "customer_insert_orders" ON online_orders
@@ -69,17 +67,15 @@ CREATE POLICY "customer_insert_orders" ON online_orders
 CREATE POLICY "customer_update_orders" ON online_orders
   FOR UPDATE USING (customer_id = auth.uid() AND status = 'pending');
 
--- Kasir (HendKasir) dapat melihat dan mengupdate orderan di tokonya
+-- Kasir (Tokodedy) dapat melihat dan mengupdate semua orderan
 CREATE POLICY "kasir_access_orders" ON online_orders
-  FOR ALL USING (toko_id = get_my_toko_id()) WITH CHECK (toko_id = get_my_toko_id());
-
+  FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 
 -- ============================================================
 -- 4. ONLINE ORDER ITEMS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS online_order_items (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  toko_id          UUID NOT NULL REFERENCES toko(id) ON DELETE CASCADE,
   online_order_id  UUID NOT NULL REFERENCES online_orders(id) ON DELETE CASCADE,
   produk_id        UUID NOT NULL REFERENCES produk(id) ON DELETE RESTRICT,
   nama_produk      TEXT NOT NULL,
@@ -92,7 +88,7 @@ CREATE TABLE IF NOT EXISTS online_order_items (
 
 -- RLS online_order_items
 ALTER TABLE online_order_items ENABLE ROW LEVEL SECURITY;
--- Pelanggan (HendStore) dapat membaca dan menambah order item
+-- Pelanggan (DedyStore) dapat membaca dan menambah order item
 CREATE POLICY "customer_read_order_items" ON online_order_items
   FOR SELECT USING (
     EXISTS (
@@ -113,8 +109,8 @@ CREATE POLICY "customer_update_order_items" ON online_order_items
     )
   );
 
--- Kasir (HendKasir) dapat mengakses semua item order di tokonya
+-- Kasir (Tokodedy) dapat mengakses semua item order
 CREATE POLICY "kasir_access_order_items" ON online_order_items
-  FOR ALL USING (toko_id = get_my_toko_id()) WITH CHECK (toko_id = get_my_toko_id());
+  FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 
 NOTIFY pgrst, 'reload schema';

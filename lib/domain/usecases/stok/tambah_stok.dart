@@ -18,7 +18,6 @@ class TambahStok {
 
     await riwayatRepository.addRiwayat(
       RiwayatStok(
-        tokoId: produk.tokoId,
         produkId: produkId,
         tipe: 'masuk',
         jumlah: jumlahTambah,

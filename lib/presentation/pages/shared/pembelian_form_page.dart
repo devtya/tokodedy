@@ -33,7 +33,6 @@ import '../../blocs/auth/auth_state.dart';
 import '../../widgets/cari_produk_dialog.dart';
 import '../../widgets/supplier_konfirmasi_dialog.dart';
 import 'pending_pembelian_page.dart';
-import '../../../core/services/toko_service.dart';
 
 class PembelianFormPage extends StatefulWidget {
   final String? pendingId;
@@ -578,8 +577,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     try {
       final satuanProduk = SatuanProduk(
         produkId: produk.id!,
-        tokoId: sl<TokoService>().tokoId ?? '',
-        nama: namaSatuan,
+                nama: namaSatuan,
         konversi: konversi,
         hargaJual: 0, // Akan di-update nanti jika diperlukan di form produk
         hargaBeli: hargaBeli,
@@ -760,8 +758,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         }
 
         final pending = PendingPembelian(
-          tokoId: sl<TokoService>().tokoId ?? '',
-          supplierId: _selectedSupplier?.id,
+                    supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
           ppnPercent: _ppnPercent,
@@ -790,8 +787,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         final addNotifikasi = sl<AddNotifikasi>();
         await addNotifikasi(
           Notifikasi(
-            tokoId: sl<TokoService>().tokoId ?? '',
-            judul: 'Pembelian Pending Baru',
+                        judul: 'Pembelian Pending Baru',
             pesan:
                 'Kasir menambahkan draft pembelian baru dari ${_selectedSupplier?.nama ?? "Supplier tidak diketahui"}.',
             tipe: 'INFO',
@@ -1024,8 +1020,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         }
 
         final pending = PendingPembelian(
-          tokoId: sl<TokoService>().tokoId ?? '',
-          supplierId: _selectedSupplier?.id,
+                    supplierId: _selectedSupplier?.id,
           namaSupplier: _selectedSupplier?.nama,
           isPpnEnabled: _isPpnEnabled,
           ppnPercent: _ppnPercent,
@@ -1086,8 +1081,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           if (supplierId != null) {
             for (final item in items) {
               await dao.upsertSupplierProduct(
-                tokoId: sl<TokoService>().tokoId ?? '',
-                supplierId: supplierId,
+                                supplierId: supplierId,
                 produkId: item.produkId,
                 harga: item.hargaBeliSatuan,
               );

@@ -4,7 +4,6 @@ import '../../widgets/barcode_scanner_widget.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/di/injection.dart';
-import '../../../core/services/toko_service.dart';
 import '../../../domain/entities/produk.dart';
 import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/repositories/produk_repository.dart';
@@ -291,14 +290,12 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       );
       return;
     }
-    final currentTokoId =
-        _currentProduk?.tokoId ?? sl<TokoService>().tokoId ?? '';
     satuanList = _units
         .where((u) => u.nama.trim().isNotEmpty)
         .map(
           (u) => SatuanProduk(
             id: u.dbId,
-            tokoId: currentTokoId,
+            
             produkId: _currentProduk?.id ?? '',
             nama: u.nama.trim(),
             konversi: u.konversi,
@@ -315,7 +312,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
 
     final produk = Produk(
       id: _currentProduk?.id,
-      tokoId: currentTokoId,
+      
       nama: _namaCtrl.text.trim().toUpperCase(),
       barcode: _barcodeCtrl.text.trim().isEmpty
           ? null

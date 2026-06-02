@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
-import '../../core/services/toko_service.dart';
 import '../../domain/entities/pending_order.dart' as domain;
 import '../../domain/repositories/pending_order_repository.dart';
 
@@ -11,16 +10,12 @@ import '../../domain/repositories/pending_order_repository.dart';
 class PendingOrderRepositoryImpl implements PendingOrderRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;
-  final TokoService _tokoService;
 
-  PendingOrderRepositoryImpl(this._db, this._syncService, this._tokoService);
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+  PendingOrderRepositoryImpl(this._db, this._syncService);
 
   domain.PendingOrder _map(PendingOrderTableData data) {
     return domain.PendingOrder(
       id: data.id,
-      tokoId: data.tokoId,
       namaPelanggan: data.namaPelanggan,
       catatan: data.catatan,
       createdAt: data.createdAt,
@@ -29,7 +24,7 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
 
   @override
   Future<List<domain.PendingOrder>> getAllPending() async {
-    final data = await (_db.select(_db.pendingOrderTable)..where((t) => t.tokoId.equals(_tokoId))).get();
+    final data = await _db.select(_db.pendingOrderTable).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_map).toList();
   }
@@ -37,7 +32,7 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
   @override
   Future<domain.PendingOrder?> getPendingById(String id) async {
     final data = await (_db.select(_db.pendingOrderTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     return data != null ? _map(data) : null;
   }
@@ -48,8 +43,7 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
     await _db.into(_db.pendingOrderTable).insert(
           PendingOrderTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            namaPelanggan: pending.namaPelanggan,
+                  namaPelanggan: pending.namaPelanggan,
             catatan: Value(pending.catatan),
           ),
         );
@@ -57,7 +51,6 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
     // Sync to Supabase
     await _syncService.upsert('pending_order', {
       'id': id,
-      'toko_id': _tokoId,
       'nama_pelanggan': pending.namaPelanggan,
       'catatan': pending.catatan,
     });
@@ -75,12 +68,12 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
       }
     }
     await (_db.delete(_db.pendingOrderItemTable)
-      ..where((t) => t.pendingOrderId.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.pendingOrderId.equals(id)))
         .go();
 
     // Drop parent
     await (_db.delete(_db.pendingOrderTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .go();
 
     // Sync to Supabase
@@ -90,7 +83,7 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
   @override
   Future<List<CartItemData>> getItemsByPendingId(String pendingId) async {
     final data = await (_db.select(_db.pendingOrderItemTable)
-      ..where((t) => t.pendingOrderId.equals(pendingId) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.pendingOrderId.equals(pendingId)))
         .get();
     return data
         .map(
@@ -114,8 +107,7 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
     await _db.into(_db.pendingOrderItemTable).insert(
           PendingOrderItemTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            pendingOrderId: pendingId,
+                  pendingOrderId: pendingId,
             produkId: item.produkId,
             namaProduk: item.namaProduk,
             hargaJual: Value(item.hargaJual),
@@ -129,7 +121,6 @@ class PendingOrderRepositoryImpl implements PendingOrderRepository {
     // Sync to Supabase
     await _syncService.upsert('pending_order_item', {
       'id': id,
-      'toko_id': _tokoId,
       'pending_order_id': pendingId,
       'produk_id': item.produkId,
       'nama_produk': item.namaProduk,

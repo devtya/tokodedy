@@ -1,5 +1,4 @@
 import 'package:injectable/injectable.dart';
-import '../../../core/services/toko_service.dart';
 import '../../../data/database/app_database.dart';
 import '../../entities/item_pembelian.dart';
 import '../../entities/pembelian.dart';
@@ -13,14 +12,12 @@ class BuatPembelian {
   final PembelianRepository pembelianRepository;
   final ProdukRepository produkRepository;
   final RiwayatStokRepository riwayatStokRepository;
-  final TokoService tokoService;
   final AppDatabase db;
 
   BuatPembelian({
     required this.pembelianRepository,
     required this.produkRepository,
     required this.riwayatStokRepository,
-    required this.tokoService,
     required this.db,
   });
 
@@ -33,7 +30,6 @@ class BuatPembelian {
 
       final pembelianId = await pembelianRepository.addPembelian(
         Pembelian(
-          tokoId: items.isNotEmpty ? items.first.tokoId : '',
           namaSupplier: namaSupplier,
           totalHarga: totalHarga,
         ),

@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/produk.dart';
 
-import '../../core/di/injection.dart';
-import '../../core/services/toko_service.dart';
+
 
 class ProdukCard extends StatelessWidget {
   final Produk produk;
@@ -31,7 +30,7 @@ class ProdukCard extends StatelessWidget {
       decimalDigits: 0,
     );
     
-    final stokMin = produk.stokMinimum ?? sl<TokoService>().stokMinimumGlobal;
+    final stokMin = produk.stokMinimum ?? 0;
     final isLowStock = produk.stok <= stokMin;
 
     return Card(

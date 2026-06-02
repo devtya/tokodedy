@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
-import '../../core/services/toko_service.dart';
 import '../../domain/entities/item_pembelian.dart' as domain;
 import '../../domain/entities/pembelian.dart' as domain;
 import '../../domain/repositories/pembelian_repository.dart';
@@ -12,16 +11,12 @@ import '../../domain/repositories/pembelian_repository.dart';
 class PembelianRepositoryImpl implements PembelianRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;
-  final TokoService _tokoService;
 
-  PembelianRepositoryImpl(this._db, this._syncService, this._tokoService);
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+  PembelianRepositoryImpl(this._db, this._syncService);
 
   domain.Pembelian _map(PembelianTableData data) {
     return domain.Pembelian(
       id: data.id,
-      tokoId: data.tokoId,
       supplierId: data.supplierId,
       namaSupplier: data.namaSupplier,
       totalHarga: data.totalHarga,
@@ -32,7 +27,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
 
   @override
   Future<List<domain.Pembelian>> getAllPembelian() async {
-    final data = await (_db.select(_db.pembelianTable)..where((t) => t.tokoId.equals(_tokoId))).get();
+    final data = await _db.select(_db.pembelianTable).get();
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map(_map).toList();
   }
@@ -40,7 +35,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
   @override
   Future<domain.Pembelian?> getPembelianById(String id) async {
     final data = await (_db.select(_db.pembelianTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     return data != null ? _map(data) : null;
   }
@@ -51,8 +46,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
     await _db.into(_db.pembelianTable).insert(
           PembelianTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            supplierId: Value(pembelian.supplierId),
+                  supplierId: Value(pembelian.supplierId),
             namaSupplier: Value(pembelian.namaSupplier),
             totalHarga: Value(pembelian.totalHarga),
           ),
@@ -61,7 +55,6 @@ class PembelianRepositoryImpl implements PembelianRepository {
     // Sync to Supabase
     await _syncService.upsert('pembelian', {
       'id': id,
-      'toko_id': _tokoId,
       'supplier_id': pembelian.supplierId,
       'nama_supplier': pembelian.namaSupplier,
       'total_harga': pembelian.totalHarga,
@@ -76,8 +69,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
     await _db.into(_db.itemPembelianTable).insert(
           ItemPembelianTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            pembelianId: item.pembelianId,
+                  pembelianId: item.pembelianId,
             produkId: item.produkId,
             jumlah: Value(item.jumlah),
             hargaBeliSatuan: Value(item.hargaBeliSatuan),
@@ -90,7 +82,6 @@ class PembelianRepositoryImpl implements PembelianRepository {
     // Sync to Supabase
     await _syncService.upsert('item_pembelian', {
       'id': id,
-      'toko_id': _tokoId,
       'pembelian_id': item.pembelianId,
       'produk_id': item.produkId,
       'jumlah': item.jumlah,
@@ -117,7 +108,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         _db.satuanProdukTable.id.equalsExp(_db.itemPembelianTable.satuanId),
       ),
     ])
-      ..where(_db.itemPembelianTable.produkId.equals(produkId) & _db.itemPembelianTable.tokoId.equals(_tokoId))
+      ..where(_db.itemPembelianTable.produkId.equals(produkId) )
       ..orderBy([
         OrderingTerm(
           expression: _db.pembelianTable.createdAt,
@@ -136,8 +127,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
     final unitName = satuan?.nama ?? produk.satuan;
       return domain.Pembelian(
         id: pembelian.id,
-        tokoId: pembelian.tokoId,
-        supplierId: pembelian.supplierId,
+          supplierId: pembelian.supplierId,
         namaSupplier: pembelian.namaSupplier,
         totalHarga: pembelian.totalHarga,
         createdAt: pembelian.createdAt,
@@ -145,8 +135,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         items: [
           domain.ItemPembelian(
             id: item.id,
-            tokoId: item.tokoId,
-            pembelianId: item.pembelianId,
+                  pembelianId: item.pembelianId,
             produkId: item.produkId,
             namaProduk: '${produk.nama} - $unitName',
             jumlah: item.jumlah,
@@ -172,7 +161,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         _db.satuanProdukTable,
         _db.satuanProdukTable.id.equalsExp(_db.itemPembelianTable.satuanId),
       ),
-    ])..where(_db.itemPembelianTable.pembelianId.equals(pembelianId) & _db.itemPembelianTable.tokoId.equals(_tokoId));
+    ])..where(_db.itemPembelianTable.pembelianId.equals(pembelianId) );
 
     final result = await query.get();
     return result.map((row) {
@@ -182,8 +171,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
       final unitName = satuan?.nama ?? produk.satuan;
       return domain.ItemPembelian(
         id: item.id,
-        tokoId: item.tokoId,
-        pembelianId: item.pembelianId,
+          pembelianId: item.pembelianId,
         produkId: item.produkId,
         namaProduk: '${produk.nama} - $unitName',
         jumlah: item.jumlah,
@@ -198,7 +186,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
   @override
   Future<void> updatePembelian(domain.Pembelian pembelian) async {
     await (_db.update(_db.pembelianTable)
-      ..where((t) => t.id.equals(pembelian.id!) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(pembelian.id!)))
       .write(PembelianTableCompanion(
         namaSupplier: Value(pembelian.namaSupplier),
         totalHarga: Value(pembelian.totalHarga),
@@ -207,7 +195,6 @@ class PembelianRepositoryImpl implements PembelianRepository {
     // Sync to Supabase
     await _syncService.upsert('pembelian', {
       'id': pembelian.id!,
-      'toko_id': _tokoId,
       'supplier_id': pembelian.supplierId,
       'nama_supplier': pembelian.namaSupplier,
       'total_harga': pembelian.totalHarga,
@@ -218,7 +205,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
   Future<void> deleteItemsByPembelianId(String pembelianId) async {
     final list = await getItemsByPembelianId(pembelianId);
     await (_db.delete(_db.itemPembelianTable)
-      ..where((t) => t.pembelianId.equals(pembelianId) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.pembelianId.equals(pembelianId)))
       .go();
 
     // Sync to Supabase
@@ -230,7 +217,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
   @override
   Future<void> deletePembelian(String id) async {
     await (_db.delete(_db.pembelianTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
       .go();
 
     // Sync to Supabase

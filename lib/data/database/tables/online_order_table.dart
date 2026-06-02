@@ -1,11 +1,9 @@
 import 'package:drift/drift.dart';
-import 'toko_table.dart';
 import 'online_customer_table.dart';
 
 @DataClassName('OnlineOrder')
 class OnlineOrderTable extends Table {
   TextColumn get id => text()(); // UUID
-  TextColumn get tokoId => text().references(TokoTable, #id)();
   TextColumn get customerId => text().references(OnlineCustomerTable, #id)();
   TextColumn get status => text().withDefault(const Constant('pending'))();
   RealColumn get totalHarga => real().withDefault(const Constant(0.0))();

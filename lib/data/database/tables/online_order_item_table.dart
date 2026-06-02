@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'toko_table.dart';
 import 'online_order_table.dart';
 import 'produk_table.dart';
 import 'satuan_produk_table.dart';
@@ -7,7 +6,6 @@ import 'satuan_produk_table.dart';
 @DataClassName('OnlineOrderItem')
 class OnlineOrderItemTable extends Table {
   TextColumn get id => text()(); // UUID
-  TextColumn get tokoId => text().references(TokoTable, #id)();
   TextColumn get onlineOrderId => text().references(OnlineOrderTable, #id)();
   TextColumn get produkId => text().references(ProdukTable, #id)();
   TextColumn get namaProduk => text()();

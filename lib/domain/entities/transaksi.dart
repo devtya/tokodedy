@@ -4,7 +4,6 @@ import 'item_transaksi.dart';
 
 class Transaksi extends Equatable {
   final String? id; // UUID
-  final String tokoId; // UUID FK ke toko
   final String? kasirId; // UUID FK ke profiles
   final double totalHarga;
   final double jumlahBayar;
@@ -16,7 +15,6 @@ class Transaksi extends Equatable {
 
   const Transaksi({
     this.id,
-    required this.tokoId,
     this.kasirId,
     required this.totalHarga,
     required this.jumlahBayar,
@@ -29,7 +27,6 @@ class Transaksi extends Equatable {
 
   Transaksi copyWith({
     String? id,
-    String? tokoId,
     String? kasirId,
     double? totalHarga,
     double? jumlahBayar,
@@ -41,7 +38,6 @@ class Transaksi extends Equatable {
   }) {
     return Transaksi(
       id: id ?? this.id,
-      tokoId: tokoId ?? this.tokoId,
       kasirId: kasirId ?? this.kasirId,
       totalHarga: totalHarga ?? this.totalHarga,
       jumlahBayar: jumlahBayar ?? this.jumlahBayar,
@@ -55,7 +51,7 @@ class Transaksi extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, tokoId, kasirId, totalHarga, jumlahBayar, kembalian,
+    id, kasirId, totalHarga, jumlahBayar, kembalian,
     status, updatedAt, createdAt, items,
   ];
 }

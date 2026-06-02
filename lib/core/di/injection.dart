@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../presentation/blocs/theme/theme_cubit.dart';
 import '../../data/database/app_database.dart';
 import '../../data/services/printer_service.dart';
 import '../../data/services/printer_settings.dart';

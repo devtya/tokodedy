@@ -59,7 +59,7 @@ jobs:
           ls -la "$OUTPUT_DIR/"
           # Cari APK apapun (bisa app-release.apk atau yang sudah di-rename Gradle)
           SRC=$(find "$OUTPUT_DIR" -name "*.apk" | grep -v "unsigned" | head -1)
-          DEST="HendKasir-v${VERSION}.apk"
+          DEST="tokodedy-v${VERSION}.apk"
           cp "$SRC" "$DEST"
           echo "Renamed: $SRC -> $DEST"
           echo "APK_NAME=$DEST" >> $GITHUB_OUTPUT
@@ -70,7 +70,7 @@ jobs:
         with:
           files: ${{ steps.rename.outputs.APK_NAME }}
           generate_release_notes: true
-          name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"
+          name: "tokodedy v${{ steps.version.outputs.VERSION_NAME }}"
 
   # build-windows:
   #   runs-on: windows-latest
@@ -112,7 +112,7 @@ jobs:
   #       shell: bash
   #       run: |
   #         VERSION="${{ steps.version.outputs.VERSION_NAME }}"
-  #         DEST="HendKasir-v${VERSION}-Windows.zip"
+  #                   DEST="tokodedy-v${VERSION}-Windows.zip"
   #         cd build/windows/x64/runner/Release
   #         7z a "../../../../../$DEST" *
   #         cd ../../../../../
@@ -124,4 +124,4 @@ jobs:
   #       with:
   #         files: ${{ steps.compress.outputs.ZIP_NAME }}
   #         generate_release_notes: true
-  #         name: "HendKasir v${{ steps.version.outputs.VERSION_NAME }}"
+  #                   name: "tokodedy v${{ steps.version.outputs.VERSION_NAME }}"

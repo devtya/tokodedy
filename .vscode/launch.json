@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "hend_kasir",
+            "name": "tokodedy",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "hend_kasir (profile mode)",
+            "name": "tokodedy (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "hend_kasir (release mode)",
+            "name": "tokodedy (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

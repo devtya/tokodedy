@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../core/services/toko_service.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../blocs/laporan/laporan_bloc.dart';
 import '../../blocs/laporan/laporan_event.dart';
@@ -670,7 +669,7 @@ class _LaporanPageState extends State<LaporanPage>
 
   int _getGlobalMinStok() {
     try {
-      return sl<TokoService>().stokMinimumGlobal;
+      return 0;
     } catch (_) {
       return 5;
     }

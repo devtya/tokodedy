@@ -157,17 +157,17 @@ void main() async {
   await initDependencies();
 
   _checkUpdate();
-  runApp(const HendKasirApp());
+  runApp(const TokodedyApp());
 }
 
-class HendKasirApp extends StatefulWidget {
-  const HendKasirApp({super.key});
+class TokodedyApp extends StatefulWidget {
+  const TokodedyApp({super.key});
 
   @override
-  State<HendKasirApp> createState() => _HendKasirAppState();
+  State<TokodedyApp> createState() => _TokodedyAppState();
 }
 
-class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver {
+class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -234,7 +234,7 @@ class _HendKasirAppState extends State<HendKasirApp> with WidgetsBindingObserver
                 child: Builder(builder: (context) {
                   return MaterialApp(
                     navigatorKey: _navigatorKey,
-                    title: 'HendKasir',
+                    title: 'Tokodedy',
                     debugShowCheckedModeBanner: false,
                     themeMode: themeMode,
                     theme: AppTheme.lightTheme,

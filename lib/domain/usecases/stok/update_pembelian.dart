@@ -28,8 +28,6 @@ class UpdatePembelian {
         pembelianId,
       );
 
-      final tokoId = itemsBaru.isNotEmpty ? itemsBaru.first.tokoId : (itemsLama.isNotEmpty ? itemsLama.first.tokoId : '');
-
       final totalHarga = itemsBaru.fold(0.0, (sum, item) => sum + item.subtotal);
 
       // Rollback stok dari item lama
@@ -41,7 +39,6 @@ class UpdatePembelian {
       await pembelianRepository.updatePembelian(
         Pembelian(
           id: pembelianId,
-          tokoId: tokoId,
           namaSupplier: namaSupplier,
           totalHarga: totalHarga,
         ),
@@ -66,8 +63,7 @@ class UpdatePembelian {
       for (final item in itemsBaru) {
         await riwayatStokRepository.addRiwayat(
           RiwayatStok(
-            tokoId: tokoId,
-            produkId: item.produkId,
+              produkId: item.produkId,
             tipe: 'masuk',
             jumlah: item.jumlah,
             keterangan: 'Edit Pembelian #$pembelianId',

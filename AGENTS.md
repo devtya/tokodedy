@@ -1,4 +1,4 @@
-# AGENTS.md — hend_kasir
+# AGENTS.md — tokodedy
 
 ## Stack
 
@@ -10,7 +10,7 @@
 - **Linting**: flutter_lints ^6.0
 
 ## Related Projects
-- **HendStore** (`d:\PROJECT\hendstore`): Proyek front-end toko online untuk pembeli yang terhubung dengan database Supabase HendKasir. Segala bentuk koordinasi, todo list bersama, dan protokol sinkronisasi antar agen terdapat pada file `hendsync.md` di folder HendStore.
+- **DedyStore** (`d:\PROJECT\dedystore`): Proyek front-end toko online untuk pembeli yang terhubung dengan database Supabase Tokodedy. Segala bentuk koordinasi, todo list bersama, dan protokol sinkronisasi antar agen terdapat pada file `dedysync.md` di folder DedyStore.
 
 ## Project structure (Clean Architecture)
 

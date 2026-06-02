@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 class RiwayatHarga extends Equatable {
   final String id;
-  final String tokoId;
   final String produkId;
   final String? produkNama; // Joined from ProdukTable
   final double hargaBeliLama;
@@ -13,7 +12,6 @@ class RiwayatHarga extends Equatable {
 
   const RiwayatHarga({
     required this.id,
-    required this.tokoId,
     required this.produkId,
     this.produkNama,
     required this.hargaBeliLama,
@@ -29,9 +27,8 @@ class RiwayatHarga extends Equatable {
   bool get isHargaJualTurun => hargaJualBaru < hargaJualLama;
 
   @override
-  List<Object?> get props => [
+      List<Object?> get props => [
         id,
-        tokoId,
         produkId,
         produkNama,
         hargaBeliLama,

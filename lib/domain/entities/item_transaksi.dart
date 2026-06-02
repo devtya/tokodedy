@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 class ItemTransaksi extends Equatable {
   final String? id; // UUID
-  final String tokoId; // UUID FK ke toko
   final String transaksiId; // UUID FK ke transaksi
   final String produkId; // UUID FK ke produk
   final String? namaProduk;
@@ -12,7 +11,6 @@ class ItemTransaksi extends Equatable {
 
   const ItemTransaksi({
     this.id,
-    required this.tokoId,
     required this.transaksiId,
     required this.produkId,
     this.namaProduk,
@@ -23,6 +21,6 @@ class ItemTransaksi extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, tokoId, transaksiId, produkId, namaProduk, jumlah, hargaSatuan, subtotal,
+    id, transaksiId, produkId, namaProduk, jumlah, hargaSatuan, subtotal,
   ];
 }

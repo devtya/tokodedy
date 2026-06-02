@@ -28,6 +28,7 @@ import '../../data/repositories/pembelian_repository_impl.dart' as _i810;
 import '../../data/repositories/pending_order_repository_impl.dart' as _i803;
 import '../../data/repositories/pending_pembelian_repository_impl.dart' as _i54;
 import '../../data/repositories/produk_repository_impl.dart' as _i601;
+import '../../data/repositories/purchase_order_repository_impl.dart' as _i640;
 import '../../data/repositories/riwayat_stok_repository_impl.dart' as _i561;
 import '../../data/repositories/supplier_repository_impl.dart' as _i994;
 import '../../data/repositories/transaksi_repository_impl.dart' as _i942;
@@ -46,6 +47,7 @@ import '../../domain/repositories/pembelian_repository.dart' as _i228;
 import '../../domain/repositories/pending_order_repository.dart' as _i803;
 import '../../domain/repositories/pending_pembelian_repository.dart' as _i258;
 import '../../domain/repositories/produk_repository.dart' as _i680;
+import '../../domain/repositories/purchase_order_repository.dart' as _i38;
 import '../../domain/repositories/riwayat_stok_repository.dart' as _i747;
 import '../../domain/repositories/supplier_repository.dart' as _i88;
 import '../../domain/repositories/transaksi_repository.dart' as _i673;
@@ -69,8 +71,10 @@ import '../../domain/usecases/produk/search_produk.dart' as _i756;
 import '../../domain/usecases/produk/update_produk.dart' as _i992;
 import '../../domain/usecases/produk/update_satuan.dart' as _i233;
 import '../../domain/usecases/stok/buat_pembelian.dart' as _i408;
+import '../../domain/usecases/stok/buat_purchase_order.dart' as _i790;
 import '../../domain/usecases/stok/get_riwayat_stok.dart' as _i609;
 import '../../domain/usecases/stok/tambah_stok.dart' as _i995;
+import '../../domain/usecases/stok/terima_purchase_order.dart' as _i85;
 import '../../domain/usecases/stok/update_pembelian.dart' as _i479;
 import '../../domain/usecases/supplier/add_supplier.dart' as _i773;
 import '../../domain/usecases/supplier/delete_supplier.dart' as _i82;
@@ -90,12 +94,13 @@ import '../../presentation/blocs/notifikasi/notifikasi_bloc.dart' as _i166;
 import '../../presentation/blocs/online_order/online_order_bloc.dart' as _i86;
 import '../../presentation/blocs/pembelian/pembelian_bloc.dart' as _i1061;
 import '../../presentation/blocs/produk/produk_bloc.dart' as _i308;
+import '../../presentation/blocs/purchase_order/purchase_order_bloc.dart'
+    as _i10;
 import '../../presentation/blocs/stok/stok_bloc.dart' as _i360;
 import '../../presentation/blocs/supplier/supplier_bloc.dart' as _i482;
 import '../../presentation/blocs/sync/sync_bloc.dart' as _i701;
 import '../../presentation/blocs/theme/theme_cubit.dart' as _i473;
 import '../../presentation/blocs/transaksi/transaksi_bloc.dart' as _i172;
-import '../services/toko_service.dart' as _i997;
 import '../services/update_service.dart' as _i919;
 import 'injection.dart' as _i464;
 
@@ -118,14 +123,88 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i187.BluetoothPrinterService>(
       () => _i187.BluetoothPrinterService(),
     );
-    gh.lazySingleton<_i517.LocalAuthRepository>(
-      () => _i486.LocalAuthRepositoryImpl(
+    gh.lazySingleton<_i272.DashboardRepository>(
+      () => _i283.DashboardRepositoryImpl(gh<_i160.AppDatabase>()),
+    );
+    gh.factory<_i286.DashboardBloc>(
+      () => _i286.DashboardBloc(gh<_i272.DashboardRepository>()),
+    );
+    gh.lazySingleton<_i345.SupabaseSyncService>(
+      () => _i345.SupabaseSyncService(
+        db: gh<_i160.AppDatabase>(),
+        supabase: gh<_i454.SupabaseClient>(),
+        prefs: gh<_i460.SharedPreferences>(),
+      ),
+    );
+    gh.lazySingleton<_i258.PendingPembelianRepository>(
+      () => _i54.PendingPembelianRepositoryImpl(
         gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i620.LaporanRepository>(
+      () => _i880.LaporanRepositoryImpl(gh<_i160.AppDatabase>()),
+    );
+    gh.lazySingleton<_i38.PurchaseOrderRepository>(
+      () => _i640.PurchaseOrderRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i228.PembelianRepository>(
+      () => _i810.PembelianRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i747.RiwayatStokRepository>(
+      () => _i561.RiwayatStokRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i674.OnlineOrderRepository>(
+      () => _i576.OnlineOrderRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i680.ProdukRepository>(
+      () => _i601.ProdukRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i790.BuatPurchaseOrder>(
+      () => _i790.BuatPurchaseOrder(
+        repository: gh<_i38.PurchaseOrderRepository>(),
+        db: gh<_i160.AppDatabase>(),
+      ),
+    );
+    gh.lazySingleton<_i673.TransaksiRepository>(
+      () => _i942.TransaksiRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.factory<_i17.LaporanBloc>(
+      () => _i17.LaporanBloc(
+        transaksiRepository: gh<_i673.TransaksiRepository>(),
+        laporanRepository: gh<_i620.LaporanRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i909.SupplierProductsDao>(
+      () => _i909.SupplierProductsDao(gh<_i160.AppDatabase>()),
+    );
+    gh.lazySingleton<_i1073.AuthRepository>(
+      () => _i895.AuthRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i454.SupabaseClient>(),
         gh<_i460.SharedPreferences>(),
       ),
     );
-    gh.factory<_i546.LocalAuthBloc>(
-      () => _i546.LocalAuthBloc(gh<_i517.LocalAuthRepository>()),
+    gh.lazySingleton<_i609.GetRiwayatStok>(
+      () => _i609.GetRiwayatStok(gh<_i747.RiwayatStokRepository>()),
     );
     gh.factory<_i1016.ReceiptGenerator>(
       () => _i1016.ReceiptGenerator(
@@ -136,221 +215,10 @@ extension GetItInjectableX on _i174.GetIt {
         fontSize: gh<String>(),
       ),
     );
-    gh.factory<_i473.ThemeCubit>(
-      () => _i473.ThemeCubit(gh<_i460.SharedPreferences>()),
-    );
-    gh.lazySingleton<_i997.TokoService>(
-      () => _i997.TokoService(gh<_i460.SharedPreferences>()),
-    );
-    gh.lazySingleton<_i909.SupplierProductsDao>(
-      () => _i909.SupplierProductsDao(gh<_i160.AppDatabase>()),
-    );
-    gh.lazySingleton<_i219.PrinterSettings>(
-      () => _i219.PrinterSettings(gh<_i460.SharedPreferences>()),
-    );
-    gh.lazySingleton<_i620.LaporanRepository>(
-      () => _i880.LaporanRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i272.DashboardRepository>(
-      () => _i283.DashboardRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i345.SupabaseSyncService>(
-      () => _i345.SupabaseSyncService(
-        db: gh<_i160.AppDatabase>(),
-        supabase: gh<_i454.SupabaseClient>(),
-        prefs: gh<_i460.SharedPreferences>(),
-        tokoService: gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i88.SupplierRepository>(
-      () => _i994.SupplierRepositoryImpl(
-        gh<_i160.AppDatabase>(),
+    gh.factory<_i86.OnlineOrderBloc>(
+      () => _i86.OnlineOrderBloc(
+        gh<_i674.OnlineOrderRepository>(),
         gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i1073.AuthRepository>(
-      () => _i895.AuthRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i454.SupabaseClient>(),
-        gh<_i460.SharedPreferences>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.factory<_i701.SyncBloc>(
-      () => _i701.SyncBloc(
-        syncService: gh<_i345.SupabaseSyncService>(),
-        connectivity: gh<_i895.Connectivity>(),
-      ),
-    );
-    gh.factory<_i286.DashboardBloc>(
-      () => _i286.DashboardBloc(gh<_i272.DashboardRepository>()),
-    );
-    gh.lazySingleton<_i36.HutangPiutangRepository>(
-      () => _i294.HutangPiutangRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i803.PendingOrderRepository>(
-      () => _i803.PendingOrderRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i674.OnlineOrderRepository>(
-      () => _i576.OnlineOrderRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i747.RiwayatStokRepository>(
-      () => _i561.RiwayatStokRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i673.TransaksiRepository>(
-      () => _i942.TransaksiRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i331.GetLastPenjualanByProduk>(
-      () => _i331.GetLastPenjualanByProduk(gh<_i673.TransaksiRepository>()),
-    );
-    gh.lazySingleton<_i287.GetAllTransaksi>(
-      () => _i287.GetAllTransaksi(gh<_i673.TransaksiRepository>()),
-    );
-    gh.lazySingleton<_i20.GetTransaksiById>(
-      () => _i20.GetTransaksiById(gh<_i673.TransaksiRepository>()),
-    );
-    gh.lazySingleton<_i773.AddSupplier>(
-      () => _i773.AddSupplier(gh<_i88.SupplierRepository>()),
-    );
-    gh.lazySingleton<_i82.DeleteSupplier>(
-      () => _i82.DeleteSupplier(gh<_i88.SupplierRepository>()),
-    );
-    gh.lazySingleton<_i715.GetAllSupplier>(
-      () => _i715.GetAllSupplier(gh<_i88.SupplierRepository>()),
-    );
-    gh.lazySingleton<_i1048.SearchSupplier>(
-      () => _i1048.SearchSupplier(gh<_i88.SupplierRepository>()),
-    );
-    gh.lazySingleton<_i699.UpdateSupplier>(
-      () => _i699.UpdateSupplier(gh<_i88.SupplierRepository>()),
-    );
-    gh.factory<_i141.AuthBloc>(
-      () => _i141.AuthBloc(
-        authRepository: gh<_i1073.AuthRepository>(),
-        tokoService: gh<_i997.TokoService>(),
-      ),
-    );
-    gh.factory<_i318.HutangBloc>(
-      () => _i318.HutangBloc(repository: gh<_i36.HutangPiutangRepository>()),
-    );
-    gh.lazySingleton<_i228.PembelianRepository>(
-      () => _i810.PembelianRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i258.PendingPembelianRepository>(
-      () => _i54.PendingPembelianRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i680.ProdukRepository>(
-      () => _i601.ProdukRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i479.UpdatePembelian>(
-      () => _i479.UpdatePembelian(
-        pembelianRepository: gh<_i228.PembelianRepository>(),
-        produkRepository: gh<_i680.ProdukRepository>(),
-        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
-      ),
-    );
-    gh.lazySingleton<_i895.NotifikasiRepository>(
-      () => _i833.NotifikasiRepositoryImpl(
-        gh<_i160.AppDatabase>(),
-        gh<_i345.SupabaseSyncService>(),
-        gh<_i997.TokoService>(),
-      ),
-    );
-    gh.lazySingleton<_i408.BuatPembelian>(
-      () => _i408.BuatPembelian(
-        pembelianRepository: gh<_i228.PembelianRepository>(),
-        produkRepository: gh<_i680.ProdukRepository>(),
-        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
-        tokoService: gh<_i997.TokoService>(),
-        db: gh<_i160.AppDatabase>(),
-      ),
-    );
-    gh.lazySingleton<_i413.AddNotifikasi>(
-      () => _i413.AddNotifikasi(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.lazySingleton<_i991.GetAllNotifikasi>(
-      () => _i991.GetAllNotifikasi(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.lazySingleton<_i39.GetUnreadNotifikasi>(
-      () => _i39.GetUnreadNotifikasi(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.lazySingleton<_i665.MarkAsRead>(
-      () => _i665.MarkAsRead(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.lazySingleton<_i878.WatchUnreadCount>(
-      () => _i878.WatchUnreadCount(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.lazySingleton<_i569.GetLastHargaChangeByProduk>(
-      () => _i569.GetLastHargaChangeByProduk(gh<_i895.NotifikasiRepository>()),
-    );
-    gh.factory<_i482.SupplierBloc>(
-      () => _i482.SupplierBloc(
-        getAllSupplier: gh<_i715.GetAllSupplier>(),
-        searchSupplier: gh<_i1048.SearchSupplier>(),
-        addSupplier: gh<_i773.AddSupplier>(),
-        updateSupplier: gh<_i699.UpdateSupplier>(),
-        deleteSupplier: gh<_i82.DeleteSupplier>(),
-      ),
-    );
-    gh.factory<_i166.NotifikasiBloc>(
-      () => _i166.NotifikasiBloc(
-        getAllNotifikasi: gh<_i991.GetAllNotifikasi>(),
-        getUnreadNotifikasi: gh<_i39.GetUnreadNotifikasi>(),
-        markAsRead: gh<_i665.MarkAsRead>(),
-      ),
-    );
-    gh.lazySingleton<_i609.GetRiwayatStok>(
-      () => _i609.GetRiwayatStok(gh<_i747.RiwayatStokRepository>()),
-    );
-    gh.factory<_i17.LaporanBloc>(
-      () => _i17.LaporanBloc(
-        transaksiRepository: gh<_i673.TransaksiRepository>(),
-        laporanRepository: gh<_i620.LaporanRepository>(),
-      ),
-    );
-    gh.factory<_i172.TransaksiBloc>(
-      () => _i172.TransaksiBloc(
-        getAllTransaksi: gh<_i287.GetAllTransaksi>(),
-        getTransaksiById: gh<_i20.GetTransaksiById>(),
       ),
     );
     gh.lazySingleton<_i278.AddProduk>(
@@ -386,35 +254,30 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i233.UpdateSatuan>(
       () => _i233.UpdateSatuan(gh<_i680.ProdukRepository>()),
     );
-    gh.factory<_i1061.PembelianBloc>(
-      () => _i1061.PembelianBloc(
-        repository: gh<_i228.PembelianRepository>(),
-        buatPembelian: gh<_i408.BuatPembelian>(),
-        updatePembelian: gh<_i479.UpdatePembelian>(),
+    gh.lazySingleton<_i803.PendingOrderRepository>(
+      () => _i803.PendingOrderRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
       ),
     );
-    gh.lazySingleton<_i991.BuatTransaksi>(
-      () => _i991.BuatTransaksi(
-        transaksiRepository: gh<_i673.TransaksiRepository>(),
+    gh.lazySingleton<_i479.UpdatePembelian>(
+      () => _i479.UpdatePembelian(
+        pembelianRepository: gh<_i228.PembelianRepository>(),
         produkRepository: gh<_i680.ProdukRepository>(),
         riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
-        hutangPiutangRepository: gh<_i36.HutangPiutangRepository>(),
-        notifikasiRepository: gh<_i895.NotifikasiRepository>(),
-        tokoService: gh<_i997.TokoService>(),
-        db: gh<_i160.AppDatabase>(),
       ),
     );
-    gh.lazySingleton<_i784.GetLastPembelianByProduk>(
-      () => _i784.GetLastPembelianByProduk(gh<_i228.PembelianRepository>()),
+    gh.factory<_i473.ThemeCubit>(
+      () => _i473.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
-    gh.factory<_i86.OnlineOrderBloc>(
-      () => _i86.OnlineOrderBloc(gh<_i674.OnlineOrderRepository>()),
-    );
-    gh.lazySingleton<_i995.TambahStok>(
-      () => _i995.TambahStok(
-        gh<_i680.ProdukRepository>(),
-        gh<_i747.RiwayatStokRepository>(),
+    gh.lazySingleton<_i517.LocalAuthRepository>(
+      () => _i486.LocalAuthRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i460.SharedPreferences>(),
       ),
+    );
+    gh.factory<_i546.LocalAuthBloc>(
+      () => _i546.LocalAuthBloc(gh<_i517.LocalAuthRepository>()),
     );
     gh.factory<_i308.ProdukBloc>(
       () => _i308.ProdukBloc(
@@ -427,10 +290,155 @@ extension GetItInjectableX on _i174.GetIt {
         deleteSatuanByProdukId: gh<_i543.DeleteSatuanByProdukId>(),
       ),
     );
+    gh.lazySingleton<_i784.GetLastPembelianByProduk>(
+      () => _i784.GetLastPembelianByProduk(gh<_i228.PembelianRepository>()),
+    );
+    gh.lazySingleton<_i85.TerimaPurchaseOrder>(
+      () => _i85.TerimaPurchaseOrder(
+        poRepository: gh<_i38.PurchaseOrderRepository>(),
+        pembelianRepository: gh<_i228.PembelianRepository>(),
+        produkRepository: gh<_i680.ProdukRepository>(),
+        db: gh<_i160.AppDatabase>(),
+      ),
+    );
+    gh.lazySingleton<_i408.BuatPembelian>(
+      () => _i408.BuatPembelian(
+        pembelianRepository: gh<_i228.PembelianRepository>(),
+        produkRepository: gh<_i680.ProdukRepository>(),
+        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
+        db: gh<_i160.AppDatabase>(),
+      ),
+    );
+    gh.lazySingleton<_i219.PrinterSettings>(
+      () => _i219.PrinterSettings(gh<_i460.SharedPreferences>()),
+    );
+    gh.factory<_i701.SyncBloc>(
+      () => _i701.SyncBloc(
+        syncService: gh<_i345.SupabaseSyncService>(),
+        connectivity: gh<_i895.Connectivity>(),
+      ),
+    );
+    gh.factory<_i10.PurchaseOrderBloc>(
+      () => _i10.PurchaseOrderBloc(
+        repository: gh<_i38.PurchaseOrderRepository>(),
+        buatPurchaseOrder: gh<_i790.BuatPurchaseOrder>(),
+      ),
+    );
+    gh.lazySingleton<_i36.HutangPiutangRepository>(
+      () => _i294.HutangPiutangRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i331.GetLastPenjualanByProduk>(
+      () => _i331.GetLastPenjualanByProduk(gh<_i673.TransaksiRepository>()),
+    );
+    gh.lazySingleton<_i287.GetAllTransaksi>(
+      () => _i287.GetAllTransaksi(gh<_i673.TransaksiRepository>()),
+    );
+    gh.lazySingleton<_i20.GetTransaksiById>(
+      () => _i20.GetTransaksiById(gh<_i673.TransaksiRepository>()),
+    );
+    gh.lazySingleton<_i88.SupplierRepository>(
+      () => _i994.SupplierRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i895.NotifikasiRepository>(
+      () => _i833.NotifikasiRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.factory<_i318.HutangBloc>(
+      () => _i318.HutangBloc(repository: gh<_i36.HutangPiutangRepository>()),
+    );
+    gh.lazySingleton<_i773.AddSupplier>(
+      () => _i773.AddSupplier(gh<_i88.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i82.DeleteSupplier>(
+      () => _i82.DeleteSupplier(gh<_i88.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i715.GetAllSupplier>(
+      () => _i715.GetAllSupplier(gh<_i88.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i1048.SearchSupplier>(
+      () => _i1048.SearchSupplier(gh<_i88.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i699.UpdateSupplier>(
+      () => _i699.UpdateSupplier(gh<_i88.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i995.TambahStok>(
+      () => _i995.TambahStok(
+        gh<_i680.ProdukRepository>(),
+        gh<_i747.RiwayatStokRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i991.BuatTransaksi>(
+      () => _i991.BuatTransaksi(
+        transaksiRepository: gh<_i673.TransaksiRepository>(),
+        produkRepository: gh<_i680.ProdukRepository>(),
+        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
+        hutangPiutangRepository: gh<_i36.HutangPiutangRepository>(),
+        notifikasiRepository: gh<_i895.NotifikasiRepository>(),
+        db: gh<_i160.AppDatabase>(),
+      ),
+    );
+    gh.factory<_i141.AuthBloc>(
+      () => _i141.AuthBloc(authRepository: gh<_i1073.AuthRepository>()),
+    );
+    gh.lazySingleton<_i413.AddNotifikasi>(
+      () => _i413.AddNotifikasi(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.lazySingleton<_i991.GetAllNotifikasi>(
+      () => _i991.GetAllNotifikasi(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.lazySingleton<_i39.GetUnreadNotifikasi>(
+      () => _i39.GetUnreadNotifikasi(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.lazySingleton<_i665.MarkAsRead>(
+      () => _i665.MarkAsRead(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.lazySingleton<_i878.WatchUnreadCount>(
+      () => _i878.WatchUnreadCount(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.lazySingleton<_i569.GetLastHargaChangeByProduk>(
+      () => _i569.GetLastHargaChangeByProduk(gh<_i895.NotifikasiRepository>()),
+    );
+    gh.factory<_i1061.PembelianBloc>(
+      () => _i1061.PembelianBloc(
+        repository: gh<_i228.PembelianRepository>(),
+        buatPembelian: gh<_i408.BuatPembelian>(),
+        updatePembelian: gh<_i479.UpdatePembelian>(),
+      ),
+    );
+    gh.factory<_i172.TransaksiBloc>(
+      () => _i172.TransaksiBloc(
+        getAllTransaksi: gh<_i287.GetAllTransaksi>(),
+        getTransaksiById: gh<_i20.GetTransaksiById>(),
+      ),
+    );
+    gh.factory<_i482.SupplierBloc>(
+      () => _i482.SupplierBloc(
+        getAllSupplier: gh<_i715.GetAllSupplier>(),
+        searchSupplier: gh<_i1048.SearchSupplier>(),
+        addSupplier: gh<_i773.AddSupplier>(),
+        updateSupplier: gh<_i699.UpdateSupplier>(),
+        deleteSupplier: gh<_i82.DeleteSupplier>(),
+      ),
+    );
     gh.factory<_i360.StokBloc>(
       () => _i360.StokBloc(
         getRiwayatStok: gh<_i609.GetRiwayatStok>(),
         tambahStok: gh<_i995.TambahStok>(),
+      ),
+    );
+    gh.factory<_i166.NotifikasiBloc>(
+      () => _i166.NotifikasiBloc(
+        getAllNotifikasi: gh<_i991.GetAllNotifikasi>(),
+        getUnreadNotifikasi: gh<_i39.GetUnreadNotifikasi>(),
+        markAsRead: gh<_i665.MarkAsRead>(),
       ),
     );
     gh.factory<_i207.CashierBloc>(

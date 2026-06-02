@@ -12,7 +12,6 @@ class SupplierProductsDao {
   SupplierProductsDao(this._db);
 
   Future<void> upsertSupplierProduct({
-    required String tokoId,
     required String supplierId,
     required String produkId,
     required double harga,
@@ -35,7 +34,6 @@ class SupplierProductsDao {
       await _db.into(_db.supplierProductsTable).insert(
         SupplierProductsTableCompanion.insert(
           id: _uuid.v4(),
-          tokoId: tokoId,
           supplierId: supplierId,
           produkId: produkId,
           harga: Value(harga),

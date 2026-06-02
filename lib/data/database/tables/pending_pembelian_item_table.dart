@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 class PendingPembelianItemTable extends Table {
   TextColumn get id                => text()(); // UUID
-  TextColumn get tokoId            => text()(); // UUID FK ke toko
   TextColumn get pendingPembelianId => text()(); // UUID FK ke pending_pembelian
   TextColumn get produkId          => text()(); // UUID FK ke produk
   TextColumn get namaProduk        => text()();

@@ -1,5 +1,4 @@
 import 'package:injectable/injectable.dart';
-import '../../../core/services/toko_service.dart';
 import '../../../data/database/app_database.dart';
 import '../../entities/hutang_piutang.dart';
 import '../../entities/item_transaksi.dart';
@@ -71,7 +70,6 @@ class BuatTransaksi {
   final RiwayatStokRepository riwayatStokRepository;
   final HutangPiutangRepository hutangPiutangRepository;
   final NotifikasiRepository notifikasiRepository;
-  final TokoService tokoService;
   final AppDatabase db;
 
   BuatTransaksi({
@@ -80,7 +78,6 @@ class BuatTransaksi {
     required this.riwayatStokRepository,
     required this.hutangPiutangRepository,
     required this.notifikasiRepository,
-    required this.tokoService,
     required this.db,
   });
 
@@ -90,8 +87,7 @@ class BuatTransaksi {
     String? namaPelanggan,
   }) async {
     return db.transaction(() async {
-      final activeTokoId = tokoService.tokoId ?? '';
-      final totalHarga = cartItems.fold(
+            final totalHarga = cartItems.fold(
         0.0,
         (sum, item) => sum + item.totalSetelahDiskon,
       );
@@ -99,8 +95,7 @@ class BuatTransaksi {
 
       final transaksiId = await transaksiRepository.addTransaksi(
         Transaksi(
-          tokoId: activeTokoId,
-          totalHarga: totalHarga,
+              totalHarga: totalHarga,
           jumlahBayar: jumlahBayar,
           kembalian: jumlahBayar - totalHarga,
           status: status,
@@ -110,8 +105,7 @@ class BuatTransaksi {
       for (final item in cartItems) {
         await transaksiRepository.addItemTransaksi(
           ItemTransaksi(
-            tokoId: activeTokoId,
-            transaksiId: transaksiId,
+                  transaksiId: transaksiId,
             produkId: item.produkId,
             jumlah: item.jumlah,
             hargaSatuan: item.hargaJual,
@@ -127,8 +121,7 @@ class BuatTransaksi {
           if (newStok < 5) {
             await notifikasiRepository.addNotifikasi(
               Notifikasi(
-                tokoId: activeTokoId,
-                judul: 'Stok Menipis - ${produk.nama}',
+                          judul: 'Stok Menipis - ${produk.nama}',
                 pesan:
                     'Sisa stok ${produk.nama} saat ini adalah $newStok. Segera lakukan pembelian (restock).',
                 tipe: 'WARNING',
@@ -139,8 +132,7 @@ class BuatTransaksi {
 
         await riwayatStokRepository.addRiwayat(
           RiwayatStok(
-            tokoId: activeTokoId,
-            produkId: item.produkId,
+                  produkId: item.produkId,
             tipe: 'penjualan',
             jumlah: -item.jumlah,
             keterangan: 'Transaksi #$transaksiId',
@@ -151,8 +143,7 @@ class BuatTransaksi {
       if (namaPelanggan != null) {
         await hutangPiutangRepository.addHutang(
           HutangPiutang(
-            tokoId: activeTokoId,
-            transaksiId: transaksiId,
+                  transaksiId: transaksiId,
             namaPelanggan: namaPelanggan,
             jumlah: totalHarga,
             status: 'belum_lunas',

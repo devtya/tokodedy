@@ -11,7 +11,7 @@ import 'printer_settings.dart';
 
 @lazySingleton
 class BluetoothPrinterService implements PrinterService {
-  static const _channel = MethodChannel('hend_kasir/bluetooth');
+  static const _channel = MethodChannel('tokodedy/bluetooth');
 
   BluetoothDevice? _device;
   BluetoothCharacteristic? _characteristic;

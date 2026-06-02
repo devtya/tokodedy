@@ -2,9 +2,6 @@ import 'package:injectable/injectable.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/di/injection.dart';
-import '../../core/services/toko_service.dart';
-
 @lazySingleton
 class PrinterSettings {
   static const _keyType = 'printer_type';
@@ -40,10 +37,6 @@ class PrinterSettings {
   String get namaToko {
     final saved = prefs.getString(_keyNamaToko);
     if (saved != null && saved.isNotEmpty) return saved;
-    try {
-      final tokoName = sl<TokoService>().tokoName;
-      if (tokoName != null && tokoName.isNotEmpty) return tokoName;
-    } catch (_) {}
     return 'Toko';
   }
   set namaToko(String v) => prefs.setString(_keyNamaToko, v);

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "hend_kasir" "\0"
+            VALUE "FileDescription", "tokodedy" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "hend_kasir" "\0"
+            VALUE "InternalName", "tokodedy" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "hend_kasir.exe" "\0"
-            VALUE "ProductName", "hend_kasir" "\0"
+            VALUE "OriginalFilename", "tokodedy.exe" "\0"
+            VALUE "ProductName", "tokodedy" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

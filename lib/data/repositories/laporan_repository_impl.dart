@@ -1,6 +1,5 @@
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
-import '../../core/services/toko_service.dart';
 import '../../domain/entities/hutang_piutang.dart' as domain;
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/repositories/laporan_repository.dart';
@@ -9,11 +8,8 @@ import '../database/app_database.dart';
 @LazySingleton(as: LaporanRepository)
 class LaporanRepositoryImpl implements LaporanRepository {
   final AppDatabase _db;
-  final TokoService _tokoService;
 
-  LaporanRepositoryImpl(this._db, this._tokoService);
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+  LaporanRepositoryImpl(this._db);
 
   @override
   Future<List<LabaRugiItem>> getLabaRugi({
@@ -25,7 +21,6 @@ class LaporanRepositoryImpl implements LaporanRepository {
     // Get all transaksi in date range
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
-          t.tokoId.equals(_tokoId) &
           t.status.equals('lunas') &
           t.createdAt.isBetweenValues(startDate, endOfDay))).get();
 
@@ -34,7 +29,7 @@ class LaporanRepositoryImpl implements LaporanRepository {
     for (final trx in transaksi) {
       final items = await (_db.select(_db.itemTransaksiTable)
         ..where((i) =>
-            i.tokoId.equals(_tokoId) & i.transaksiId.equals(trx.id))).get();
+            i.transaksiId.equals(trx.id))).get();
 
       for (final item in items) {
         final produk = await (_db.select(_db.produkTable)
@@ -80,7 +75,6 @@ class LaporanRepositoryImpl implements LaporanRepository {
 
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
-          t.tokoId.equals(_tokoId) &
           t.status.equals('lunas') &
           t.createdAt.isBetweenValues(startDate, endOfDay))).get();
 
@@ -89,7 +83,7 @@ class LaporanRepositoryImpl implements LaporanRepository {
     for (final trx in transaksi) {
       final items = await (_db.select(_db.itemTransaksiTable)
         ..where((i) =>
-            i.tokoId.equals(_tokoId) & i.transaksiId.equals(trx.id))).get();
+            i.transaksiId.equals(trx.id))).get();
 
       for (final item in items) {
         acc.putIfAbsent(item.produkId, () => _QtyAccum());
@@ -117,13 +111,11 @@ class LaporanRepositoryImpl implements LaporanRepository {
 
   @override
   Future<List<domain.HutangPiutang>> getRingkasanHutang() async {
-    final data = await (_db.select(_db.hutangPiutangTable)
-      ..where((h) => h.tokoId.equals(_tokoId))).get();
+    final data = await _db.select(_db.hutangPiutangTable).get();
 
     data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return data.map((h) => domain.HutangPiutang(
       id: h.id,
-      tokoId: h.tokoId,
       transaksiId: h.transaksiId,
       namaPelanggan: h.namaPelanggan,
       jumlah: h.jumlah,
@@ -145,7 +137,6 @@ class LaporanRepositoryImpl implements LaporanRepository {
     // Pemasukan: transaksi lunas
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
-          t.tokoId.equals(_tokoId) &
           t.createdAt.isBetweenValues(startDate, endOfDay))).get();
 
     for (final t in transaksi) {
@@ -159,7 +150,6 @@ class LaporanRepositoryImpl implements LaporanRepository {
     // Pengeluaran: pembelian (harga pokok pembelian)
     final pembelian = await (_db.select(_db.pembelianTable)
       ..where((p) =>
-          p.tokoId.equals(_tokoId) &
           p.createdAt.isBetweenValues(startDate, endOfDay))).get();
 
     for (final p in pembelian) {
@@ -181,12 +171,11 @@ class LaporanRepositoryImpl implements LaporanRepository {
 
   @override
   Future<List<domain.Produk>> getStokMenipis({int? stokLimit}) async {
-    final globalMin = _tokoService.stokMinimumGlobal;
+    final globalMin = 0;
     final limit = stokLimit ?? (globalMin > 0 ? globalMin : 5);
 
     final data = await (_db.select(_db.produkTable)
-      ..where((p) => p.tokoId.equals(_tokoId))
-      ..orderBy([(p) => OrderingTerm(expression: p.stok, mode: OrderingMode.asc)])).get();
+            ..orderBy([(p) => OrderingTerm(expression: p.stok, mode: OrderingMode.asc)])).get();
 
     return data
       .where((p) {
@@ -195,8 +184,7 @@ class LaporanRepositoryImpl implements LaporanRepository {
       })
       .map((p) => domain.Produk(
         id: p.id,
-        tokoId: p.tokoId,
-        nama: p.nama,
+          nama: p.nama,
         barcode: p.barcode,
         hargaBeli: p.hargaBeli,
         hargaJual: p.hargaJual,

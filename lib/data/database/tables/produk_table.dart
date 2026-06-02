@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 class ProdukTable extends Table {
   TextColumn get id       => text()(); // UUID
-  TextColumn get tokoId   => text()(); // UUID FK ke toko
   TextColumn get nama     => text()();
   TextColumn? get barcode => text().nullable()();
   RealColumn get hargaBeli => real().withDefault(const Constant(0))();

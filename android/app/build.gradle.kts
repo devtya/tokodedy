@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hend_kasir"
+    namespace = "com.example.tokodedy"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.hend_kasir"
+        applicationId = "com.example.tokodedy"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -31,9 +31,10 @@ android {
         create("release") {
             // Baca dari env variable (CI), fallback ke nilai default (lokal)
             val keystorePath = System.getenv("KEYSTORE_PATH") ?: "keystore/release.keystore"
-            val keystorePass = System.getenv("KEYSTORE_PASSWORD") ?: "HendKasir2024"
+            val keystorePass = System.getenv("KEYSTORE_PASSWORD") ?: "TokoDedy2024"
+
             val keyAliasName = System.getenv("KEY_ALIAS") ?: "release"
-            val keyPass = System.getenv("KEY_PASSWORD") ?: "HendKasir2024"
+            val keyPass = System.getenv("KEY_PASSWORD") ?: "TokoDedy2024"
 
             storeFile = file(keystorePath)
             storePassword = keystorePass
@@ -52,7 +53,7 @@ android {
         outputs.all {
             val output = this
             if (output is com.android.build.gradle.internal.api.ApkVariantOutputImpl) {
-                output.outputFileName = "hendkasir-v${defaultConfig.versionName}.apk"
+                output.outputFileName = "tokodedy-v${defaultConfig.versionName}.apk"
             }
         }
     }

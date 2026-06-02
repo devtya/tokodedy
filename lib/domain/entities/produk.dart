@@ -4,7 +4,6 @@ import 'satuan_produk.dart';
 
 class Produk extends Equatable {
   final String? id; // UUID
-  final String tokoId; // UUID FK ke toko
   final String nama;
   final String? barcode;
   final double hargaBeli;
@@ -19,7 +18,6 @@ class Produk extends Equatable {
 
   const Produk({
     this.id,
-    required this.tokoId,
     required this.nama,
     this.barcode,
     required this.hargaBeli,
@@ -35,7 +33,6 @@ class Produk extends Equatable {
 
   Produk copyWith({
     String? id,
-    String? tokoId,
     String? nama,
     String? barcode,
     double? hargaBeli,
@@ -50,7 +47,6 @@ class Produk extends Equatable {
   }) {
     return Produk(
       id: id ?? this.id,
-      tokoId: tokoId ?? this.tokoId,
       nama: nama ?? this.nama,
       barcode: barcode ?? this.barcode,
       hargaBeli: hargaBeli ?? this.hargaBeli,
@@ -67,7 +63,7 @@ class Produk extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, tokoId, nama, barcode, hargaBeli, hargaJual,
+    id, nama, barcode, hargaBeli, hargaJual,
     stok, stokMinimum, kategori, satuan, updatedAt, createdAt, satuanList,
   ];
 }

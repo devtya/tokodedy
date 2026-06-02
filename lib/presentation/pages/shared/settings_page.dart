@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/di/injection.dart';
-import '../../../core/services/toko_service.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -14,7 +13,6 @@ import '../../blocs/theme/theme_cubit.dart';
 import '../../blocs/sync/sync_bloc.dart';
 import 'login_page.dart';
 import 'pin_settings_page.dart';
-import 'pengaturan_toko_page.dart';
 import 'printer_settings_page.dart';
 import 'user_management_page.dart';
 
@@ -170,7 +168,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final tokoService = sl<TokoService>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan')),
@@ -181,10 +178,11 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PengaturanTokoPage()),
-              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fitur dalam pengembangan')),
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -196,7 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            tokoService.tokoName ?? 'Toko Saya',
+'Toko Saya',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -206,13 +204,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                       ],
                     ),
-                    if (tokoService.tokoId != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'ID Toko: ${tokoService.tokoId}',
-                        style: const TextStyle(fontSize: 13, color: Colors.grey),
-                      ),
-                    ],
                   ],
                 ),
               ),

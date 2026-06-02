@@ -19,6 +19,7 @@ import '../../blocs/notifikasi/notifikasi_bloc.dart';
 import '../../blocs/notifikasi/notifikasi_event.dart';
 import '../../blocs/notifikasi/notifikasi_state.dart';
 import '../../blocs/pembelian/pembelian_bloc.dart';
+import '../../blocs/purchase_order/purchase_order_bloc.dart';
 import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/supplier/supplier_bloc.dart';
 import '../../blocs/transaksi/transaksi_bloc.dart';
@@ -32,11 +33,11 @@ import 'laporan_page.dart';
 import 'notifikasi_page.dart';
 import 'pembelian_page.dart';
 import 'produk_page.dart';
+import 'purchase_order_page.dart';
 import 'settings_page.dart';
 import 'supplier_page.dart';
 import 'transaksi_page.dart';
 import 'user_management_page.dart';
-import '../../../core/services/toko_service.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -102,6 +103,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
   static final List<_QuickActionDef> _availableQuickActions = [
     _QuickActionDef('Pembelian', Icons.shopping_bag, Colors.teal),
+    _QuickActionDef('PO', Icons.receipt_long, Colors.orange),
     _QuickActionDef('Supplier', Icons.business, Colors.brown),
     _QuickActionDef('Hutang', Icons.account_balance_wallet, AppTheme.warningOrange),
   ];
@@ -112,6 +114,11 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
         return BlocProvider.value(
           value: sl<PembelianBloc>(),
           child: const PembelianPage(),
+        );
+      case 'PO':
+        return BlocProvider(
+          create: (_) => sl<PurchaseOrderBloc>(),
+          child: const PurchaseOrderPage(),
         );
       case 'Supplier':
         return BlocProvider.value(
@@ -304,6 +311,20 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                     );
                   },
                 ),
+                _LainnyaGridItem(
+                  icon: Icons.receipt_long,
+                  label: 'PO',
+                  color: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateAndReload(
+                      BlocProvider(
+                        create: (_) => sl<PurchaseOrderBloc>(),
+                        child: const PurchaseOrderPage(),
+                      ),
+                    );
+                  },
+                ),
                 if (isAdmin)
                   _LainnyaGridItem(
                     icon: Icons.business,
@@ -396,17 +417,12 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
           if (authState is Authenticated) {
             username = authState.user.nama ?? authState.user.email ?? '';
             role = authState.user.role;
-          } else if (authState is StoreRegistered) {
-            username = authState.user.nama ?? authState.user.email ?? '';
-            role = authState.user.role;
           }
           final isAdmin = role == 'owner';
 
           final currentUser = authState is Authenticated
               ? authState.user
-              : authState is StoreRegistered
-                  ? authState.user
-                  : null;
+              : null;
           if (currentUser != null &&
               currentUser.email == null &&
               !_emailPromptShown) {
@@ -421,7 +437,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
-              title: const Text('HendKasir', style: TextStyle(fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+              title: const Text('Tokodedy', style: TextStyle(fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
               centerTitle: false,
               actions: [
                 BlocBuilder<NotifikasiBloc, NotifikasiState>(
@@ -527,7 +543,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
-                                        sl<TokoService>().tokoName ?? 'Toko',
+                                        'Toko',
                                         style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,

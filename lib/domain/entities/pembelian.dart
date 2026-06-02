@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 class Pembelian extends Equatable {
   final String? id; // UUID
-  final String tokoId; // UUID FK ke toko
   final String? supplierId; // UUID FK ke supplier
   final String? namaSupplier;
   final double totalHarga;
@@ -12,7 +11,6 @@ class Pembelian extends Equatable {
 
   const Pembelian({
     this.id,
-    required this.tokoId,
     this.supplierId,
     this.namaSupplier,
     required this.totalHarga,
@@ -23,6 +21,6 @@ class Pembelian extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, tokoId, supplierId, namaSupplier, totalHarga, updatedAt, createdAt,
+    id, supplierId, namaSupplier, totalHarga, updatedAt, createdAt,
   ];
 }

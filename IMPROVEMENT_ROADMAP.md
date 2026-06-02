@@ -1,4 +1,4 @@
-# hend_kasir — Improvement Roadmap
+# tokodedy — Improvement Roadmap
 
 > Versi app saat ini: `v1.4.10+24` · Flutter `^3.11.5` · Dart SDK `^3.11.5`  
 > Dokumen ini berisi daftar area yang perlu diperbaiki, diurutkan berdasarkan prioritas.
@@ -356,4 +356,4 @@ SOMEDAY:
 
 ---
 
-*Dokumen ini dibuat berdasarkan analisis repo `devtya/hend_kasir` — v1.4.10+24*
+*Dokumen ini dibuat berdasarkan analisis repo `devtya/tokodedy` — v1.4.10+24*

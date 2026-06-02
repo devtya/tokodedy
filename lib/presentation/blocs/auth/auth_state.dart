@@ -23,15 +23,6 @@ class Authenticated extends AuthState {
 
 class Unauthenticated extends AuthState {}
 
-class StoreRegistered extends AuthState {
-  final User user;
-
-  const StoreRegistered(this.user);
-
-  @override
-  List<Object?> get props => [user];
-}
-
 class AuthError extends AuthState {
   final String message;
 

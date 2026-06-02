@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import '../../core/services/toko_service.dart';
 import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
 import '../../domain/entities/online_order.dart' as domain;
@@ -10,22 +9,17 @@ import 'package:injectable/injectable.dart';
 class OnlineOrderRepositoryImpl implements OnlineOrderRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;
-  final TokoService _tokoService;
 
-  OnlineOrderRepositoryImpl(this._db, this._syncService, this._tokoService);
+  OnlineOrderRepositoryImpl(this._db, this._syncService);
 
   @override
   Future<List<domain.OnlineOrder>> getPendingOrders() async {
-    final tokoId = _tokoService.tokoId;
-    if (tokoId == null) return [];
-
     final query = _db.select(_db.onlineOrderTable).join([
       innerJoin(
         _db.onlineCustomerTable,
         _db.onlineCustomerTable.id.equalsExp(_db.onlineOrderTable.customerId),
       ),
     ])
-      ..where(_db.onlineOrderTable.tokoId.equals(tokoId))
       ..where(_db.onlineOrderTable.status.equals('pending'))
       ..orderBy([OrderingTerm.desc(_db.onlineOrderTable.createdAt)]);
 
@@ -65,7 +59,6 @@ class OnlineOrderRepositoryImpl implements OnlineOrderRepository {
     // Konversi json drift ke json supabase (snake_case)
     final supabaseMap = {
       'id': rowMap['id'],
-      'toko_id': rowMap['tokoId'],
       'customer_id': rowMap['customerId'],
       'status': rowMap['status'],
       'total_harga': rowMap['totalHarga'],

@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </div>
 
-# hend_kasir
+# tokodedy
 
 **Aplikasi Kasir Toko Sembako** — Offline-first, multi-platform, dengan sinkronasi cloud Supabase.
 

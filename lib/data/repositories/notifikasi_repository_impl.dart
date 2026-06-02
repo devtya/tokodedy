@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
-import '../../core/services/toko_service.dart';
 import '../../domain/entities/notifikasi.dart' as domain;
 import '../../domain/repositories/notifikasi_repository.dart';
 
@@ -11,16 +10,12 @@ import '../../domain/repositories/notifikasi_repository.dart';
 class NotifikasiRepositoryImpl implements NotifikasiRepository {
   final AppDatabase _db;
   final SupabaseSyncService _syncService;
-  final TokoService _tokoService;
 
-  NotifikasiRepositoryImpl(this._db, this._syncService, this._tokoService);
-
-  String get _tokoId => _tokoService.tokoId ?? '';
+  NotifikasiRepositoryImpl(this._db, this._syncService);
 
   domain.Notifikasi _mapToEntity(NotifikasiTableData data) {
     return domain.Notifikasi(
       id: data.id,
-      tokoId: data.tokoId,
       judul: data.judul,
       pesan: data.pesan,
       tipe: data.tipe,
@@ -35,8 +30,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
     await _db.into(_db.notifikasiTable).insert(
           NotifikasiTableCompanion.insert(
             id: id,
-            tokoId: _tokoId,
-            judul: notifikasi.judul,
+                  judul: notifikasi.judul,
             pesan: notifikasi.pesan,
             tipe: Value(notifikasi.tipe),
             isRead: Value(notifikasi.isRead),
@@ -46,7 +40,6 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
     // Sync to Supabase
     await _syncService.upsert('notifikasi', {
       'id': id,
-      'toko_id': _tokoId,
       'judul': notifikasi.judul,
       'pesan': notifikasi.pesan,
       'tipe': notifikasi.tipe,
@@ -57,8 +50,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Future<List<domain.Notifikasi>> getAllNotifikasi() async {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.tokoId.equals(_tokoId))
-      ..orderBy([
+            ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
     final results = await query.get();
@@ -68,7 +60,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Future<List<domain.Notifikasi>> getUnreadNotifikasi() async {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.isRead.equals(false) & t.tokoId.equals(_tokoId))
+      ..where((t) => t.isRead.equals(false))
       ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
@@ -79,19 +71,18 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Future<void> markAsRead(String id) async {
     final existing = await (_db.select(_db.notifikasiTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
 
     await (_db.update(_db.notifikasiTable)
-      ..where((t) => t.id.equals(id) & t.tokoId.equals(_tokoId)))
+      ..where((t) => t.id.equals(id)))
         .write(const NotifikasiTableCompanion(isRead: Value(true)));
 
     // Sync to Supabase
     if (existing != null) {
       await _syncService.upsert('notifikasi', {
         'id': id,
-        'toko_id': _tokoId,
-        'judul': existing.judul,
+          'judul': existing.judul,
         'pesan': existing.pesan,
         'tipe': existing.tipe,
         'is_read': true,
@@ -102,7 +93,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Future<List<domain.Notifikasi>> getNotifikasiByJudul(String search) async {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.judul.contains(search) & t.tokoId.equals(_tokoId))
+      ..where((t) => t.judul.contains(search))
       ..orderBy([
         (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
       ]);
@@ -113,7 +104,7 @@ class NotifikasiRepositoryImpl implements NotifikasiRepository {
   @override
   Stream<int> watchUnreadCount() {
     final query = _db.select(_db.notifikasiTable)
-      ..where((t) => t.isRead.equals(false) & t.tokoId.equals(_tokoId));
+      ..where((t) => t.isRead.equals(false));
     return query.watch().map((list) => list.length);
   }
 }

@@ -1,6 +1,6 @@
-# Panduan Cleanup Repo hend_kasir
+# Panduan Cleanup Repo tokodedy
 
-> Jalankan semua perintah dari root folder project (`hend_kasir/`)
+> Jalankan semua perintah dari root folder project (`tokodedy/`)
 
 ---
 
@@ -180,7 +180,7 @@ git push origin main --force
 Setelah cleanup, root repo harusnya terlihat seperti ini:
 
 ```
-hend_kasir/
+  tokodedy/
 ├── .github/
 │   └── workflows/
 ├── .vscode/
@@ -236,4 +236,4 @@ rm test_data.json
 
 ---
 
-*Cleanup guide untuk `devtya/hend_kasir` — v1.4.10+24*
+*Cleanup guide untuk `devtya/tokodedy` — v1.4.10+24*

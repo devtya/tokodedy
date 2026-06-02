@@ -1,21 +1,18 @@
 import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/auth_repository.dart';
-import '../../../core/services/toko_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 @injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
-  final TokoService tokoService;
 
-  AuthBloc({required this.authRepository, required this.tokoService})
+  AuthBloc({required this.authRepository})
       : super(AuthInitial()) {
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LoginEvent>(_onLogin);
     on<LogoutEvent>(_onLogout);
-    on<RegisterStoreEvent>(_onRegisterStore);
   }
 
   Future<void> _onCheckAuthStatus(
@@ -54,32 +51,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await authRepository.logout();
-      await tokoService.clear();
       emit(Unauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> _onRegisterStore(
-    RegisterStoreEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-    try {
-      final user = await authRepository.registerStore(
-        namaToko: event.namaToko,
-        alamat: event.alamat,
-        email: event.email,
-        password: event.password,
-        nama: event.nama,
-      );
-      emit(StoreRegistered(user));
-      // Emit Authenticated setelah StoreRegistered agar semua page yang
-      // mengecek `authState is Authenticated` langsung mendapat role yang benar.
-      emit(Authenticated(user));
-    } catch (e) {
-      emit(AuthError(e.toString()));
-    }
-  }
 }

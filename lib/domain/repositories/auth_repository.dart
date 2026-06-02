@@ -1,4 +1,3 @@
-import '../entities/toko.dart';
 import '../entities/user.dart';
 
 abstract class AuthRepository {
@@ -29,24 +28,4 @@ abstract class AuthRepository {
 
   /// Hapus kasir dari toko (owner only)
   Future<void> deleteUser(String id);
-
-  /// Daftar toko baru:
-  /// 1. Buat akun Supabase Auth (email+password)
-  /// 2. Insert toko ke Supabase
-  /// 3. Insert profile owner ke Supabase
-  /// 4. Simpan session lokal
-  Future<User> registerStore({
-    required String namaToko,
-    String? alamat,
-    String? telepon,
-    required String email,
-    required String password,
-    String? nama,
-  });
-
-  /// Ambil info toko dari Supabase
-  Future<Toko?> fetchToko();
-
-  /// Update info toko (nama, alamat, telepon)
-  Future<void> updateToko(Toko toko);
 }

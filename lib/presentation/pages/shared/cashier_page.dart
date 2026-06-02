@@ -7,7 +7,6 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../widgets/barcode_scanner_widget.dart';
 
 import '../../../core/di/injection.dart';
-import '../../../core/services/toko_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/pending_order.dart';
 import '../../../domain/repositories/pending_order_repository.dart';
@@ -725,8 +724,7 @@ class _CashierPageState extends State<CashierPage> {
               final repo = sl<PendingOrderRepository>();
               final pendingId = await repo.addPending(
                 PendingOrder(
-                  tokoId: sl<TokoService>().tokoId ?? '',
-                  namaPelanggan: namaController.text.trim(),
+                                    namaPelanggan: namaController.text.trim(),
                   catatan: catatanController.text.trim().isEmpty
                       ? null
                       : catatanController.text.trim(),
