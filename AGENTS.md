@@ -76,7 +76,7 @@ lib/
 
 ## Agent Behavior Rules
 
-- **Ambiguitas**: Jika perintah user ambigu atau kurang jelas, WAJIB tanya apa yang dimaksud. Bisa juga kasih rekomendasi opsi yang memungkinkan.
+- **Ambiguitas**: Jika perintah user ambigu atau kurang jelas (contoh: "fix error ini"), WAJIB tanyakan detail errornya terjadi di mana (halaman/menu apa) dan seperti apa errornya agar analisa tidak menyebar ke mana-mana. Bisa juga kasih rekomendasi opsi yang memungkinkan.
 - **Commit**: WAJIB selalu tanya konfirmasi sebelum melakukan commit. Jangan pernah commit tanpa persetujuan eksplisit.
 - **Sebelum ubah kode**: WAJIB konfirmasi ke user dan jelaskan alasan/kenapa kode tersebut perlu diubah sebelum melakukan perubahan. Sertakan juga dampak dari perubahan tersebut.
 - **Todo List**: Sebelum mengerjakan perbaikan arsitektur atau tech debt, WAJIB mengupdate file `IMPROVEMENTS.md` dengan menandai bagian yang akan dikerjakan beserta ringkasan cara/metode yang akan digunakan.
@@ -431,4 +431,9 @@ Current: **1.7.3**
 - **Deskripsi**: Tombol Share pada detail pembelian sekarang menggunakan `ShareReceiptPage` (digital nota visual PNG) seperti di kasir, bukan teks biasa. Nama toko di nota menggunakan nama supplier sebagai header. `DigitalReceiptWidget` ditambahkan parameter `statusTitle` untuk judul yang berbeda. Detail pembayaran (metode, tunai, kembalian) disembunyikan jika tidak relevan.
 - **Cara pakai**: Buka Pembelian Barang → tap item → "Share" → preview digital nota dengan nama supplier → "Bagikan via WA" atau "Cetak Thermal".
 - **Files**: `digital_receipt_widget.dart`, `pembelian_page.dart`
-- **Date**: 2026-05-30
+- **Date**: 2026-05-30# # #   B u g :   H o m e   P a g e      B l a n k   a b u - a b u   ( G r e y   B o x )   s e t e l a h   O m z e t   H a r i   I n i 
+ -   * * R o o t   c a u s e * * :   S a a t   f i t u r   O n l i n e   O r d e r   d i t a m b a h k a n ,   d e p e n d e n s i   O n l i n e O r d e r B l o c   t i d a k   t e r s i m p a n   k e   d a l a m   f i l e   i n j e c t i o n . c o n f i g . d a r t   p a d a   r e p o s i t o r i   k a r e n a   p e r i n t a h    u i l d _ r u n n e r   t i d a k   d i j a l a n k a n / d i c o m m i t   k e   g i t   s e c a r a   l o k a l .   A k i b a t n y a ,   p a d a   R e l e a s e   m o d e   d i   G i t H u b   A c t i o n s ,   p e m a n g g i l a n   s l < O n l i n e O r d e r B l o c > ( )   d i   h o m e _ p a g e . d a r t   m e l e m p a r k a n   S t a t e E r r o r   y a n g   g a g a l   t e r t a n g k a p ,   m e n y e b a b k a n   F l u t t e r   m e r e n d e r   E r r o r W i d g e t   ( k o t a k   a b u - a b u )   m e n u t u p i   s e l u r u h   U I   d i   b a w a h n y a   ( t e r m a s u k   Q u i c k   A c t i o n s ) . 
+ -   * * F i x * * :   M e n j a l a n k a n    u i l d _ r u n n e r   d a n   m e n - c o m m i t   p e m b a r u a n   i n j e c t i o n . c o n f i g . d a r t   y a n g   m e m u a t   p e n d a f t a r a n   O n l i n e O r d e r B l o c   d a n   O n l i n e O r d e r R e p o s i t o r y I m p l   a g a r   C I   d a p a t   m e m b a n g u n   A P K   d e n g a n   D I   y a n g   b e n a r . 
+ -   * * F i l e s * * :   l i b / c o r e / d i / i n j e c t i o n . c o n f i g . d a r t ` n -   * * D a t e * * :   2 0 2 6 - 0 6 - 0 2 
+  
+ 
