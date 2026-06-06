@@ -64,3 +64,7 @@ import_json.dart
 
 # Markdown drafts di root (kecuali README dan AGENTS)
 theme.md
+
+# Data dump CSV
+supabase/*.csv
+*.csv
