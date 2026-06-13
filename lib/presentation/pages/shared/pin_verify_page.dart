@@ -135,6 +135,11 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                         border: const OutlineInputBorder(),
                       ),
                       enabled: !isLocked,
+                      onChanged: (val) {
+                        if (val.length == 6) {
+                          _verify();
+                        }
+                      },
                     ),
                     if (_error.isNotEmpty)
                       Padding(
