@@ -97,7 +97,12 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
       
       // Konversi units
       final satuanList = produk.satuanList ?? [];
+      final addedUnitNames = {(produk.satuan ?? 'pcs').toUpperCase()};
+      
       for (var s in satuanList) {
+        if (addedUnitNames.contains(s.nama.toUpperCase())) continue;
+        addedUnitNames.add(s.nama.toUpperCase());
+        
         units.add(_UnitValData(
           satuanId: s.id,
           namaSatuan: s.nama,

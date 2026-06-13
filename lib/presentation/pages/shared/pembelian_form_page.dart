@@ -588,6 +588,26 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     try {
       final repo = sl<ProdukRepository>();
 
+      // --- Cek duplikat dengan satuan dasar ---
+      if (namaSatuan.toUpperCase() == (produk.satuan ?? 'pcs').toUpperCase()) {
+        if (mounted) {
+          setState(() {
+            _items[index] = item.copyWith(
+              satuanName: produk.satuan ?? 'pcs',
+              satuanId: null,
+              konversi: 1.0,
+              hargaBeliSatuan: hargaBeli > 0 ? hargaBeli : produk.hargaBeli,
+            );
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Menggunakan satuan dasar ${produk.satuan ?? 'pcs'}'),
+            ),
+          );
+        }
+        return;
+      }
+
       // --- Cek duplikat: jangan insert jika nama satuan sudah ada ---
       // Load satuan terbaru dari DB (bukan dari produk yang di-cache)
       final satuanExisting = await repo.getSatuanByProdukId(produk.id!);
