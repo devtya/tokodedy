@@ -37,3 +37,11 @@ class DeleteProdukEvent extends ProdukEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class ArchiveProdukEvent extends ProdukEvent {
+  final String id;
+  final bool isArchived;
+  const ArchiveProdukEvent(this.id, this.isArchived);
+  @override
+  List<Object?> get props => [id, isArchived];
+}

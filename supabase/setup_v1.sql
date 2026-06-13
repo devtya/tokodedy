@@ -1,5 +1,5 @@
 -- ============================================================
--- Supabase SQL Setup for Hend Kasir Sync
+-- Supabase SQL Setup for Toko Dedy Sync
 -- Jalankan seluruh SQL ini di Supabase SQL Editor
 -- https://supabase.com/dashboard/project/YOUR_PROJECT/sql/new
 -- ============================================================

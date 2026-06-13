@@ -62,4 +62,34 @@ class NetworkPrinterService implements PrinterService {
       rethrow;
     }
   }
+  @override
+  Future<bool> printPickingList(ReceiptData data) async {
+    try {
+      // Modify data to look like picking list for the generic proxy
+      final modifiedData = data.copyWith(
+        namaToko: 'DAFTAR PENGAMBILAN\n\n${data.namaToko}',
+        subtotal: 0,
+        totalDiskon: 0,
+        totalBayar: 0,
+        kembalian: 0,
+      );
+      
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/print'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(modifiedData.toJson()),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Gagal print');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

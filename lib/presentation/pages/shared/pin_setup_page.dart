@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
+import 'home_page.dart';
 import '../../blocs/local_auth/local_auth_bloc.dart';
 import '../../blocs/local_auth/local_auth_event.dart';
 import '../../blocs/local_auth/local_auth_state.dart';
@@ -62,7 +63,15 @@ class _PinSetupPageState extends State<PinSetupPage> {
                 backgroundColor: AppTheme.primaryGreen,
               ),
             );
-            Navigator.pop(context, true);
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context, true);
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+                (route) => false,
+              );
+            }
           } else if (state is PinError) {
             setState(() => _error = state.message);
           }

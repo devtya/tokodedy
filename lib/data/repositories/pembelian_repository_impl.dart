@@ -69,8 +69,9 @@ class PembelianRepositoryImpl implements PembelianRepository {
     await _db.into(_db.itemPembelianTable).insert(
           ItemPembelianTableCompanion.insert(
             id: id,
-                  pembelianId: item.pembelianId,
+            pembelianId: item.pembelianId,
             produkId: item.produkId,
+            namaProduk: Value(item.namaProduk),
             jumlah: Value(item.jumlah),
             hargaBeliSatuan: Value(item.hargaBeliSatuan),
             subtotal: Value(item.subtotal),
@@ -84,6 +85,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
       'id': id,
       'pembelian_id': item.pembelianId,
       'produk_id': item.produkId,
+      'nama_produk': item.namaProduk,
       'jumlah': item.jumlah,
       'harga_beli_satuan': item.hargaBeliSatuan,
       'subtotal': item.subtotal,
@@ -173,7 +175,7 @@ class PembelianRepositoryImpl implements PembelianRepository {
         id: item.id,
           pembelianId: item.pembelianId,
         produkId: item.produkId,
-        namaProduk: '${produk.nama} - $unitName',
+        namaProduk: item.namaProduk ?? '${produk.nama} - $unitName',
         jumlah: item.jumlah,
         hargaBeliSatuan: item.hargaBeliSatuan,
         subtotal: item.subtotal,

@@ -115,7 +115,8 @@ class BuatTransaksi {
 
         final produk = await produkRepository.getProdukById(item.produkId);
         if (produk != null) {
-          final newStok = produk.stok - item.jumlah;
+          final jumlahDikurangi = (item.jumlah * item.konversi).round();
+          final newStok = produk.stok - jumlahDikurangi;
           await produkRepository.updateStok(item.produkId, newStok);
 
           if (newStok < 5) {
@@ -130,11 +131,12 @@ class BuatTransaksi {
           }
         }
 
+        final jumlahDikurangi = (item.jumlah * item.konversi).round();
         await riwayatStokRepository.addRiwayat(
           RiwayatStok(
                   produkId: item.produkId,
             tipe: 'penjualan',
-            jumlah: -item.jumlah,
+            jumlah: -jumlahDikurangi,
             keterangan: 'Transaksi #$transaksiId',
           ),
         );

@@ -12,6 +12,8 @@ class Produk extends Equatable {
   final int? stokMinimum;
   final String? kategori;
   final String? satuan;
+  final String? imageUrl;
+  final bool isArchived;
   final DateTime? updatedAt;
   final DateTime? createdAt;
   final List<SatuanProduk>? satuanList;
@@ -26,6 +28,8 @@ class Produk extends Equatable {
     this.stokMinimum,
     this.kategori,
     this.satuan = 'pcs',
+    this.imageUrl,
+    this.isArchived = false,
     this.updatedAt,
     this.createdAt,
     this.satuanList,
@@ -41,6 +45,8 @@ class Produk extends Equatable {
     int? stokMinimum,
     String? kategori,
     String? satuan,
+    String? imageUrl,
+    bool? isArchived,
     DateTime? updatedAt,
     DateTime? createdAt,
     List<SatuanProduk>? satuanList,
@@ -55,6 +61,8 @@ class Produk extends Equatable {
       stokMinimum: stokMinimum ?? this.stokMinimum,
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isArchived: isArchived ?? this.isArchived,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       satuanList: satuanList ?? this.satuanList,
@@ -64,6 +72,6 @@ class Produk extends Equatable {
   @override
   List<Object?> get props => [
     id, nama, barcode, hargaBeli, hargaJual,
-    stok, stokMinimum, kategori, satuan, updatedAt, createdAt, satuanList,
+    stok, stokMinimum, kategori, satuan, imageUrl, isArchived, updatedAt, createdAt, satuanList,
   ];
 }

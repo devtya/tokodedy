@@ -35,6 +35,7 @@ import '../../data/repositories/transaksi_repository_impl.dart' as _i942;
 import '../../data/services/bluetooth_printer_service.dart' as _i187;
 import '../../data/services/printer_settings.dart' as _i219;
 import '../../data/services/receipt_generator.dart' as _i1016;
+import '../../data/services/storage_service.dart' as _i27;
 import '../../data/services/supabase_sync_service.dart' as _i345;
 import '../../domain/repositories/auth_repository.dart' as _i1073;
 import '../../domain/repositories/dashboard_repository.dart' as _i272;
@@ -58,6 +59,7 @@ import '../../domain/usecases/notifikasi/mark_as_read.dart' as _i665;
 import '../../domain/usecases/notifikasi/watch_unread_count.dart' as _i878;
 import '../../domain/usecases/produk/add_produk.dart' as _i278;
 import '../../domain/usecases/produk/add_satuan.dart' as _i536;
+import '../../domain/usecases/produk/archive_produk.dart' as _i10;
 import '../../domain/usecases/produk/delete_produk.dart' as _i480;
 import '../../domain/usecases/produk/delete_satuan.dart' as _i109;
 import '../../domain/usecases/produk/delete_satuan_by_produk_id.dart' as _i543;
@@ -67,11 +69,15 @@ import '../../domain/usecases/produk/get_last_pembelian.dart' as _i784;
 import '../../domain/usecases/produk/get_last_penjualan.dart' as _i331;
 import '../../domain/usecases/produk/get_produk_by_barcode.dart' as _i852;
 import '../../domain/usecases/produk/get_produk_by_id.dart' as _i956;
+import '../../domain/usecases/produk/get_riwayat_perubahan_by_produk.dart'
+    as _i743;
 import '../../domain/usecases/produk/search_produk.dart' as _i756;
 import '../../domain/usecases/produk/update_produk.dart' as _i992;
 import '../../domain/usecases/produk/update_satuan.dart' as _i233;
+import '../../domain/usecases/stok/batalkan_purchase_order.dart' as _i367;
 import '../../domain/usecases/stok/buat_pembelian.dart' as _i408;
 import '../../domain/usecases/stok/buat_purchase_order.dart' as _i790;
+import '../../domain/usecases/stok/edit_purchase_order.dart' as _i380;
 import '../../domain/usecases/stok/get_riwayat_stok.dart' as _i609;
 import '../../domain/usecases/stok/tambah_stok.dart' as _i995;
 import '../../domain/usecases/stok/terima_purchase_order.dart' as _i85;
@@ -84,6 +90,7 @@ import '../../domain/usecases/supplier/update_supplier.dart' as _i699;
 import '../../domain/usecases/transaksi/buat_transaksi.dart' as _i991;
 import '../../domain/usecases/transaksi/get_all_transaksi.dart' as _i287;
 import '../../domain/usecases/transaksi/get_transaksi_by_id.dart' as _i20;
+import '../../domain/usecases/transaksi/selesaikan_online_order.dart' as _i481;
 import '../../presentation/blocs/auth/auth_bloc.dart' as _i141;
 import '../../presentation/blocs/cashier/cashier_bloc.dart' as _i207;
 import '../../presentation/blocs/dashboard/dashboard_bloc.dart' as _i286;
@@ -96,6 +103,8 @@ import '../../presentation/blocs/pembelian/pembelian_bloc.dart' as _i1061;
 import '../../presentation/blocs/produk/produk_bloc.dart' as _i308;
 import '../../presentation/blocs/purchase_order/purchase_order_bloc.dart'
     as _i10;
+import '../../presentation/blocs/riwayat_harga/riwayat_harga_bloc.dart'
+    as _i293;
 import '../../presentation/blocs/stok/stok_bloc.dart' as _i360;
 import '../../presentation/blocs/supplier/supplier_bloc.dart' as _i482;
 import '../../presentation/blocs/sync/sync_bloc.dart' as _i701;
@@ -175,6 +184,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i345.SupabaseSyncService>(),
       ),
     );
+    gh.lazySingleton<_i27.StorageService>(
+      () => _i27.StorageService(gh<_i454.SupabaseClient>()),
+    );
     gh.lazySingleton<_i790.BuatPurchaseOrder>(
       () => _i790.BuatPurchaseOrder(
         repository: gh<_i38.PurchaseOrderRepository>(),
@@ -215,17 +227,14 @@ extension GetItInjectableX on _i174.GetIt {
         fontSize: gh<String>(),
       ),
     );
-    gh.factory<_i86.OnlineOrderBloc>(
-      () => _i86.OnlineOrderBloc(
-        gh<_i674.OnlineOrderRepository>(),
-        gh<_i345.SupabaseSyncService>(),
-      ),
-    );
     gh.lazySingleton<_i278.AddProduk>(
       () => _i278.AddProduk(gh<_i680.ProdukRepository>()),
     );
     gh.lazySingleton<_i536.AddSatuan>(
       () => _i536.AddSatuan(gh<_i680.ProdukRepository>()),
+    );
+    gh.lazySingleton<_i10.ArchiveProduk>(
+      () => _i10.ArchiveProduk(gh<_i680.ProdukRepository>()),
     );
     gh.lazySingleton<_i480.DeleteProduk>(
       () => _i480.DeleteProduk(gh<_i680.ProdukRepository>()),
@@ -245,6 +254,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i956.GetProdukById>(
       () => _i956.GetProdukById(gh<_i680.ProdukRepository>()),
     );
+    gh.lazySingleton<_i743.GetRiwayatPerubahanByProduk>(
+      () => _i743.GetRiwayatPerubahanByProduk(gh<_i680.ProdukRepository>()),
+    );
     gh.lazySingleton<_i756.SearchProduk>(
       () => _i756.SearchProduk(gh<_i680.ProdukRepository>()),
     );
@@ -258,6 +270,21 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i803.PendingOrderRepositoryImpl(
         gh<_i160.AppDatabase>(),
         gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.factory<_i308.ProdukBloc>(
+      () => _i308.ProdukBloc(
+        getAllProduk: gh<_i1053.GetAllProduk>(),
+        searchProduk: gh<_i756.SearchProduk>(),
+        addProduk: gh<_i278.AddProduk>(),
+        updateProduk: gh<_i992.UpdateProduk>(),
+        deleteProduk: gh<_i480.DeleteProduk>(),
+        addSatuan: gh<_i536.AddSatuan>(),
+        updateSatuan: gh<_i233.UpdateSatuan>(),
+        deleteSatuan: gh<_i109.DeleteSatuan>(),
+        deleteSatuanByProdukId: gh<_i543.DeleteSatuanByProdukId>(),
+        getProdukById: gh<_i956.GetProdukById>(),
+        archiveProduk: gh<_i10.ArchiveProduk>(),
       ),
     );
     gh.lazySingleton<_i479.UpdatePembelian>(
@@ -279,19 +306,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i546.LocalAuthBloc>(
       () => _i546.LocalAuthBloc(gh<_i517.LocalAuthRepository>()),
     );
-    gh.factory<_i308.ProdukBloc>(
-      () => _i308.ProdukBloc(
-        getAllProduk: gh<_i1053.GetAllProduk>(),
-        searchProduk: gh<_i756.SearchProduk>(),
-        addProduk: gh<_i278.AddProduk>(),
-        updateProduk: gh<_i992.UpdateProduk>(),
-        deleteProduk: gh<_i480.DeleteProduk>(),
-        addSatuan: gh<_i536.AddSatuan>(),
-        deleteSatuanByProdukId: gh<_i543.DeleteSatuanByProdukId>(),
-      ),
-    );
     gh.lazySingleton<_i784.GetLastPembelianByProduk>(
       () => _i784.GetLastPembelianByProduk(gh<_i228.PembelianRepository>()),
+    );
+    gh.factory<_i293.RiwayatHargaBloc>(
+      () => _i293.RiwayatHargaBloc(gh<_i680.ProdukRepository>()),
     );
     gh.lazySingleton<_i85.TerimaPurchaseOrder>(
       () => _i85.TerimaPurchaseOrder(
@@ -312,16 +331,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i219.PrinterSettings>(
       () => _i219.PrinterSettings(gh<_i460.SharedPreferences>()),
     );
+    gh.lazySingleton<_i367.BatalkanPurchaseOrder>(
+      () => _i367.BatalkanPurchaseOrder(gh<_i38.PurchaseOrderRepository>()),
+    );
+    gh.lazySingleton<_i380.EditPurchaseOrder>(
+      () => _i380.EditPurchaseOrder(gh<_i38.PurchaseOrderRepository>()),
+    );
     gh.factory<_i701.SyncBloc>(
       () => _i701.SyncBloc(
         syncService: gh<_i345.SupabaseSyncService>(),
         connectivity: gh<_i895.Connectivity>(),
-      ),
-    );
-    gh.factory<_i10.PurchaseOrderBloc>(
-      () => _i10.PurchaseOrderBloc(
-        repository: gh<_i38.PurchaseOrderRepository>(),
-        buatPurchaseOrder: gh<_i790.BuatPurchaseOrder>(),
       ),
     );
     gh.lazySingleton<_i36.HutangPiutangRepository>(
@@ -338,6 +357,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i20.GetTransaksiById>(
       () => _i20.GetTransaksiById(gh<_i673.TransaksiRepository>()),
+    );
+    gh.factory<_i10.PurchaseOrderBloc>(
+      () => _i10.PurchaseOrderBloc(
+        repository: gh<_i38.PurchaseOrderRepository>(),
+        buatPurchaseOrder: gh<_i790.BuatPurchaseOrder>(),
+        batalkanPurchaseOrder: gh<_i367.BatalkanPurchaseOrder>(),
+        editPurchaseOrder: gh<_i380.EditPurchaseOrder>(),
+      ),
     );
     gh.lazySingleton<_i88.SupplierRepository>(
       () => _i994.SupplierRepositoryImpl(
@@ -413,6 +440,22 @@ extension GetItInjectableX on _i174.GetIt {
         updatePembelian: gh<_i479.UpdatePembelian>(),
       ),
     );
+    gh.lazySingleton<_i481.SelesaikanOnlineOrder>(
+      () => _i481.SelesaikanOnlineOrder(
+        db: gh<_i160.AppDatabase>(),
+        transaksiRepository: gh<_i673.TransaksiRepository>(),
+        produkRepository: gh<_i680.ProdukRepository>(),
+        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
+        notifikasiRepository: gh<_i895.NotifikasiRepository>(),
+      ),
+    );
+    gh.factory<_i86.OnlineOrderBloc>(
+      () => _i86.OnlineOrderBloc(
+        gh<_i674.OnlineOrderRepository>(),
+        gh<_i345.SupabaseSyncService>(),
+        gh<_i481.SelesaikanOnlineOrder>(),
+      ),
+    );
     gh.factory<_i172.TransaksiBloc>(
       () => _i172.TransaksiBloc(
         getAllTransaksi: gh<_i287.GetAllTransaksi>(),
@@ -434,18 +477,19 @@ extension GetItInjectableX on _i174.GetIt {
         tambahStok: gh<_i995.TambahStok>(),
       ),
     );
-    gh.factory<_i166.NotifikasiBloc>(
-      () => _i166.NotifikasiBloc(
-        getAllNotifikasi: gh<_i991.GetAllNotifikasi>(),
-        getUnreadNotifikasi: gh<_i39.GetUnreadNotifikasi>(),
-        markAsRead: gh<_i665.MarkAsRead>(),
-      ),
-    );
     gh.factory<_i207.CashierBloc>(
       () => _i207.CashierBloc(
         getAllProduk: gh<_i1053.GetAllProduk>(),
         getProdukByBarcode: gh<_i852.GetProdukByBarcode>(),
         buatTransaksi: gh<_i991.BuatTransaksi>(),
+        getProdukById: gh<_i956.GetProdukById>(),
+      ),
+    );
+    gh.factory<_i166.NotifikasiBloc>(
+      () => _i166.NotifikasiBloc(
+        getAllNotifikasi: gh<_i991.GetAllNotifikasi>(),
+        getUnreadNotifikasi: gh<_i39.GetUnreadNotifikasi>(),
+        markAsRead: gh<_i665.MarkAsRead>(),
       ),
     );
     return this;

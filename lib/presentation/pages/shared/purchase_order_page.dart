@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/di/injection.dart';
+import '../../../data/models/receipt_data.dart';
+import '../../../data/services/printer_service.dart';
+import '../../../data/services/printer_settings.dart';
 import '../../../domain/entities/purchase_order.dart';
 import '../../../domain/entities/purchase_order_item.dart';
 import '../../blocs/pembelian/pembelian_bloc.dart';
@@ -12,6 +15,7 @@ import '../../blocs/purchase_order/purchase_order_event.dart';
 import '../../blocs/purchase_order/purchase_order_state.dart';
 import 'purchase_order_form_page.dart';
 import 'purchase_order_receive_page.dart';
+import 'share_receipt_page.dart';
 
 class PurchaseOrderPage extends StatefulWidget {
   const PurchaseOrderPage({super.key});
@@ -220,6 +224,72 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
                         ),
                       ),
                     ),
+                  if (po.status == 'open') ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _openEditForm(po, items);
+                            },
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Edit PO'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _confirmCancel(po);
+                            },
+                            icon: const Icon(Icons.cancel, size: 18),
+                            label: const Text('Batalkan PO'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.warningRed,
+                              side: const BorderSide(color: AppTheme.warningRed),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _sharePO(po, items);
+                          },
+                          icon: const Icon(Icons.share, size: 18),
+                          label: const Text('Share'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _printPO(po, items);
+                          },
+                          icon: const Icon(Icons.print, size: 18),
+                          label: const Text('Cetak'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Tutup'),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -249,6 +319,122 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
     });
   }
 
+  Future<void> _sharePO(PurchaseOrder po, List<PurchaseOrderItem> items) async {
+    final receiptItems = items
+        .map(
+          (item) {
+            final namaFull = item.namaProduk ?? 'Produk #${item.produkId}';
+            final parts = namaFull.split(' - ');
+            final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
+            return ReceiptItem(
+              nama: parts[0],
+              jumlah: item.qtyPesan,
+              harga: item.hargaSatuan,
+              satuan: unitName,
+              konversi: item.konversi,
+            );
+          },
+        )
+        .toList();
+    final now = po.createdAt ?? DateTime.now();
+    final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(now);
+    final settings = sl<PrinterSettings>();
+    final receipt = ReceiptData(
+      namaToko: po.namaSupplier ?? settings.namaToko,
+      alamatToko: settings.alamatToko,
+      transaksiId: po.id!,
+      tanggal: tanggal,
+      items: receiptItems,
+      subtotal: po.totalHarga,
+      totalBayar: po.totalHarga,
+      metodePembayaran: '',
+      lebarKertas: settings.lebarKertas,
+      fontSize: settings.fontSize,
+    );
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ShareReceiptPage(
+            receipt: receipt,
+            showCompactItems: true,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _printPO(PurchaseOrder po, List<PurchaseOrderItem> items) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final settings = sl<PrinterSettings>();
+    if (!settings.enabled) {
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Printer tidak aktif. Aktifkan di Pengaturan Printer.'),
+            backgroundColor: AppTheme.warningRed,
+          ),
+        );
+      }
+      return;
+    }
+    try {
+      final receiptItems = items
+          .map(
+            (item) {
+              final namaFull = item.namaProduk ?? 'Produk #${item.produkId}';
+              final parts = namaFull.split(' - ');
+              final unitName = parts.length > 1 ? parts.sublist(1).join(' - ') : null;
+              return ReceiptItem(
+                nama: parts[0],
+                jumlah: item.qtyPesan,
+                harga: item.hargaSatuan,
+                satuan: unitName,
+                konversi: item.konversi,
+              );
+            },
+          )
+          .toList();
+      final now = DateTime.now();
+      final tanggal = DateFormat('dd/MM/yyyy HH:mm').format(now);
+      final receipt = ReceiptData(
+        namaToko: po.namaSupplier ?? settings.namaToko,
+        alamatToko: settings.alamatToko,
+        transaksiId: po.id!,
+        tanggal: tanggal,
+        items: receiptItems,
+        subtotal: po.totalHarga,
+        totalBayar: po.totalHarga,
+        metodePembayaran: '',
+        lebarKertas: settings.lebarKertas,
+        fontSize: settings.fontSize,
+      );
+      final printer = sl<PrinterService>();
+      final success = await printer.printReceipt(receipt);
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              success ? 'Nota PO berhasil dicetak' : 'Gagal mencetak nota',
+            ),
+            backgroundColor:
+                success ? AppTheme.primaryGreen : AppTheme.warningRed,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Error print: $e'),
+            backgroundColor: AppTheme.warningRed,
+          ),
+        );
+      }
+    }
+  }
+
   void _openCreateForm() {
     Navigator.push(
       context,
@@ -266,6 +452,49 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
         context.read<PurchaseOrderBloc>().add(LoadPurchaseOrders());
       }
     });
+  }
+
+  void _openEditForm(PurchaseOrder po, List<PurchaseOrderItem> items) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<PurchaseOrderBloc>()),
+            BlocProvider.value(value: sl<ProdukBloc>()),
+          ],
+          child: PurchaseOrderFormPage(initialPo: po, initialItems: items),
+        ),
+      ),
+    ).then((_) {
+      if (mounted) {
+        context.read<PurchaseOrderBloc>().add(LoadPurchaseOrders());
+      }
+    });
+  }
+
+  void _confirmCancel(PurchaseOrder po) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Batalkan Purchase Order?'),
+        content: Text('Apakah Anda yakin ingin membatalkan PO dari ${po.namaSupplier}? PO yang dibatalkan tidak dapat diubah kembali.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<PurchaseOrderBloc>().add(CancelPurchaseOrderEvent(po.id!));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.warningRed, foregroundColor: Colors.white),
+            child: const Text('Ya, Batalkan PO'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

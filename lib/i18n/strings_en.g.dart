@@ -41,8 +41,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 
-	/// en: 'Hend Kasir'
-	String get app_name => 'Hend Kasir';
+	/// en: 'Toko Dedy'
+	String get app_name => 'Toko Dedy';
 
 	late final Translations$login$en login = Translations$login$en._(_root);
 	late final Translations$home$en home = Translations$home$en._(_root);
@@ -202,7 +202,7 @@ class Translations$price_update$en {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
-			'app_name' => 'Hend Kasir',
+			'app_name' => 'Toko Dedy',
 			'login.title' => 'Login',
 			'login.email_hint' => 'Email',
 			'login.password_hint' => 'Password',

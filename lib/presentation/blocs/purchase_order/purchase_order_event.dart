@@ -25,6 +25,33 @@ class AddPurchaseOrderEvent extends PurchaseOrderEvent {
   List<Object?> get props => [supplierId, namaSupplier, items, notes];
 }
 
+class CancelPurchaseOrderEvent extends PurchaseOrderEvent {
+  final String poId;
+  const CancelPurchaseOrderEvent(this.poId);
+
+  @override
+  List<Object?> get props => [poId];
+}
+
+class EditPurchaseOrderEvent extends PurchaseOrderEvent {
+  final String poId;
+  final String? supplierId;
+  final String namaSupplier;
+  final List<ItemPoData> items;
+  final String? notes;
+
+  const EditPurchaseOrderEvent({
+    required this.poId,
+    this.supplierId,
+    required this.namaSupplier,
+    required this.items,
+    this.notes,
+  });
+
+  @override
+  List<Object?> get props => [poId, supplierId, namaSupplier, items, notes];
+}
+
 class ItemPoData {
   final String produkId;
   final String namaProduk;

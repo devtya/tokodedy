@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/produk/get_all_produk.dart';
 import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
+import '../../../domain/usecases/produk/get_produk_by_id.dart';
 import '../../../domain/usecases/transaksi/buat_transaksi.dart';
 import 'cashier_event.dart';
 import 'cashier_state.dart';
@@ -12,11 +13,13 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
   final GetAllProduk getAllProduk;
   final GetProdukByBarcode getProdukByBarcode;
   final BuatTransaksi buatTransaksi;
+  final GetProdukById getProdukById;
 
   CashierBloc({
     required this.getAllProduk,
     required this.getProdukByBarcode,
     required this.buatTransaksi,
+    required this.getProdukById,
   }) : super(CashierInitial()) {
     on<InitCashier>(_onInit);
     on<ScanBarcodeCashier>(_onScan);
@@ -44,11 +47,15 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     if (produk == null) {
       final cart = state is CashierReady ? (state as CashierReady).cart : <CartItem>[];
       final jumlahBayar = state is CashierReady ? (state as CashierReady).jumlahBayar : 0.0;
+      final currentReadyState = state is CashierReady 
+          ? (state as CashierReady) 
+          : CashierReady(cart: cart, jumlahBayar: jumlahBayar);
       emit(CashierError(
         'Produk dengan barcode ${event.barcode} tidak ditemukan',
         cart: cart,
         jumlahBayar: jumlahBayar,
       ));
+      emit(currentReadyState);
       return;
     }
     if (state is CashierReady) {
@@ -65,19 +72,48 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     }
   }
 
-  void _onAddToCart(AddToCart event, Emitter<CashierState> emit) {
+  Future<void> _onAddToCart(AddToCart event, Emitter<CashierState> emit) async {
     if (state is! CashierReady) return;
     final current = state as CashierReady;
+
+    // Fetch product to validate stock
+    final produk = await getProdukById(event.produkId);
+    if (produk != null) {
+      final cart = List<CartItem>.from(current.cart);
+      final existingIndex = cart.indexWhere(
+        (item) => item.produkId == event.produkId,
+      );
+
+      int existingBaseQty = 0;
+      if (existingIndex >= 0) {
+        existingBaseQty = (cart[existingIndex].jumlah * cart[existingIndex].konversi).round();
+      }
+
+      final newBaseQty = (event.jumlah * event.konversi).round();
+      final totalNewBaseQty = existingBaseQty + newBaseQty;
+
+      if (totalNewBaseQty > produk.stok) {
+        emit(CashierError(
+          'Stok ${produk.nama} tidak mencukupi. Sisa stok: ${produk.stok} pcs.',
+          cart: current.cart,
+          jumlahBayar: current.jumlahBayar,
+        ));
+        emit(current);
+        return;
+      }
+    }
+
     final cart = List<CartItem>.from(current.cart);
     final existingIndex = cart.indexWhere(
       (item) => item.produkId == event.produkId,
     );
+    int highlightIdx;
     if (existingIndex >= 0) {
       final existing = cart[existingIndex];
-      cart.removeAt(existingIndex);
-      cart.insert(0, existing.copyWith(
+      cart[existingIndex] = existing.copyWith(
         jumlah: existing.jumlah + event.jumlah,
-      ));
+      );
+      highlightIdx = existingIndex;
     } else {
       cart.insert(0,
         CartItem(
@@ -90,33 +126,54 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           konversi: event.konversi,
         ),
       );
+      highlightIdx = 0;
     }
-    emit(current.copyWith(cart: cart));
+    emit(current.copyWith(cart: cart, highlightedIndex: highlightIdx));
   }
 
   void _onRemoveFromCart(RemoveFromCart event, Emitter<CashierState> emit) {
     if (state is! CashierReady) return;
     final current = state as CashierReady;
     final cart = List<CartItem>.from(current.cart)..removeAt(event.index);
-    emit(current.copyWith(cart: cart));
+    emit(current.copyWith(cart: cart, clearHighlight: true));
   }
 
-  void _onUpdateJumlah(UpdateJumlahCart event, Emitter<CashierState> emit) {
+  Future<void> _onUpdateJumlah(UpdateJumlahCart event, Emitter<CashierState> emit) async {
     if (state is! CashierReady) return;
     final current = state as CashierReady;
     final cart = List<CartItem>.from(current.cart);
+
+    if (event.index < 0 || event.index >= cart.length) return;
+
     if (event.jumlah <= 0) {
       cart.removeAt(event.index);
-    } else {
-      cart[event.index] = cart[event.index].copyWith(jumlah: event.jumlah);
+      emit(current.copyWith(cart: cart, clearHighlight: true));
+      return;
     }
-    emit(current.copyWith(cart: cart));
+
+    final item = cart[event.index];
+    final produk = await getProdukById(item.produkId);
+    if (produk != null) {
+      final totalNewBaseQty = (event.jumlah * item.konversi).round();
+      if (totalNewBaseQty > produk.stok) {
+        emit(CashierError(
+          'Stok ${produk.nama} tidak mencukupi. Sisa stok: ${produk.stok} pcs.',
+          cart: current.cart,
+          jumlahBayar: current.jumlahBayar,
+        ));
+        emit(current);
+        return;
+      }
+    }
+
+    cart[event.index] = cart[event.index].copyWith(jumlah: event.jumlah);
+    emit(current.copyWith(cart: cart, clearHighlight: true));
   }
 
   void _onUpdateBayar(UpdateJumlahBayar event, Emitter<CashierState> emit) {
     if (state is! CashierReady) return;
     final current = state as CashierReady;
-    emit(current.copyWith(jumlahBayar: event.jumlah));
+    emit(current.copyWith(jumlahBayar: event.jumlah, clearHighlight: true));
   }
 
   void _onSetDiskon(SetDiskonItem event, Emitter<CashierState> emit) {
@@ -129,7 +186,7 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
         diskonValue: event.value,
       );
     }
-    emit(current.copyWith(cart: cart));
+    emit(current.copyWith(cart: cart, clearHighlight: true));
   }
 
   void _onLoadPending(LoadCartFromPending event, Emitter<CashierState> emit) {
@@ -159,7 +216,7 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
           );
         }
       }
-      emit(current.copyWith(cart: cart));
+      emit(current.copyWith(cart: cart, clearHighlight: true));
     }
   }
 
@@ -226,14 +283,18 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
   void _onClearError(ClearError event, Emitter<CashierState> emit) {
     if (state is CashierError) {
       final error = state as CashierError;
-      emit(CashierReady(cart: error.cart, jumlahBayar: error.jumlahBayar));
+      emit(CashierReady(
+        cart: error.cart, 
+        jumlahBayar: error.jumlahBayar,
+        highlightedIndex: error.highlightedIndex,
+      ));
     }
   }
 
   void _onClearCart(ClearCart event, Emitter<CashierState> emit) {
     if (state is CashierReady) {
       final current = state as CashierReady;
-      emit(current.copyWith(cart: const []));
+      emit(current.copyWith(cart: const [], clearHighlight: true));
     }
   }
 }

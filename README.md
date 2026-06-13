@@ -18,9 +18,8 @@
 - 📊 **Laporan** — Riwayat transaksi lengkap dengan filter tanggal
 - ☁️ **Sinkronasi Cloud** — Offline-first dengan Supabase, auto-sync tiap 5 menit, recovery cloud login
 - 👥 **Multi-User** — Role-based (owner/admin/kasir), manajemen pengguna, undang kasir via email
-- 🏪 **Multi-Toko** — Setiap toko memiliki data terisolasi
 - 🎨 **Tema** — Light/Dark/System theme, persist ke SharedPreferences
-- 🖨️ **Cetak Thermal** — Dukungan printer Network (HTTP) & Bluetooth (ESC/POS), ukuran font adjustable
+- 🖨️ **Cetak Thermal** — Bluetooth (ESC/POS), ukuran font adjustable
 
 ## Arsitektur
 
@@ -35,7 +34,6 @@
 | Platform | Status |
 |----------|--------|
 | Android | ✅ Aktif |
-| Windows | ✅ Aktif (Developer Mode + Visual Studio required) |
 
 ## Cara Build
 

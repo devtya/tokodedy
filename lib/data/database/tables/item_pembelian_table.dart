@@ -4,6 +4,7 @@ class ItemPembelianTable extends Table {
   TextColumn get id              => text()(); // UUID
   TextColumn get pembelianId     => text()(); // UUID FK ke pembelian
   TextColumn get produkId        => text()(); // UUID FK ke produk
+  TextColumn get namaProduk      => text().nullable()(); // Snapshot nama produk
   IntColumn get jumlah           => integer().withDefault(const Constant(1))();
   RealColumn get hargaBeliSatuan => real().withDefault(const Constant(0))();
   RealColumn get subtotal        => real().withDefault(const Constant(0))();

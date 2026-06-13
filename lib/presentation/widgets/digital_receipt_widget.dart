@@ -102,17 +102,27 @@ class DigitalReceiptWidget extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Kolom qty + satuan
+                    // Kolom qty
                     SizedBox(
-                      width: 64,
+                      width: 24,
                       child: Text(
-                        '${item.jumlah} $satuanLabel'.trimRight(),
+                        '${item.jumlah}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    // Kolom satuan
+                    SizedBox(
+                      width: 48,
+                      child: Text(
+                        satuanLabel,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

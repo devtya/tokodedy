@@ -15,6 +15,7 @@ import 'tables/pending_order_item_table.dart';
 import 'tables/pending_order_table.dart';
 import 'tables/pending_sync_queue_table.dart';
 import 'tables/produk_table.dart';
+import 'tables/riwayat_perubahan_produk_table.dart';
 import 'tables/purchase_order_table.dart';
 import 'tables/purchase_order_item_table.dart';
 import 'tables/riwayat_harga_table.dart';
@@ -37,6 +38,7 @@ part 'app_database.g.dart';
     UserTable,
     ProdukTable,
     SatuanProdukTable,
+    RiwayatPerubahanProdukTable,
     SupplierTable,
     SupplierProductsTable,
     TransaksiTable,
@@ -64,12 +66,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(produkTable, produkTable.isArchived);
+        await m.createTable(riwayatPerubahanProdukTable);
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

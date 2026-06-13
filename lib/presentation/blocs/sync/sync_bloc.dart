@@ -94,6 +94,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<SyncStatusChanged>(_onSyncStatusChanged);
     on<InitialSyncTriggered>(_onInitialSyncTriggered);
     on<ClearSyncError>(_onClearError);
+    on<ForceFullSyncTriggered>(_onForceFullSyncTriggered);
+    on<ForcePushProduk>(_onForcePushProduk);
 
     _init();
   }
@@ -179,6 +181,57 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     }
   }
 
+  Future<void> _onForcePushProduk(
+    ForcePushProduk event,
+    Emitter<SyncState> emit,
+  ) async {
+    final current = state;
+    final online = current is SyncInitial
+        ? _syncAttempts == 0
+        : (current is SyncIdle
+            ? current.isOnline
+            : current is SyncError
+                ? current.isOnline
+                : (current as dynamic).isOnline ?? false);
+
+    if (!online) {
+      _addLog(SyncLogEntry.error('Tidak ada koneksi internet untuk force push'));
+      emit(SyncError(
+        message: 'Tidak ada koneksi internet',
+        isOnline: false,
+        lastSync: _lastSync,
+        logs: List.of(_logs),
+      ));
+      return;
+    }
+
+    emit(SyncInProgress(isOnline: online, logs: List.of(_logs)));
+
+    try {
+      final pushedCount = await _syncService.forcePushSemuaProduk();
+      _addLog(SyncLogEntry.tablePush('produk', pushedCount));
+      _addLog(SyncLogEntry(
+        timestamp: DateTime.now(),
+        type: 'push_done',
+        message: 'Force push selesai ($pushedCount produk)',
+      ));
+
+      emit(SyncSuccess(
+        isOnline: online,
+        lastSync: _lastSync ?? DateTime.now(),
+        logs: List.of(_logs),
+      ));
+    } catch (e) {
+      _addLog(SyncLogEntry.error('Force push gagal: ${e.toString()}'));
+      emit(SyncError(
+        message: 'Force push gagal: ${e.toString()}',
+        isOnline: online,
+        lastSync: _lastSync,
+        logs: List.of(_logs),
+      ));
+    }
+  }
+
   void _scheduleRetry(Emitter<SyncState> emit) {
     _retryTimer?.cancel();
     if (_syncAttempts >= 10) return; // max 10 retry
@@ -261,6 +314,39 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       lastSync: _lastSync,
       logs: List.of(_logs),
     ));
+  }
+
+  Future<void> _onForceFullSyncTriggered(
+    ForceFullSyncTriggered event,
+    Emitter<SyncState> emit,
+  ) async {
+    emit(SyncInProgress(isOnline: true, logs: List.of(_logs)));
+
+    try {
+      final pullResults = await _syncService.pull(
+        force: true,
+        onTablePulled: (table, count) {
+          _addLog(SyncLogEntry.tablePull(table, count));
+        },
+      );
+      _addLog(SyncLogEntry.pullDone(pullResults.length));
+      _syncAttempts = 0;
+      _lastSync = DateTime.now();
+      emit(SyncSuccess(
+        isOnline: true,
+        lastSync: _lastSync!,
+        logs: List.of(_logs),
+      ));
+    } catch (e) {
+      _syncAttempts++;
+      _addLog(SyncLogEntry.error(e.toString()));
+      emit(SyncError(
+        message: e.toString(),
+        isOnline: true,
+        lastSync: _lastSync,
+        logs: List.of(_logs),
+      ));
+    }
   }
 
   @override

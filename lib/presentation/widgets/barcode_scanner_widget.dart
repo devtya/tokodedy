@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-Future<String?> showBarcodeScannerDialog(BuildContext context) {
+Future<String?> showBarcodeScannerDialog(BuildContext context, {bool isOnlineOrder = false}) {
   return showDialog<String>(
     context: context,
-    builder: (ctx) => _buildCameraScanner(ctx),
+    builder: (ctx) => _buildCameraScanner(ctx, isOnlineOrder),
   );
 }
 
-AlertDialog _buildCameraScanner(BuildContext context) {
+AlertDialog _buildCameraScanner(BuildContext context, bool isOnlineOrder) {
   return AlertDialog(
     contentPadding: EdgeInsets.zero,
     content: SizedBox(
@@ -16,7 +16,7 @@ AlertDialog _buildCameraScanner(BuildContext context) {
       height: 300,
       child: MobileScanner(
         controller: MobileScannerController(
-          formats: const [
+          formats: [
             BarcodeFormat.code128,
             BarcodeFormat.code39,
             BarcodeFormat.code93,
@@ -26,6 +26,7 @@ AlertDialog _buildCameraScanner(BuildContext context) {
             BarcodeFormat.itf,
             BarcodeFormat.upcA,
             BarcodeFormat.upcE,
+            if (isOnlineOrder) BarcodeFormat.qrCode,
           ],
         ),
         onDetect: (capture) {

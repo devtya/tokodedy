@@ -9,7 +9,6 @@ import '../../../data/database/supplier_products_dao.dart';
 import '../../../domain/entities/produk.dart';
 import '../../../domain/entities/supplier.dart';
 import '../../../domain/usecases/produk/get_all_produk.dart';
-import '../../../domain/usecases/produk/update_produk.dart';
 import '../../../domain/usecases/produk/get_produk_by_id.dart';
 import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
 import '../../../domain/entities/notifikasi.dart';
@@ -32,6 +31,7 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../widgets/cari_produk_dialog.dart';
 import '../../widgets/supplier_konfirmasi_dialog.dart';
+import '../../widgets/price_validation_dialog.dart';
 import 'pending_pembelian_page.dart';
 
 class PembelianFormPage extends StatefulWidget {
@@ -50,12 +50,16 @@ class PembelianFormPage extends StatefulWidget {
 class _PembelianFormPageState extends State<PembelianFormPage> {
   Supplier? _selectedSupplier;
   final List<ItemPembelianForm> _items = [];
+  final List<ItemPembelianForm> _movedToBesokItems = [];
   final _currency = NumberFormat.currency(
     locale: 'id',
     symbol: 'Rp',
     decimalDigits: 0,
   );
   final _searchController = TextEditingController();
+  final _filterController = TextEditingController();
+  String _searchQuery = '';
+
 
   bool _isPpnEnabled = false;
   double _ppnPercent = 11.0;
@@ -189,6 +193,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     _diskonPersenController.dispose();
     _diskonNominalController.dispose();
     _searchController.dispose();
+    _filterController.dispose();
     super.dispose();
   }
 
@@ -449,11 +454,14 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                     ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
                     : null,
                 onTap: () {
+                  final newHarga = produk.hargaBeli;
                   setState(() {
                     _items[index] = item.copyWith(
                       satuanName: produk.satuan ?? 'pcs',
                       satuanId: null,
                       konversi: 1.0,
+                      hargaBeliSatuan: newHarga,
+                      totalHarga: item.jumlah * newHarga,
                     );
                   });
                   Navigator.pop(ctx);
@@ -467,11 +475,14 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                       ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
                       : null,
                   onTap: () {
+                    final newHarga = (s.hargaBeli > 0) ? s.hargaBeli : (produk.hargaBeli * s.konversi);
                     setState(() {
                       _items[index] = item.copyWith(
                         satuanName: s.nama,
                         satuanId: s.id,
                         konversi: s.konversi,
+                        hargaBeliSatuan: newHarga,
+                        totalHarga: item.jumlah * newHarga,
                       );
                     });
                     Navigator.pop(ctx);
@@ -575,15 +586,50 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     double hargaBeli,
   ) async {
     try {
+      final repo = sl<ProdukRepository>();
+
+      // --- Cek duplikat: jangan insert jika nama satuan sudah ada ---
+      // Load satuan terbaru dari DB (bukan dari produk yang di-cache)
+      final satuanExisting = await repo.getSatuanByProdukId(produk.id!);
+      final duplikat = satuanExisting
+          .where((s) => s.nama.toUpperCase() == namaSatuan.toUpperCase())
+          .firstOrNull;
+
+      if (duplikat != null) {
+        // Gunakan satuan yang sudah ada, tidak perlu insert baru
+        if (mounted) {
+          setState(() {
+            _items[index] = item.copyWith(
+              satuanName: duplikat.nama,
+              satuanId: duplikat.id,
+              konversi: duplikat.konversi,
+              hargaBeliSatuan: hargaBeli > 0
+                  ? hargaBeli
+                  : (duplikat.hargaBeli > 0
+                      ? duplikat.hargaBeli
+                      : produk.hargaBeli * duplikat.konversi),
+            );
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Menggunakan satuan ${duplikat.nama} yang sudah ada',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Satuan belum ada — insert baru
       final satuanProduk = SatuanProduk(
         produkId: produk.id!,
-                nama: namaSatuan,
+        nama: namaSatuan,
         konversi: konversi,
         hargaJual: 0, // Akan di-update nanti jika diperlukan di form produk
         hargaBeli: hargaBeli,
       );
 
-      final repo = sl<ProdukRepository>();
       final newSatuanId = await repo.addSatuan(satuanProduk);
 
       if (mounted) {
@@ -592,8 +638,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             satuanName: namaSatuan,
             satuanId: newSatuanId,
             konversi: konversi,
-            // Jika harga beli diset, gunakan itu. Jika tidak, gunakan estimasi (harga dasar * konversi)
-            hargaBeliSatuan: hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
+            hargaBeliSatuan:
+                hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
           );
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -896,11 +942,17 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
       if (changedItems.isNotEmpty) {
         if (!mounted) return;
+        final valItems = changedItems.map((i) => PriceValidationItem(
+          produkId: i.produkId,
+          konversi: i.konversi,
+          hargaBeliSatuan: i.hargaBeliSatuan,
+        )).toList();
+        
         final proceed = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (ctx) => _PriceValidationDialog(
-            changedItems: changedItems,
+          builder: (ctx) => PriceValidationDialog(
+            changedItems: valItems,
             produkMap: produkMap,
           ),
         );
@@ -1073,6 +1125,40 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
             final pendingRepo = sl<PendingPembelianRepository>();
             await pendingRepo.deletePending(_loadedPendingId!);
             _loadedPendingId = null;
+          }
+
+          if (_movedToBesokItems.isNotEmpty) {
+            try {
+              final pendingRepo = sl<PendingPembelianRepository>();
+              final pending = PendingPembelian(
+                supplierId: _pendingSaveSupplierId ?? _selectedSupplier?.id,
+                namaSupplier: _selectedSupplier?.nama,
+                isPpnEnabled: _isPpnEnabled,
+                ppnPercent: _ppnPercent,
+                diskonTipe: _diskonTipe,
+                diskonPersen: _diskonPersen,
+                diskonNominal: _diskonNominal,
+              );
+              final pendingId = await pendingRepo.addPending(pending);
+              for (final item in _movedToBesokItems) {
+                await pendingRepo.addItem(
+                  pendingId,
+                  PendingPembelianItemData(
+                    produkId: item.produkId,
+                    namaProduk: item.namaProduk,
+                    jumlah: item.jumlah,
+                    hargaBeliSatuan: item.hargaBeliSatuan,
+                    hargaBeliLama: item.hargaBeliLama,
+                    diskonTipe: item.diskonTipe,
+                    diskonValue: item.diskonValue,
+                    satuanId: item.satuanId,
+                    konversi: item.konversi,
+                  ),
+                );
+              }
+            } catch (e) {
+              debugPrint('Gagal menyimpan PO Besok: $e');
+            }
           }
 
           final dao = sl<SupplierProductsDao>();
@@ -1265,20 +1351,51 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   }
 
   Widget _buildSearchSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        readOnly: true,
-        onTap: _openCariProduk,
-        decoration: InputDecoration(
-          hintText: 'Cari produk...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: _openScanner,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: TextField(
+            readOnly: true,
+            onTap: _openCariProduk,
+            decoration: InputDecoration(
+              hintText: 'Tambah Produk (Cari / Scan)...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.qr_code_scanner),
+                onPressed: _openScanner,
+              ),
+            ),
           ),
         ),
-      ),
+        if (_items.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _filterController,
+              decoration: InputDecoration(
+                hintText: 'Filter di keranjang...',
+                prefixIcon: const Icon(Icons.filter_list, size: 20),
+                isDense: true,
+                filled: true,
+                fillColor: AppTheme.surface,
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _filterController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (val) {
+                setState(() => _searchQuery = val);
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -1300,13 +1417,27 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
         ),
       );
     }
-    return ListView.builder(
+    
+    final displayItems = _searchQuery.isEmpty 
+        ? _items 
+        : _items.where((i) => i.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _items.length,
+      itemCount: displayItems.length,
+      onReorder: (oldIndex, newIndex) {
+        if (_searchQuery.isNotEmpty) return; // Disable reorder while filtering
+        setState(() {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final item = _items.removeAt(oldIndex);
+          _items.insert(newIndex, item);
+        });
+      },
       itemBuilder: (context, index) {
-        final item = _items[index];
+        final item = displayItems[index];
         final hasDiskon = item.diskonTipe != 0;
         return Card(
+          key: ValueKey('${item.produkId}_${item.satuanId}'),
           margin: const EdgeInsets.only(bottom: 4),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1355,10 +1486,31 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      color: AppTheme.warningRed,
-                      onPressed: () => setState(() => _items.removeAt(index)),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      onSelected: (val) {
+                        if (val == 'pending') {
+                          setState(() {
+                            _movedToBesokItems.add(item);
+                            _items.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Produk dipindah ke antrean PO Besok')),
+                          );
+                        } else if (val == 'delete') {
+                          setState(() => _items.removeAt(index));
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'pending',
+                          child: Text('Pindah ke PO Besok'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Hapus Permanen', style: TextStyle(color: AppTheme.warningRed)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1829,215 +1981,6 @@ class ItemPembelianForm {
       diskonValue: diskonValue ?? this.diskonValue,
       satuanId: satuanId ?? this.satuanId,
       konversi: konversi ?? this.konversi,
-    );
-  }
-}
-
-class _PriceValidationDialog extends StatefulWidget {
-  final List<ItemPembelianForm> changedItems;
-  final Map<String, Produk> produkMap;
-
-  const _PriceValidationDialog({
-    required this.changedItems,
-    required this.produkMap,
-  });
-
-  @override
-  State<_PriceValidationDialog> createState() => _PriceValidationDialogState();
-}
-
-class _PriceValidationDialogState extends State<_PriceValidationDialog> {
-  final _currency = NumberFormat.currency(
-    locale: 'id',
-    symbol: 'Rp',
-    decimalDigits: 0,
-  );
-  final Map<String, TextEditingController> _controllers = {};
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    for (var item in widget.changedItems) {
-      final oldJual = widget.produkMap[item.produkId]!.hargaJual;
-      final controller = TextEditingController(
-        text: oldJual.toStringAsFixed(0),
-      );
-      _controllers[item.produkId] = controller;
-    }
-  }
-
-  @override
-  void dispose() {
-    for (var controller in _controllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  Future<void> _saveChanges() async {
-    setState(() => _isSaving = true);
-    try {
-      final updateProduk = sl<UpdateProduk>();
-      for (var item in widget.changedItems) {
-        final produk = widget.produkMap[item.produkId]!;
-        final controller = _controllers[item.produkId]!;
-        final newJual = double.tryParse(controller.text) ?? produk.hargaJual;
-
-        if (item.satuanId != null) {
-          // Satuan konversi: update SatuanProduk.hargaBeli
-          // Harga beli dasar dihitung ulang = harga satuan / konversi
-          final hargaBeliDasar = item.hargaBeliSatuan / item.konversi;
-          final updatedProduk = produk.copyWith(
-            hargaBeli: hargaBeliDasar,
-            hargaJual: newJual,
-          );
-          await updateProduk(updatedProduk);
-          // Update hargaBeli pada SatuanProduk yang berubah via ProdukRepository
-          final satuanList = produk.satuanList ?? [];
-          final satuan = satuanList.where((s) => s.id == item.satuanId).firstOrNull;
-          if (satuan != null) {
-            await sl<ProdukRepository>().updateSatuan(
-              satuan.copyWith(hargaBeli: item.hargaBeliSatuan),
-            );
-          }
-        } else {
-          // Satuan dasar: update Produk.hargaBeli langsung
-          final updatedProduk = produk.copyWith(
-            hargaBeli: item.hargaBeliSatuan,
-            hargaJual: newJual,
-          );
-          await updateProduk(updatedProduk);
-        }
-      }
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-        setState(() => _isSaving = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Validasi Perubahan Harga'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Harga beli barang berikut telah berubah. Silakan sesuaikan harga jualnya jika diperlukan.',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.changedItems.length,
-                itemBuilder: (context, index) {
-                  final item = widget.changedItems[index];
-                  final controller = _controllers[item.produkId]!;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.namaProduk,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const SizedBox(width: 80, child: Text('Harga Beli:', style: TextStyle(fontSize: 12))),
-                            Text(
-                              _currency.format(item.hargaBeliLama),
-                              style: const TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward, size: 12),
-                            const SizedBox(width: 8),
-                            Text(
-                              _currency.format(item.hargaBeliSatuan),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.warningRed,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: 80, child: Text('Harga Jual:', style: TextStyle(fontSize: 12))),
-                            Text(
-                              _currency.format(widget.produkMap[item.produkId]!.hargaJual),
-                              style: const TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward, size: 12),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: controller,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  prefixText: 'Rp ',
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                                ),
-                                onTap: () {
-                                  controller.selection = TextSelection(
-                                    baseOffset: 0,
-                                    extentOffset: controller.text.length,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.pop(context, false),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _saveChanges,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Simpan & Lanjutkan'),
-        ),
-      ],
     );
   }
 }

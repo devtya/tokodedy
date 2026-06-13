@@ -14,6 +14,7 @@ class OnlineOrderItemTable extends Table {
   RealColumn get subtotal => real().withDefault(const Constant(0.0))();
   TextColumn get satuanId => text().nullable().references(SatuanProdukTable, #id)();
   RealColumn get konversi => real().withDefault(const Constant(1.0))();
+  BoolColumn get isUnavailable => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -41,11 +41,16 @@ class TerimaPurchaseOrder {
         );
 
         final newQtyTerima = poItem.qtyTerima + terima.qtyTerima;
-        final subtotal = terima.qtyTerima * poItem.hargaSatuan;
+        final updatedHargaSatuan = terima.hargaBeliBaru ?? poItem.hargaSatuan;
+        final subtotal = terima.qtyTerima * updatedHargaSatuan;
 
-        // Update PO item qty terima
+        // Update PO item qty terima & harga
         await poRepository.updatePurchaseOrderItem(
-          poItem.copyWith(qtyTerima: newQtyTerima),
+          poItem.copyWith(
+            qtyTerima: newQtyTerima,
+            hargaSatuan: updatedHargaSatuan,
+            subtotal: poItem.qtyPesan * updatedHargaSatuan,
+          ),
         );
 
         if (newQtyTerima < poItem.qtyPesan) {
@@ -59,7 +64,7 @@ class TerimaPurchaseOrder {
               produkId: terima.produkId,
               pembelianId: '',
               jumlah: terima.qtyTerima,
-              hargaBeliSatuan: poItem.hargaSatuan,
+              hargaBeliSatuan: updatedHargaSatuan,
               subtotal: subtotal,
               satuanId: poItem.satuanId,
               konversi: poItem.konversi,
@@ -135,6 +140,7 @@ class ItemTerima {
   final int qtyTerima;
   final String? satuanId;
   final double konversi;
+  final double? hargaBeliBaru;
 
   const ItemTerima({
     required this.poItemId,
@@ -142,5 +148,6 @@ class ItemTerima {
     required this.qtyTerima,
     this.satuanId,
     this.konversi = 1.0,
+    this.hargaBeliBaru,
   });
 }

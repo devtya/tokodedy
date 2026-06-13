@@ -58,6 +58,38 @@ class ReceiptData extends Equatable {
     this.fontSize = 'normal',
   });
 
+  ReceiptData copyWith({
+    String? namaToko,
+    String? alamatToko,
+    String? transaksiId,
+    String? tanggal,
+    String? kasir,
+    List<ReceiptItem>? items,
+    double? subtotal,
+    double? totalDiskon,
+    double? totalBayar,
+    double? kembalian,
+    String? metodePembayaran,
+    int? lebarKertas,
+    String? fontSize,
+  }) {
+    return ReceiptData(
+      namaToko: namaToko ?? this.namaToko,
+      alamatToko: alamatToko ?? this.alamatToko,
+      transaksiId: transaksiId ?? this.transaksiId,
+      tanggal: tanggal ?? this.tanggal,
+      kasir: kasir ?? this.kasir,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      totalDiskon: totalDiskon ?? this.totalDiskon,
+      totalBayar: totalBayar ?? this.totalBayar,
+      kembalian: kembalian ?? this.kembalian,
+      metodePembayaran: metodePembayaran ?? this.metodePembayaran,
+      lebarKertas: lebarKertas ?? this.lebarKertas,
+      fontSize: fontSize ?? this.fontSize,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'nama_toko': namaToko,
         'alamat_toko': alamatToko,

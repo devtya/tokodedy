@@ -27,7 +27,9 @@ import '../../blocs/dashboard/dashboard_bloc.dart';
 import '../../blocs/dashboard/dashboard_event.dart';
 import '../../blocs/dashboard/dashboard_state.dart';
 import '../../blocs/online_order/online_order_bloc.dart';
+import '../../blocs/riwayat_harga/riwayat_harga_bloc.dart';
 import 'cashier_page.dart';
+import 'riwayat_harga_page.dart';
 import 'hutang_page.dart';
 import 'laporan_page.dart';
 import 'notifikasi_page.dart';
@@ -38,7 +40,7 @@ import 'settings_page.dart';
 import 'supplier_page.dart';
 import 'transaksi_page.dart';
 import 'user_management_page.dart';
-
+import 'online_order_page.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -102,14 +104,33 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
   }
 
   static final List<_QuickActionDef> _availableQuickActions = [
+    _QuickActionDef('Kasir', Icons.point_of_sale, AppTheme.primaryGreen),
+    _QuickActionDef('Laporan', Icons.bar_chart, Colors.purple),
+    _QuickActionDef('Produk', Icons.inventory_2, Colors.blue),
     _QuickActionDef('Pembelian', Icons.shopping_bag, Colors.teal),
     _QuickActionDef('PO', Icons.receipt_long, Colors.orange),
     _QuickActionDef('Supplier', Icons.business, Colors.brown),
     _QuickActionDef('Hutang', Icons.account_balance_wallet, AppTheme.warningOrange),
+    _QuickActionDef('Online Order', Icons.shopping_cart_checkout, Colors.indigo),
   ];
 
   Widget _buildQuickActionPage(String label) {
     switch (label) {
+      case 'Kasir':
+        return BlocProvider.value(
+          value: sl<CashierBloc>(),
+          child: const CashierPage(),
+        );
+      case 'Laporan':
+        return BlocProvider.value(
+          value: sl<LaporanBloc>(),
+          child: const LaporanPage(),
+        );
+      case 'Produk':
+        return BlocProvider.value(
+          value: sl<ProdukBloc>(),
+          child: const ProdukPage(),
+        );
       case 'Pembelian':
         return BlocProvider.value(
           value: sl<PembelianBloc>(),
@@ -130,9 +151,38 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
           value: sl<HutangBloc>(),
           child: const HutangPage(),
         );
+      case 'Online Order':
+        return BlocProvider.value(
+          value: sl<OnlineOrderBloc>(),
+          child: const OnlineOrderPage(),
+        );
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  void _confirmRemoveQuickAction(_QuickActionDef action) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Aksi Cepat'),
+        content: Text('Hapus "${action.label}" dari aksi cepat?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() => _customQuickActions.removeWhere((a) => a.label == action.label));
+              _saveCustomQuickActions();
+            },
+            child: Text('Hapus', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAddQuickActionDialog() {
@@ -743,90 +793,43 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        SizedBox(
-                          height: 100,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.only(left: 4, right: 4),
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                child: _QuickActionCard(
-                                  icon: Icons.point_of_sale,
-                                  label: t.quick_actions.cashier,
-                                  color: AppTheme.primaryGreen,
-                                  onTap: () {
-                                    _navigateAndReload(
-                                      BlocProvider.value(
-                                        value: sl<CashierBloc>(),
-                                        child: const CashierPage(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 90,
-                                child: _QuickActionCard(
-                                  icon: Icons.print,
-                                  label: t.quick_actions.report,
-                                  color: Colors.purple,
-                                  onTap: isAdmin ? () {
-                                    _navigateAndReload(
-                                      BlocProvider.value(
-                                        value: sl<LaporanBloc>(),
-                                        child: const LaporanPage(),
-                                      ),
-                                    );
-                                  } : () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(t.error.owner_only_report)),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 90,
-                                child: _QuickActionCard(
-                                  icon: Icons.inventory_2,
-                                  label: t.quick_actions.product,
-                                  color: Colors.blue,
-                                  onTap: () {
-                                    _navigateAndReload(
-                                      BlocProvider.value(
-                                        value: sl<ProdukBloc>(),
-                                        child: const ProdukPage(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              ..._customQuickActions.map((a) => Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: SizedBox(
-                                  width: 90,
-                                  child: _QuickActionCard(
-                                    icon: a.icon,
-                                    label: a.label,
-                                    color: a.color,
-                                    onTap: () => _navigateAndReload(_buildQuickActionPage(a.label)),
-                                  ),
-                                ),
-                              )),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 90,
-                                child: _QuickActionCard(
-                                  icon: Icons.add,
-                                  label: t.quick_actions.add,
-                                  color: AppTheme.neutralGrey,
-                                  onTap: _showAddQuickActionDialog,
-                                ),
-                              ),
-                            ],
+                        if (_customQuickActions.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              'Tap + untuk menambahkan aksi cepat',
+                              style: TextStyle(fontSize: 12, color: AppTheme.neutralGrey),
+                            ),
                           ),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.8,
+                          ),
+                          itemCount: _customQuickActions.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == _customQuickActions.length) {
+                              return _QuickActionCard(
+                                icon: Icons.add,
+                                label: t.quick_actions.add,
+                                color: AppTheme.neutralGrey,
+                                onTap: _showAddQuickActionDialog,
+                              );
+                            }
+                            final a = _customQuickActions[index];
+                            return _QuickActionCard(
+                              icon: a.icon,
+                              label: a.label,
+                              color: a.color,
+                              onTap: () => _navigateAndReload(_buildQuickActionPage(a.label)),
+                              onLongPress: () => _confirmRemoveQuickAction(a),
+                            );
+                          },
                         ),
                         const SizedBox(height: 24),
                         
@@ -927,9 +930,30 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
                                   // Update Harga Barang
                                   if (state.metrics.updateHargaTerakhir.isNotEmpty) ...[
-                                    Text(
-                                      t.price_update.title,
-                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          t.price_update.title,
+                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            _navigateAndReload(
+                                              BlocProvider(
+                                                create: (_) => sl<RiwayatHargaBloc>(),
+                                                child: const RiwayatHargaPage(),
+                                              ),
+                                            );
+                                          },
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(t.dashboard.see_all, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 12),
                                     Container(
@@ -1116,12 +1140,14 @@ class _QuickActionCard extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _QuickActionCard({
     required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -1130,6 +1156,7 @@ class _QuickActionCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(18),
       child: Column(
         mainAxisSize: MainAxisSize.min,

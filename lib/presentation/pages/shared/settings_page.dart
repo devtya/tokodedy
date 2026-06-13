@@ -15,6 +15,7 @@ import 'login_page.dart';
 import 'pin_settings_page.dart';
 import 'printer_settings_page.dart';
 import 'user_management_page.dart';
+import '../../../domain/repositories/produk_repository.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -385,6 +386,69 @@ class _SettingsPageState extends State<SettingsPage> {
                                 context.read<SyncBloc>().add(const SyncTriggered());
                               },
                       );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cleaning_services, color: Colors.blue),
+                    title: const Text('Bersihkan Duplikat Satuan'),
+                    subtitle: const Text('Hapus satuan produk yang ganda (aman)'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Bersihkan Duplikat?'),
+                          content: const Text(
+                            'Fungsi ini akan memindai seluruh produk dan menghapus satuan yang namanya dobel.\n\n'
+                            'Jangan khawatir, satuan yang sudah pernah dipakai di transaksi (kasir/pembelian) TIDAK akan dihapus untuk menjaga riwayat data.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                              child: const Text('Lanjutkan'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true && context.mounted) {
+                        // Tampilkan loading
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        try {
+                          final repo = sl<ProdukRepository>();
+                          final result = await repo.cleanupDuplicateSatuan();
+                          
+                          if (context.mounted) {
+                            Navigator.pop(context); // Tutup loading
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Selesai! Dihapus: ${result.deleted}, Dilindungi: ${result.protected}',
+                                ),
+                                backgroundColor: Colors.blue,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.pop(context); // Tutup loading
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Gagal membersihkan satuan: $e')),
+                            );
+                          }
+                        }
+                      }
                     },
                   ),
                 ],

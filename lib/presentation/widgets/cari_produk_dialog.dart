@@ -75,7 +75,8 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
     try {
       final products = await widget.getAllProduk();
       final supplierIds = await _getSupplierProductIds();
-      final sorted = List<Produk>.from(products);
+      final activeProducts = products.where((p) => !p.isArchived).toList();
+      final sorted = List<Produk>.from(activeProducts);
       sorted.sort((a, b) {
         final aIsSupplier = supplierIds.contains(a.id);
         final bIsSupplier = supplierIds.contains(b.id);
@@ -99,9 +100,11 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
       final supplierIds = _supplierProductIds;
       List<Produk> results;
       if (query.isEmpty) {
-        results = await widget.getAllProduk();
+        final all = await widget.getAllProduk();
+        results = all.where((p) => !p.isArchived).toList();
       } else {
-        results = await widget.searchProduk(query);
+        final searched = await widget.searchProduk(query);
+        results = searched.where((p) => !p.isArchived).toList();
       }
       results.sort((a, b) {
         final aIsSupplier = supplierIds.contains(a.id);

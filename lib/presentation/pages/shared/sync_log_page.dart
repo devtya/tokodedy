@@ -33,6 +33,25 @@ class SyncLogPage extends StatelessWidget {
               );
             },
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'force_push_produk') {
+                context.read<SyncBloc>().add(const ForcePushProduk());
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'force_push_produk',
+                child: Row(
+                  children: [
+                    Icon(Icons.upload, size: 20),
+                    SizedBox(width: 8),
+                    Text('Push Paksa Semua Produk'),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       body: BlocBuilder<SyncBloc, SyncState>(

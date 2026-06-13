@@ -113,4 +113,18 @@ CREATE POLICY "customer_update_order_items" ON online_order_items
 CREATE POLICY "kasir_access_order_items" ON online_order_items
   FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 
+-- ============================================================
+-- 5. ENABLE REALTIME
+-- ============================================================
+-- Aktifkan Realtime untuk tabel online_orders agar notifikasi langsung masuk ke kasir
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'online_orders'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE online_orders;
+  END IF;
+END $$;
+
 NOTIFY pgrst, 'reload schema';

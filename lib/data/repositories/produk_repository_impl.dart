@@ -5,6 +5,8 @@ import '../database/app_database.dart';
 import '../services/supabase_sync_service.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/satuan_produk.dart' as domain;
+import '../../domain/entities/riwayat_harga.dart';
+import '../../domain/entities/riwayat_perubahan.dart';
 import '../../domain/repositories/produk_repository.dart';
 
 @LazySingleton(as: ProdukRepository)
@@ -25,6 +27,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
       stokMinimum: data.stokMinimum,
       kategori: data.kategori,
       satuan: data.satuan,
+      imageUrl: data.imageUrl,
+      isArchived: data.isArchived,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     );
@@ -51,6 +55,31 @@ class ProdukRepositoryImpl implements ProdukRepository {
       result[result.indexOf(produk)] = produk.copyWith(satuanList: satuanList);
     }
     return result;
+  }
+
+  @override
+  Future<List<RiwayatHarga>> getAllRiwayatHarga({int limit = 100}) async {
+    final riwayatHargaQuery = _db.select(_db.riwayatHargaTable)
+      ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)])
+      ..limit(limit);
+    final riwayatHargaData = await riwayatHargaQuery.get();
+    
+    // Join with ProdukTable to get product names
+    final List<RiwayatHarga> updateHargaTerakhir = [];
+    for (final r in riwayatHargaData) {
+      final produkData = await (_db.select(_db.produkTable)..where((p) => p.id.equals(r.produkId))).getSingleOrNull();
+      updateHargaTerakhir.add(RiwayatHarga(
+        id: r.id,
+        produkId: r.produkId,
+        produkNama: produkData?.nama ?? 'Produk Dihapus',
+        hargaBeliLama: r.hargaBeliLama,
+        hargaBeliBaru: r.hargaBeliBaru,
+        hargaJualLama: r.hargaJualLama,
+        hargaJualBaru: r.hargaJualBaru,
+        createdAt: r.createdAt,
+      ));
+    }
+    return updateHargaTerakhir;
   }
 
   @override
@@ -110,6 +139,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
       stokMinimum: Value(produk.stokMinimum),
       kategori: Value(produk.kategori),
       satuan: Value(produk.satuan ?? 'pcs'),
+      imageUrl: Value(produk.imageUrl),
+      isArchived: Value(produk.isArchived),
     );
     await _db.into(_db.produkTable).insert(row);
 
@@ -124,6 +155,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
       'stok_minimum': produk.stokMinimum,
       'kategori': produk.kategori,
       'satuan': produk.satuan ?? 'pcs',
+      'image_url': produk.imageUrl,
+      'is_archived': produk.isArchived,
     });
 
     return id;
@@ -147,6 +180,19 @@ class ProdukRepositoryImpl implements ProdukRepository {
       );
     }
 
+    if (existing != null && existing.nama != produk.nama) {
+      final riwayatId = _syncService.generateId();
+      await _db.into(_db.riwayatPerubahanProdukTable).insert(
+        RiwayatPerubahanProdukTableCompanion.insert(
+          id: riwayatId,
+          produkId: produk.id!,
+          kolomDiubah: 'NAMA',
+          nilaiLama: existing.nama,
+          nilaiBaru: produk.nama,
+        )
+      );
+    }
+
     await (_db.update(_db.produkTable)
       ..where((tbl) => tbl.id.equals(produk.id!)))
         .write(
@@ -158,6 +204,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
         stokMinimum: Value(produk.stokMinimum),
         kategori: Value(produk.kategori),
         satuan: Value(produk.satuan ?? 'pcs'),
+        imageUrl: Value(produk.imageUrl),
+        isArchived: Value(produk.isArchived),
       ),
     );
 
@@ -172,6 +220,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
       'stok_minimum': produk.stokMinimum,
       'kategori': produk.kategori,
       'satuan': produk.satuan ?? 'pcs',
+      'image_url': produk.imageUrl,
+      'is_archived': produk.isArchived,
     });
   }
 
@@ -183,6 +233,30 @@ class ProdukRepositoryImpl implements ProdukRepository {
 
     // Sync to Supabase
     await _syncService.delete('produk', id);
+  }
+
+  @override
+  Future<void> archiveProduk(String id, bool isArchived) async {
+    await (_db.update(_db.produkTable)
+      ..where((tbl) => tbl.id.equals(id)))
+        .write(ProdukTableCompanion(isArchived: Value(isArchived)));
+    
+    final existing = await getProdukById(id);
+    if (existing != null) {
+      await _syncService.upsert('produk', {
+        'id': id,
+        'nama': existing.nama,
+        'barcode': existing.barcode,
+        'harga_beli': existing.hargaBeli,
+        'harga_jual': existing.hargaJual,
+        'stok': existing.stok,
+        'stok_minimum': existing.stokMinimum,
+        'kategori': existing.kategori,
+        'satuan': existing.satuan ?? 'pcs',
+        'image_url': existing.imageUrl,
+        'is_archived': isArchived,
+      });
+    }
   }
 
   @override
@@ -204,6 +278,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
         'stok_minimum': data.stokMinimum,
         'kategori': data.kategori,
         'satuan': data.satuan ?? 'pcs',
+        'image_url': data.imageUrl,
+        'is_archived': data.isArchived,
       });
     }
   }
@@ -211,7 +287,8 @@ class ProdukRepositoryImpl implements ProdukRepository {
   @override
   Future<List<domain.SatuanProduk>> getSatuanByProdukId(String produkId) async {
     final data = await (_db.select(_db.satuanProdukTable)
-      ..where((t) => t.produkId.equals(produkId)))
+      ..where((t) => t.produkId.equals(produkId))
+      ..orderBy([(t) => OrderingTerm(expression: t.konversi, mode: OrderingMode.asc)]))
         .get();
     return data.map(_mapSatuan).toList();
   }
@@ -405,5 +482,82 @@ class ProdukRepositoryImpl implements ProdukRepository {
       if (k != null && k.isNotEmpty) result.add(k);
     }
     return result.toList()..sort();
+  }
+
+  @override
+  Future<({int deleted, int protected})> cleanupDuplicateSatuan() async {
+    int deleted = 0;
+    int protected = 0;
+
+    // Ambil semua satuan
+    final allSatuan = await _db.select(_db.satuanProdukTable).get();
+
+    // Group by produkId + nama (uppercase)
+    final grouped = <String, List<SatuanProdukTableData>>{};
+    for (final s in allSatuan) {
+      final key = '${s.produkId}_${s.nama.toUpperCase()}';
+      grouped.putIfAbsent(key, () => []).add(s);
+    }
+
+    for (final group in grouped.values) {
+      if (group.length <= 1) continue; // Tidak duplikat
+
+      // Cek mana yang dipakai di transaksi
+      final List<SatuanProdukTableData> usedSatuan = [];
+      final List<SatuanProdukTableData> unusedSatuan = [];
+
+      for (final s in group) {
+        final id = s.id;
+
+        final check1 = await (_db.select(_db.itemPembelianTable)..where((t) => t.satuanId.equals(id))..limit(1)).get();
+        final check2 = await (_db.select(_db.pendingPembelianItemTable)..where((t) => t.satuanId.equals(id))..limit(1)).get();
+        final check3 = await (_db.select(_db.purchaseOrderItemTable)..where((t) => t.satuanId.equals(id))..limit(1)).get();
+        final check4 = await (_db.select(_db.onlineOrderItemTable)..where((t) => t.satuanId.equals(id))..limit(1)).get();
+
+        if (check1.isNotEmpty || check2.isNotEmpty || check3.isNotEmpty || check4.isNotEmpty) {
+          usedSatuan.add(s);
+        } else {
+          unusedSatuan.add(s);
+        }
+      }
+
+      protected += usedSatuan.length;
+
+      // Jika ada yg unused, hapus
+      // Tapi kalau ternyata usedSatuan kosong (semuanya unused), kita harus simpan 1 agar tidak hilang semua
+      if (usedSatuan.isEmpty && unusedSatuan.isNotEmpty) {
+        // Simpan index 0, hapus sisanya
+        for (int i = 1; i < unusedSatuan.length; i++) {
+          await deleteSatuan(unusedSatuan[i].id);
+          deleted++;
+        }
+        protected++; // Yang disisakan 1
+      } else if (usedSatuan.isNotEmpty && unusedSatuan.isNotEmpty) {
+        // Karena sudah ada yg used, hapus semua yg unused
+        for (final s in unusedSatuan) {
+          await deleteSatuan(s.id);
+          deleted++;
+        }
+      }
+    }
+
+    return (deleted: deleted, protected: protected);
+  }
+
+  @override
+  Future<List<RiwayatPerubahan>> getRiwayatPerubahan(String produkId) async {
+    final data = await (_db.select(_db.riwayatPerubahanProdukTable)
+      ..where((t) => t.produkId.equals(produkId))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
+    ).get();
+
+    return data.map((d) => RiwayatPerubahan(
+      id: d.id,
+      produkId: d.produkId,
+      kolomDiubah: d.kolomDiubah,
+      nilaiLama: d.nilaiLama,
+      nilaiBaru: d.nilaiBaru,
+      createdAt: d.createdAt,
+    )).toList();
   }
 }

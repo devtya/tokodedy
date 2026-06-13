@@ -416,6 +416,21 @@ class $ProdukTableTable extends ProdukTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -452,6 +467,7 @@ class $ProdukTableTable extends ProdukTable
     kategori,
     satuan,
     imageUrl,
+    isArchived,
     updatedAt,
     createdAt,
   ];
@@ -531,6 +547,12 @@ class $ProdukTableTable extends ProdukTable
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
       );
     }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -592,6 +614,10 @@ class $ProdukTableTable extends ProdukTable
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
       ),
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -620,6 +646,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
   final String? kategori;
   final String satuan;
   final String? imageUrl;
+  final bool isArchived;
   final DateTime updatedAt;
   final DateTime createdAt;
   const ProdukTableData({
@@ -633,6 +660,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     this.kategori,
     required this.satuan,
     this.imageUrl,
+    required this.isArchived,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -657,6 +685,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
     }
+    map['is_archived'] = Variable<bool>(isArchived);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -682,6 +711,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      isArchived: Value(isArchived),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -703,6 +733,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       kategori: serializer.fromJson<String?>(json['kategori']),
       satuan: serializer.fromJson<String>(json['satuan']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -721,6 +752,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       'kategori': serializer.toJson<String?>(kategori),
       'satuan': serializer.toJson<String>(satuan),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'isArchived': serializer.toJson<bool>(isArchived),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -737,6 +769,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     Value<String?> kategori = const Value.absent(),
     String? satuan,
     Value<String?> imageUrl = const Value.absent(),
+    bool? isArchived,
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ProdukTableData(
@@ -750,6 +783,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     kategori: kategori.present ? kategori.value : this.kategori,
     satuan: satuan ?? this.satuan,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    isArchived: isArchived ?? this.isArchived,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -767,6 +801,9 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
       kategori: data.kategori.present ? data.kategori.value : this.kategori,
       satuan: data.satuan.present ? data.satuan.value : this.satuan,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -785,6 +822,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('isArchived: $isArchived, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -803,6 +841,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
     kategori,
     satuan,
     imageUrl,
+    isArchived,
     updatedAt,
     createdAt,
   );
@@ -820,6 +859,7 @@ class ProdukTableData extends DataClass implements Insertable<ProdukTableData> {
           other.kategori == this.kategori &&
           other.satuan == this.satuan &&
           other.imageUrl == this.imageUrl &&
+          other.isArchived == this.isArchived &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -835,6 +875,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
   final Value<String?> kategori;
   final Value<String> satuan;
   final Value<String?> imageUrl;
+  final Value<bool> isArchived;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -849,6 +890,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.isArchived = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -864,6 +906,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     this.kategori = const Value.absent(),
     this.satuan = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.isArchived = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -880,6 +923,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Expression<String>? kategori,
     Expression<String>? satuan,
     Expression<String>? imageUrl,
+    Expression<bool>? isArchived,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -895,6 +939,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       if (kategori != null) 'kategori': kategori,
       if (satuan != null) 'satuan': satuan,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (isArchived != null) 'is_archived': isArchived,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -912,6 +957,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     Value<String?>? kategori,
     Value<String>? satuan,
     Value<String?>? imageUrl,
+    Value<bool>? isArchived,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -927,6 +973,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
       kategori: kategori ?? this.kategori,
       satuan: satuan ?? this.satuan,
       imageUrl: imageUrl ?? this.imageUrl,
+      isArchived: isArchived ?? this.isArchived,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -966,6 +1013,9 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -991,6 +1041,7 @@ class ProdukTableCompanion extends UpdateCompanion<ProdukTableData> {
           ..write('kategori: $kategori, ')
           ..write('satuan: $satuan, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('isArchived: $isArchived, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -1449,6 +1500,430 @@ class SatuanProdukTableCompanion
           ..write('hargaBeli: $hargaBeli, ')
           ..write('hargaJual: $hargaJual, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RiwayatPerubahanProdukTableTable extends RiwayatPerubahanProdukTable
+    with
+        TableInfo<
+          $RiwayatPerubahanProdukTableTable,
+          RiwayatPerubahanProdukTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RiwayatPerubahanProdukTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _produkIdMeta = const VerificationMeta(
+    'produkId',
+  );
+  @override
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
+    'produk_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kolomDiubahMeta = const VerificationMeta(
+    'kolomDiubah',
+  );
+  @override
+  late final GeneratedColumn<String> kolomDiubah = GeneratedColumn<String>(
+    'kolom_diubah',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nilaiLamaMeta = const VerificationMeta(
+    'nilaiLama',
+  );
+  @override
+  late final GeneratedColumn<String> nilaiLama = GeneratedColumn<String>(
+    'nilai_lama',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nilaiBaruMeta = const VerificationMeta(
+    'nilaiBaru',
+  );
+  @override
+  late final GeneratedColumn<String> nilaiBaru = GeneratedColumn<String>(
+    'nilai_baru',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    produkId,
+    kolomDiubah,
+    nilaiLama,
+    nilaiBaru,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'riwayat_perubahan_produk_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RiwayatPerubahanProdukTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('produk_id')) {
+      context.handle(
+        _produkIdMeta,
+        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('kolom_diubah')) {
+      context.handle(
+        _kolomDiubahMeta,
+        kolomDiubah.isAcceptableOrUnknown(
+          data['kolom_diubah']!,
+          _kolomDiubahMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_kolomDiubahMeta);
+    }
+    if (data.containsKey('nilai_lama')) {
+      context.handle(
+        _nilaiLamaMeta,
+        nilaiLama.isAcceptableOrUnknown(data['nilai_lama']!, _nilaiLamaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nilaiLamaMeta);
+    }
+    if (data.containsKey('nilai_baru')) {
+      context.handle(
+        _nilaiBaruMeta,
+        nilaiBaru.isAcceptableOrUnknown(data['nilai_baru']!, _nilaiBaruMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nilaiBaruMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RiwayatPerubahanProdukTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RiwayatPerubahanProdukTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      produkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}produk_id'],
+      )!,
+      kolomDiubah: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kolom_diubah'],
+      )!,
+      nilaiLama: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nilai_lama'],
+      )!,
+      nilaiBaru: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nilai_baru'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RiwayatPerubahanProdukTableTable createAlias(String alias) {
+    return $RiwayatPerubahanProdukTableTable(attachedDatabase, alias);
+  }
+}
+
+class RiwayatPerubahanProdukTableData extends DataClass
+    implements Insertable<RiwayatPerubahanProdukTableData> {
+  final String id;
+  final String produkId;
+  final String kolomDiubah;
+  final String nilaiLama;
+  final String nilaiBaru;
+  final DateTime createdAt;
+  const RiwayatPerubahanProdukTableData({
+    required this.id,
+    required this.produkId,
+    required this.kolomDiubah,
+    required this.nilaiLama,
+    required this.nilaiBaru,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['produk_id'] = Variable<String>(produkId);
+    map['kolom_diubah'] = Variable<String>(kolomDiubah);
+    map['nilai_lama'] = Variable<String>(nilaiLama);
+    map['nilai_baru'] = Variable<String>(nilaiBaru);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  RiwayatPerubahanProdukTableCompanion toCompanion(bool nullToAbsent) {
+    return RiwayatPerubahanProdukTableCompanion(
+      id: Value(id),
+      produkId: Value(produkId),
+      kolomDiubah: Value(kolomDiubah),
+      nilaiLama: Value(nilaiLama),
+      nilaiBaru: Value(nilaiBaru),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory RiwayatPerubahanProdukTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RiwayatPerubahanProdukTableData(
+      id: serializer.fromJson<String>(json['id']),
+      produkId: serializer.fromJson<String>(json['produkId']),
+      kolomDiubah: serializer.fromJson<String>(json['kolomDiubah']),
+      nilaiLama: serializer.fromJson<String>(json['nilaiLama']),
+      nilaiBaru: serializer.fromJson<String>(json['nilaiBaru']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'produkId': serializer.toJson<String>(produkId),
+      'kolomDiubah': serializer.toJson<String>(kolomDiubah),
+      'nilaiLama': serializer.toJson<String>(nilaiLama),
+      'nilaiBaru': serializer.toJson<String>(nilaiBaru),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  RiwayatPerubahanProdukTableData copyWith({
+    String? id,
+    String? produkId,
+    String? kolomDiubah,
+    String? nilaiLama,
+    String? nilaiBaru,
+    DateTime? createdAt,
+  }) => RiwayatPerubahanProdukTableData(
+    id: id ?? this.id,
+    produkId: produkId ?? this.produkId,
+    kolomDiubah: kolomDiubah ?? this.kolomDiubah,
+    nilaiLama: nilaiLama ?? this.nilaiLama,
+    nilaiBaru: nilaiBaru ?? this.nilaiBaru,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  RiwayatPerubahanProdukTableData copyWithCompanion(
+    RiwayatPerubahanProdukTableCompanion data,
+  ) {
+    return RiwayatPerubahanProdukTableData(
+      id: data.id.present ? data.id.value : this.id,
+      produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      kolomDiubah: data.kolomDiubah.present
+          ? data.kolomDiubah.value
+          : this.kolomDiubah,
+      nilaiLama: data.nilaiLama.present ? data.nilaiLama.value : this.nilaiLama,
+      nilaiBaru: data.nilaiBaru.present ? data.nilaiBaru.value : this.nilaiBaru,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiwayatPerubahanProdukTableData(')
+          ..write('id: $id, ')
+          ..write('produkId: $produkId, ')
+          ..write('kolomDiubah: $kolomDiubah, ')
+          ..write('nilaiLama: $nilaiLama, ')
+          ..write('nilaiBaru: $nilaiBaru, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, produkId, kolomDiubah, nilaiLama, nilaiBaru, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RiwayatPerubahanProdukTableData &&
+          other.id == this.id &&
+          other.produkId == this.produkId &&
+          other.kolomDiubah == this.kolomDiubah &&
+          other.nilaiLama == this.nilaiLama &&
+          other.nilaiBaru == this.nilaiBaru &&
+          other.createdAt == this.createdAt);
+}
+
+class RiwayatPerubahanProdukTableCompanion
+    extends UpdateCompanion<RiwayatPerubahanProdukTableData> {
+  final Value<String> id;
+  final Value<String> produkId;
+  final Value<String> kolomDiubah;
+  final Value<String> nilaiLama;
+  final Value<String> nilaiBaru;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const RiwayatPerubahanProdukTableCompanion({
+    this.id = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.kolomDiubah = const Value.absent(),
+    this.nilaiLama = const Value.absent(),
+    this.nilaiBaru = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RiwayatPerubahanProdukTableCompanion.insert({
+    required String id,
+    required String produkId,
+    required String kolomDiubah,
+    required String nilaiLama,
+    required String nilaiBaru,
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       produkId = Value(produkId),
+       kolomDiubah = Value(kolomDiubah),
+       nilaiLama = Value(nilaiLama),
+       nilaiBaru = Value(nilaiBaru);
+  static Insertable<RiwayatPerubahanProdukTableData> custom({
+    Expression<String>? id,
+    Expression<String>? produkId,
+    Expression<String>? kolomDiubah,
+    Expression<String>? nilaiLama,
+    Expression<String>? nilaiBaru,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (produkId != null) 'produk_id': produkId,
+      if (kolomDiubah != null) 'kolom_diubah': kolomDiubah,
+      if (nilaiLama != null) 'nilai_lama': nilaiLama,
+      if (nilaiBaru != null) 'nilai_baru': nilaiBaru,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RiwayatPerubahanProdukTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? produkId,
+    Value<String>? kolomDiubah,
+    Value<String>? nilaiLama,
+    Value<String>? nilaiBaru,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return RiwayatPerubahanProdukTableCompanion(
+      id: id ?? this.id,
+      produkId: produkId ?? this.produkId,
+      kolomDiubah: kolomDiubah ?? this.kolomDiubah,
+      nilaiLama: nilaiLama ?? this.nilaiLama,
+      nilaiBaru: nilaiBaru ?? this.nilaiBaru,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (produkId.present) {
+      map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (kolomDiubah.present) {
+      map['kolom_diubah'] = Variable<String>(kolomDiubah.value);
+    }
+    if (nilaiLama.present) {
+      map['nilai_lama'] = Variable<String>(nilaiLama.value);
+    }
+    if (nilaiBaru.present) {
+      map['nilai_baru'] = Variable<String>(nilaiBaru.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiwayatPerubahanProdukTableCompanion(')
+          ..write('id: $id, ')
+          ..write('produkId: $produkId, ')
+          ..write('kolomDiubah: $kolomDiubah, ')
+          ..write('nilaiLama: $nilaiLama, ')
+          ..write('nilaiBaru: $nilaiBaru, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2769,6 +3244,17 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _namaProdukMeta = const VerificationMeta(
+    'namaProduk',
+  );
+  @override
+  late final GeneratedColumn<String> namaProduk = GeneratedColumn<String>(
+    'nama_produk',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
   @override
   late final GeneratedColumn<int> jumlah = GeneratedColumn<int>(
@@ -2808,6 +3294,7 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
     id,
     transaksiId,
     produkId,
+    namaProduk,
     jumlah,
     hargaSatuan,
     subtotal,
@@ -2847,6 +3334,12 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
       );
     } else if (isInserting) {
       context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('nama_produk')) {
+      context.handle(
+        _namaProdukMeta,
+        namaProduk.isAcceptableOrUnknown(data['nama_produk']!, _namaProdukMeta),
+      );
     }
     if (data.containsKey('jumlah')) {
       context.handle(
@@ -2890,6 +3383,10 @@ class $ItemTransaksiTableTable extends ItemTransaksiTable
         DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
+      namaProduk: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama_produk'],
+      ),
       jumlah: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}jumlah'],
@@ -2916,6 +3413,7 @@ class ItemTransaksiTableData extends DataClass
   final String id;
   final String transaksiId;
   final String produkId;
+  final String? namaProduk;
   final int jumlah;
   final double hargaSatuan;
   final double subtotal;
@@ -2923,6 +3421,7 @@ class ItemTransaksiTableData extends DataClass
     required this.id,
     required this.transaksiId,
     required this.produkId,
+    this.namaProduk,
     required this.jumlah,
     required this.hargaSatuan,
     required this.subtotal,
@@ -2933,6 +3432,9 @@ class ItemTransaksiTableData extends DataClass
     map['id'] = Variable<String>(id);
     map['transaksi_id'] = Variable<String>(transaksiId);
     map['produk_id'] = Variable<String>(produkId);
+    if (!nullToAbsent || namaProduk != null) {
+      map['nama_produk'] = Variable<String>(namaProduk);
+    }
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_satuan'] = Variable<double>(hargaSatuan);
     map['subtotal'] = Variable<double>(subtotal);
@@ -2944,6 +3446,9 @@ class ItemTransaksiTableData extends DataClass
       id: Value(id),
       transaksiId: Value(transaksiId),
       produkId: Value(produkId),
+      namaProduk: namaProduk == null && nullToAbsent
+          ? const Value.absent()
+          : Value(namaProduk),
       jumlah: Value(jumlah),
       hargaSatuan: Value(hargaSatuan),
       subtotal: Value(subtotal),
@@ -2959,6 +3464,7 @@ class ItemTransaksiTableData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       transaksiId: serializer.fromJson<String>(json['transaksiId']),
       produkId: serializer.fromJson<String>(json['produkId']),
+      namaProduk: serializer.fromJson<String?>(json['namaProduk']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaSatuan: serializer.fromJson<double>(json['hargaSatuan']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
@@ -2971,6 +3477,7 @@ class ItemTransaksiTableData extends DataClass
       'id': serializer.toJson<String>(id),
       'transaksiId': serializer.toJson<String>(transaksiId),
       'produkId': serializer.toJson<String>(produkId),
+      'namaProduk': serializer.toJson<String?>(namaProduk),
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaSatuan': serializer.toJson<double>(hargaSatuan),
       'subtotal': serializer.toJson<double>(subtotal),
@@ -2981,6 +3488,7 @@ class ItemTransaksiTableData extends DataClass
     String? id,
     String? transaksiId,
     String? produkId,
+    Value<String?> namaProduk = const Value.absent(),
     int? jumlah,
     double? hargaSatuan,
     double? subtotal,
@@ -2988,6 +3496,7 @@ class ItemTransaksiTableData extends DataClass
     id: id ?? this.id,
     transaksiId: transaksiId ?? this.transaksiId,
     produkId: produkId ?? this.produkId,
+    namaProduk: namaProduk.present ? namaProduk.value : this.namaProduk,
     jumlah: jumlah ?? this.jumlah,
     hargaSatuan: hargaSatuan ?? this.hargaSatuan,
     subtotal: subtotal ?? this.subtotal,
@@ -2999,6 +3508,9 @@ class ItemTransaksiTableData extends DataClass
           ? data.transaksiId.value
           : this.transaksiId,
       produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      namaProduk: data.namaProduk.present
+          ? data.namaProduk.value
+          : this.namaProduk,
       jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
       hargaSatuan: data.hargaSatuan.present
           ? data.hargaSatuan.value
@@ -3013,6 +3525,7 @@ class ItemTransaksiTableData extends DataClass
           ..write('id: $id, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaSatuan: $hargaSatuan, ')
           ..write('subtotal: $subtotal')
@@ -3021,8 +3534,15 @@ class ItemTransaksiTableData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, transaksiId, produkId, jumlah, hargaSatuan, subtotal);
+  int get hashCode => Object.hash(
+    id,
+    transaksiId,
+    produkId,
+    namaProduk,
+    jumlah,
+    hargaSatuan,
+    subtotal,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3030,6 +3550,7 @@ class ItemTransaksiTableData extends DataClass
           other.id == this.id &&
           other.transaksiId == this.transaksiId &&
           other.produkId == this.produkId &&
+          other.namaProduk == this.namaProduk &&
           other.jumlah == this.jumlah &&
           other.hargaSatuan == this.hargaSatuan &&
           other.subtotal == this.subtotal);
@@ -3040,6 +3561,7 @@ class ItemTransaksiTableCompanion
   final Value<String> id;
   final Value<String> transaksiId;
   final Value<String> produkId;
+  final Value<String?> namaProduk;
   final Value<int> jumlah;
   final Value<double> hargaSatuan;
   final Value<double> subtotal;
@@ -3048,6 +3570,7 @@ class ItemTransaksiTableCompanion
     this.id = const Value.absent(),
     this.transaksiId = const Value.absent(),
     this.produkId = const Value.absent(),
+    this.namaProduk = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
@@ -3057,6 +3580,7 @@ class ItemTransaksiTableCompanion
     required String id,
     required String transaksiId,
     required String produkId,
+    this.namaProduk = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
@@ -3068,6 +3592,7 @@ class ItemTransaksiTableCompanion
     Expression<String>? id,
     Expression<String>? transaksiId,
     Expression<String>? produkId,
+    Expression<String>? namaProduk,
     Expression<int>? jumlah,
     Expression<double>? hargaSatuan,
     Expression<double>? subtotal,
@@ -3077,6 +3602,7 @@ class ItemTransaksiTableCompanion
       if (id != null) 'id': id,
       if (transaksiId != null) 'transaksi_id': transaksiId,
       if (produkId != null) 'produk_id': produkId,
+      if (namaProduk != null) 'nama_produk': namaProduk,
       if (jumlah != null) 'jumlah': jumlah,
       if (hargaSatuan != null) 'harga_satuan': hargaSatuan,
       if (subtotal != null) 'subtotal': subtotal,
@@ -3088,6 +3614,7 @@ class ItemTransaksiTableCompanion
     Value<String>? id,
     Value<String>? transaksiId,
     Value<String>? produkId,
+    Value<String?>? namaProduk,
     Value<int>? jumlah,
     Value<double>? hargaSatuan,
     Value<double>? subtotal,
@@ -3097,6 +3624,7 @@ class ItemTransaksiTableCompanion
       id: id ?? this.id,
       transaksiId: transaksiId ?? this.transaksiId,
       produkId: produkId ?? this.produkId,
+      namaProduk: namaProduk ?? this.namaProduk,
       jumlah: jumlah ?? this.jumlah,
       hargaSatuan: hargaSatuan ?? this.hargaSatuan,
       subtotal: subtotal ?? this.subtotal,
@@ -3115,6 +3643,9 @@ class ItemTransaksiTableCompanion
     }
     if (produkId.present) {
       map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (namaProduk.present) {
+      map['nama_produk'] = Variable<String>(namaProduk.value);
     }
     if (jumlah.present) {
       map['jumlah'] = Variable<int>(jumlah.value);
@@ -3137,6 +3668,7 @@ class ItemTransaksiTableCompanion
           ..write('id: $id, ')
           ..write('transaksiId: $transaksiId, ')
           ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaSatuan: $hargaSatuan, ')
           ..write('subtotal: $subtotal, ')
@@ -4535,6 +5067,17 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _namaProdukMeta = const VerificationMeta(
+    'namaProduk',
+  );
+  @override
+  late final GeneratedColumn<String> namaProduk = GeneratedColumn<String>(
+    'nama_produk',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
   @override
   late final GeneratedColumn<int> jumlah = GeneratedColumn<int>(
@@ -4597,6 +5140,7 @@ class $ItemPembelianTableTable extends ItemPembelianTable
     id,
     pembelianId,
     produkId,
+    namaProduk,
     jumlah,
     hargaBeliSatuan,
     subtotal,
@@ -4638,6 +5182,12 @@ class $ItemPembelianTableTable extends ItemPembelianTable
       );
     } else if (isInserting) {
       context.missing(_produkIdMeta);
+    }
+    if (data.containsKey('nama_produk')) {
+      context.handle(
+        _namaProdukMeta,
+        namaProduk.isAcceptableOrUnknown(data['nama_produk']!, _namaProdukMeta),
+      );
     }
     if (data.containsKey('jumlah')) {
       context.handle(
@@ -4693,6 +5243,10 @@ class $ItemPembelianTableTable extends ItemPembelianTable
         DriftSqlType.string,
         data['${effectivePrefix}produk_id'],
       )!,
+      namaProduk: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama_produk'],
+      ),
       jumlah: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}jumlah'],
@@ -4727,6 +5281,7 @@ class ItemPembelianTableData extends DataClass
   final String id;
   final String pembelianId;
   final String produkId;
+  final String? namaProduk;
   final int jumlah;
   final double hargaBeliSatuan;
   final double subtotal;
@@ -4736,6 +5291,7 @@ class ItemPembelianTableData extends DataClass
     required this.id,
     required this.pembelianId,
     required this.produkId,
+    this.namaProduk,
     required this.jumlah,
     required this.hargaBeliSatuan,
     required this.subtotal,
@@ -4748,6 +5304,9 @@ class ItemPembelianTableData extends DataClass
     map['id'] = Variable<String>(id);
     map['pembelian_id'] = Variable<String>(pembelianId);
     map['produk_id'] = Variable<String>(produkId);
+    if (!nullToAbsent || namaProduk != null) {
+      map['nama_produk'] = Variable<String>(namaProduk);
+    }
     map['jumlah'] = Variable<int>(jumlah);
     map['harga_beli_satuan'] = Variable<double>(hargaBeliSatuan);
     map['subtotal'] = Variable<double>(subtotal);
@@ -4763,6 +5322,9 @@ class ItemPembelianTableData extends DataClass
       id: Value(id),
       pembelianId: Value(pembelianId),
       produkId: Value(produkId),
+      namaProduk: namaProduk == null && nullToAbsent
+          ? const Value.absent()
+          : Value(namaProduk),
       jumlah: Value(jumlah),
       hargaBeliSatuan: Value(hargaBeliSatuan),
       subtotal: Value(subtotal),
@@ -4782,6 +5344,7 @@ class ItemPembelianTableData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       pembelianId: serializer.fromJson<String>(json['pembelianId']),
       produkId: serializer.fromJson<String>(json['produkId']),
+      namaProduk: serializer.fromJson<String?>(json['namaProduk']),
       jumlah: serializer.fromJson<int>(json['jumlah']),
       hargaBeliSatuan: serializer.fromJson<double>(json['hargaBeliSatuan']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
@@ -4796,6 +5359,7 @@ class ItemPembelianTableData extends DataClass
       'id': serializer.toJson<String>(id),
       'pembelianId': serializer.toJson<String>(pembelianId),
       'produkId': serializer.toJson<String>(produkId),
+      'namaProduk': serializer.toJson<String?>(namaProduk),
       'jumlah': serializer.toJson<int>(jumlah),
       'hargaBeliSatuan': serializer.toJson<double>(hargaBeliSatuan),
       'subtotal': serializer.toJson<double>(subtotal),
@@ -4808,6 +5372,7 @@ class ItemPembelianTableData extends DataClass
     String? id,
     String? pembelianId,
     String? produkId,
+    Value<String?> namaProduk = const Value.absent(),
     int? jumlah,
     double? hargaBeliSatuan,
     double? subtotal,
@@ -4817,6 +5382,7 @@ class ItemPembelianTableData extends DataClass
     id: id ?? this.id,
     pembelianId: pembelianId ?? this.pembelianId,
     produkId: produkId ?? this.produkId,
+    namaProduk: namaProduk.present ? namaProduk.value : this.namaProduk,
     jumlah: jumlah ?? this.jumlah,
     hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
     subtotal: subtotal ?? this.subtotal,
@@ -4830,6 +5396,9 @@ class ItemPembelianTableData extends DataClass
           ? data.pembelianId.value
           : this.pembelianId,
       produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      namaProduk: data.namaProduk.present
+          ? data.namaProduk.value
+          : this.namaProduk,
       jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
       hargaBeliSatuan: data.hargaBeliSatuan.present
           ? data.hargaBeliSatuan.value
@@ -4846,6 +5415,7 @@ class ItemPembelianTableData extends DataClass
           ..write('id: $id, ')
           ..write('pembelianId: $pembelianId, ')
           ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
           ..write('subtotal: $subtotal, ')
@@ -4860,6 +5430,7 @@ class ItemPembelianTableData extends DataClass
     id,
     pembelianId,
     produkId,
+    namaProduk,
     jumlah,
     hargaBeliSatuan,
     subtotal,
@@ -4873,6 +5444,7 @@ class ItemPembelianTableData extends DataClass
           other.id == this.id &&
           other.pembelianId == this.pembelianId &&
           other.produkId == this.produkId &&
+          other.namaProduk == this.namaProduk &&
           other.jumlah == this.jumlah &&
           other.hargaBeliSatuan == this.hargaBeliSatuan &&
           other.subtotal == this.subtotal &&
@@ -4885,6 +5457,7 @@ class ItemPembelianTableCompanion
   final Value<String> id;
   final Value<String> pembelianId;
   final Value<String> produkId;
+  final Value<String?> namaProduk;
   final Value<int> jumlah;
   final Value<double> hargaBeliSatuan;
   final Value<double> subtotal;
@@ -4895,6 +5468,7 @@ class ItemPembelianTableCompanion
     this.id = const Value.absent(),
     this.pembelianId = const Value.absent(),
     this.produkId = const Value.absent(),
+    this.namaProduk = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaBeliSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
@@ -4906,6 +5480,7 @@ class ItemPembelianTableCompanion
     required String id,
     required String pembelianId,
     required String produkId,
+    this.namaProduk = const Value.absent(),
     this.jumlah = const Value.absent(),
     this.hargaBeliSatuan = const Value.absent(),
     this.subtotal = const Value.absent(),
@@ -4919,6 +5494,7 @@ class ItemPembelianTableCompanion
     Expression<String>? id,
     Expression<String>? pembelianId,
     Expression<String>? produkId,
+    Expression<String>? namaProduk,
     Expression<int>? jumlah,
     Expression<double>? hargaBeliSatuan,
     Expression<double>? subtotal,
@@ -4930,6 +5506,7 @@ class ItemPembelianTableCompanion
       if (id != null) 'id': id,
       if (pembelianId != null) 'pembelian_id': pembelianId,
       if (produkId != null) 'produk_id': produkId,
+      if (namaProduk != null) 'nama_produk': namaProduk,
       if (jumlah != null) 'jumlah': jumlah,
       if (hargaBeliSatuan != null) 'harga_beli_satuan': hargaBeliSatuan,
       if (subtotal != null) 'subtotal': subtotal,
@@ -4943,6 +5520,7 @@ class ItemPembelianTableCompanion
     Value<String>? id,
     Value<String>? pembelianId,
     Value<String>? produkId,
+    Value<String?>? namaProduk,
     Value<int>? jumlah,
     Value<double>? hargaBeliSatuan,
     Value<double>? subtotal,
@@ -4954,6 +5532,7 @@ class ItemPembelianTableCompanion
       id: id ?? this.id,
       pembelianId: pembelianId ?? this.pembelianId,
       produkId: produkId ?? this.produkId,
+      namaProduk: namaProduk ?? this.namaProduk,
       jumlah: jumlah ?? this.jumlah,
       hargaBeliSatuan: hargaBeliSatuan ?? this.hargaBeliSatuan,
       subtotal: subtotal ?? this.subtotal,
@@ -4974,6 +5553,9 @@ class ItemPembelianTableCompanion
     }
     if (produkId.present) {
       map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (namaProduk.present) {
+      map['nama_produk'] = Variable<String>(namaProduk.value);
     }
     if (jumlah.present) {
       map['jumlah'] = Variable<int>(jumlah.value);
@@ -5002,6 +5584,7 @@ class ItemPembelianTableCompanion
           ..write('id: $id, ')
           ..write('pembelianId: $pembelianId, ')
           ..write('produkId: $produkId, ')
+          ..write('namaProduk: $namaProduk, ')
           ..write('jumlah: $jumlah, ')
           ..write('hargaBeliSatuan: $hargaBeliSatuan, ')
           ..write('subtotal: $subtotal, ')
@@ -11058,6 +11641,21 @@ class $OnlineOrderItemTableTable extends OnlineOrderItemTable
     requiredDuringInsert: false,
     defaultValue: const Constant(1.0),
   );
+  static const VerificationMeta _isUnavailableMeta = const VerificationMeta(
+    'isUnavailable',
+  );
+  @override
+  late final GeneratedColumn<bool> isUnavailable = GeneratedColumn<bool>(
+    'is_unavailable',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_unavailable" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -11069,6 +11667,7 @@ class $OnlineOrderItemTableTable extends OnlineOrderItemTable
     subtotal,
     satuanId,
     konversi,
+    isUnavailable,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11147,6 +11746,15 @@ class $OnlineOrderItemTableTable extends OnlineOrderItemTable
         konversi.isAcceptableOrUnknown(data['konversi']!, _konversiMeta),
       );
     }
+    if (data.containsKey('is_unavailable')) {
+      context.handle(
+        _isUnavailableMeta,
+        isUnavailable.isAcceptableOrUnknown(
+          data['is_unavailable']!,
+          _isUnavailableMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -11192,6 +11800,10 @@ class $OnlineOrderItemTableTable extends OnlineOrderItemTable
         DriftSqlType.double,
         data['${effectivePrefix}konversi'],
       )!,
+      isUnavailable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_unavailable'],
+      )!,
     );
   }
 
@@ -11211,6 +11823,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
   final double subtotal;
   final String? satuanId;
   final double konversi;
+  final bool isUnavailable;
   const OnlineOrderItem({
     required this.id,
     required this.onlineOrderId,
@@ -11221,6 +11834,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
     required this.subtotal,
     this.satuanId,
     required this.konversi,
+    required this.isUnavailable,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -11236,6 +11850,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
       map['satuan_id'] = Variable<String>(satuanId);
     }
     map['konversi'] = Variable<double>(konversi);
+    map['is_unavailable'] = Variable<bool>(isUnavailable);
     return map;
   }
 
@@ -11252,6 +11867,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
           ? const Value.absent()
           : Value(satuanId),
       konversi: Value(konversi),
+      isUnavailable: Value(isUnavailable),
     );
   }
 
@@ -11270,6 +11886,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
       subtotal: serializer.fromJson<double>(json['subtotal']),
       satuanId: serializer.fromJson<String?>(json['satuanId']),
       konversi: serializer.fromJson<double>(json['konversi']),
+      isUnavailable: serializer.fromJson<bool>(json['isUnavailable']),
     );
   }
   @override
@@ -11285,6 +11902,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
       'subtotal': serializer.toJson<double>(subtotal),
       'satuanId': serializer.toJson<String?>(satuanId),
       'konversi': serializer.toJson<double>(konversi),
+      'isUnavailable': serializer.toJson<bool>(isUnavailable),
     };
   }
 
@@ -11298,6 +11916,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
     double? subtotal,
     Value<String?> satuanId = const Value.absent(),
     double? konversi,
+    bool? isUnavailable,
   }) => OnlineOrderItem(
     id: id ?? this.id,
     onlineOrderId: onlineOrderId ?? this.onlineOrderId,
@@ -11308,6 +11927,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
     subtotal: subtotal ?? this.subtotal,
     satuanId: satuanId.present ? satuanId.value : this.satuanId,
     konversi: konversi ?? this.konversi,
+    isUnavailable: isUnavailable ?? this.isUnavailable,
   );
   OnlineOrderItem copyWithCompanion(OnlineOrderItemTableCompanion data) {
     return OnlineOrderItem(
@@ -11326,6 +11946,9 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
       subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
       satuanId: data.satuanId.present ? data.satuanId.value : this.satuanId,
       konversi: data.konversi.present ? data.konversi.value : this.konversi,
+      isUnavailable: data.isUnavailable.present
+          ? data.isUnavailable.value
+          : this.isUnavailable,
     );
   }
 
@@ -11340,7 +11963,8 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
           ..write('jumlah: $jumlah, ')
           ..write('subtotal: $subtotal, ')
           ..write('satuanId: $satuanId, ')
-          ..write('konversi: $konversi')
+          ..write('konversi: $konversi, ')
+          ..write('isUnavailable: $isUnavailable')
           ..write(')'))
         .toString();
   }
@@ -11356,6 +11980,7 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
     subtotal,
     satuanId,
     konversi,
+    isUnavailable,
   );
   @override
   bool operator ==(Object other) =>
@@ -11369,7 +11994,8 @@ class OnlineOrderItem extends DataClass implements Insertable<OnlineOrderItem> {
           other.jumlah == this.jumlah &&
           other.subtotal == this.subtotal &&
           other.satuanId == this.satuanId &&
-          other.konversi == this.konversi);
+          other.konversi == this.konversi &&
+          other.isUnavailable == this.isUnavailable);
 }
 
 class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
@@ -11382,6 +12008,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
   final Value<double> subtotal;
   final Value<String?> satuanId;
   final Value<double> konversi;
+  final Value<bool> isUnavailable;
   final Value<int> rowid;
   const OnlineOrderItemTableCompanion({
     this.id = const Value.absent(),
@@ -11393,6 +12020,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
     this.subtotal = const Value.absent(),
     this.satuanId = const Value.absent(),
     this.konversi = const Value.absent(),
+    this.isUnavailable = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OnlineOrderItemTableCompanion.insert({
@@ -11405,6 +12033,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
     this.subtotal = const Value.absent(),
     this.satuanId = const Value.absent(),
     this.konversi = const Value.absent(),
+    this.isUnavailable = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        onlineOrderId = Value(onlineOrderId),
@@ -11420,6 +12049,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
     Expression<double>? subtotal,
     Expression<String>? satuanId,
     Expression<double>? konversi,
+    Expression<bool>? isUnavailable,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -11432,6 +12062,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
       if (subtotal != null) 'subtotal': subtotal,
       if (satuanId != null) 'satuan_id': satuanId,
       if (konversi != null) 'konversi': konversi,
+      if (isUnavailable != null) 'is_unavailable': isUnavailable,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -11446,6 +12077,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
     Value<double>? subtotal,
     Value<String?>? satuanId,
     Value<double>? konversi,
+    Value<bool>? isUnavailable,
     Value<int>? rowid,
   }) {
     return OnlineOrderItemTableCompanion(
@@ -11458,6 +12090,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
       subtotal: subtotal ?? this.subtotal,
       satuanId: satuanId ?? this.satuanId,
       konversi: konversi ?? this.konversi,
+      isUnavailable: isUnavailable ?? this.isUnavailable,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -11492,6 +12125,9 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
     if (konversi.present) {
       map['konversi'] = Variable<double>(konversi.value);
     }
+    if (isUnavailable.present) {
+      map['is_unavailable'] = Variable<bool>(isUnavailable.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -11510,6 +12146,7 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
           ..write('subtotal: $subtotal, ')
           ..write('satuanId: $satuanId, ')
           ..write('konversi: $konversi, ')
+          ..write('isUnavailable: $isUnavailable, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11523,6 +12160,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProdukTableTable produkTable = $ProdukTableTable(this);
   late final $SatuanProdukTableTable satuanProdukTable =
       $SatuanProdukTableTable(this);
+  late final $RiwayatPerubahanProdukTableTable riwayatPerubahanProdukTable =
+      $RiwayatPerubahanProdukTableTable(this);
   late final $SupplierTableTable supplierTable = $SupplierTableTable(this);
   late final $SupplierProductsTableTable supplierProductsTable =
       $SupplierProductsTableTable(this);
@@ -11572,6 +12211,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userTable,
     produkTable,
     satuanProdukTable,
+    riwayatPerubahanProdukTable,
     supplierTable,
     supplierProductsTable,
     transaksiTable,
@@ -11789,6 +12429,7 @@ typedef $$ProdukTableTableCreateCompanionBuilder =
       Value<String?> kategori,
       Value<String> satuan,
       Value<String?> imageUrl,
+      Value<bool> isArchived,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -11805,6 +12446,7 @@ typedef $$ProdukTableTableUpdateCompanionBuilder =
       Value<String?> kategori,
       Value<String> satuan,
       Value<String?> imageUrl,
+      Value<bool> isArchived,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -11896,6 +12538,11 @@ class $$ProdukTableTableFilterComposer
 
   ColumnFilters<String> get imageUrl => $composableBuilder(
     column: $table.imageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11994,6 +12641,11 @@ class $$ProdukTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12045,6 +12697,11 @@ class $$ProdukTableTableAnnotationComposer
 
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -12117,6 +12774,7 @@ class $$ProdukTableTableTableManager
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -12131,6 +12789,7 @@ class $$ProdukTableTableTableManager
                 kategori: kategori,
                 satuan: satuan,
                 imageUrl: imageUrl,
+                isArchived: isArchived,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -12147,6 +12806,7 @@ class $$ProdukTableTableTableManager
                 Value<String?> kategori = const Value.absent(),
                 Value<String> satuan = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -12161,6 +12821,7 @@ class $$ProdukTableTableTableManager
                 kategori: kategori,
                 satuan: satuan,
                 imageUrl: imageUrl,
+                isArchived: isArchived,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -12585,6 +13246,246 @@ typedef $$SatuanProdukTableTableProcessedTableManager =
       (SatuanProdukTableData, $$SatuanProdukTableTableReferences),
       SatuanProdukTableData,
       PrefetchHooks Function({bool onlineOrderItemTableRefs})
+    >;
+typedef $$RiwayatPerubahanProdukTableTableCreateCompanionBuilder =
+    RiwayatPerubahanProdukTableCompanion Function({
+      required String id,
+      required String produkId,
+      required String kolomDiubah,
+      required String nilaiLama,
+      required String nilaiBaru,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$RiwayatPerubahanProdukTableTableUpdateCompanionBuilder =
+    RiwayatPerubahanProdukTableCompanion Function({
+      Value<String> id,
+      Value<String> produkId,
+      Value<String> kolomDiubah,
+      Value<String> nilaiLama,
+      Value<String> nilaiBaru,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$RiwayatPerubahanProdukTableTableFilterComposer
+    extends Composer<_$AppDatabase, $RiwayatPerubahanProdukTableTable> {
+  $$RiwayatPerubahanProdukTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kolomDiubah => $composableBuilder(
+    column: $table.kolomDiubah,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nilaiLama => $composableBuilder(
+    column: $table.nilaiLama,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nilaiBaru => $composableBuilder(
+    column: $table.nilaiBaru,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RiwayatPerubahanProdukTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $RiwayatPerubahanProdukTableTable> {
+  $$RiwayatPerubahanProdukTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kolomDiubah => $composableBuilder(
+    column: $table.kolomDiubah,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nilaiLama => $composableBuilder(
+    column: $table.nilaiLama,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nilaiBaru => $composableBuilder(
+    column: $table.nilaiBaru,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RiwayatPerubahanProdukTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RiwayatPerubahanProdukTableTable> {
+  $$RiwayatPerubahanProdukTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get produkId =>
+      $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<String> get kolomDiubah => $composableBuilder(
+    column: $table.kolomDiubah,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nilaiLama =>
+      $composableBuilder(column: $table.nilaiLama, builder: (column) => column);
+
+  GeneratedColumn<String> get nilaiBaru =>
+      $composableBuilder(column: $table.nilaiBaru, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$RiwayatPerubahanProdukTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RiwayatPerubahanProdukTableTable,
+          RiwayatPerubahanProdukTableData,
+          $$RiwayatPerubahanProdukTableTableFilterComposer,
+          $$RiwayatPerubahanProdukTableTableOrderingComposer,
+          $$RiwayatPerubahanProdukTableTableAnnotationComposer,
+          $$RiwayatPerubahanProdukTableTableCreateCompanionBuilder,
+          $$RiwayatPerubahanProdukTableTableUpdateCompanionBuilder,
+          (
+            RiwayatPerubahanProdukTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $RiwayatPerubahanProdukTableTable,
+              RiwayatPerubahanProdukTableData
+            >,
+          ),
+          RiwayatPerubahanProdukTableData,
+          PrefetchHooks Function()
+        > {
+  $$RiwayatPerubahanProdukTableTableTableManager(
+    _$AppDatabase db,
+    $RiwayatPerubahanProdukTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RiwayatPerubahanProdukTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$RiwayatPerubahanProdukTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RiwayatPerubahanProdukTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> produkId = const Value.absent(),
+                Value<String> kolomDiubah = const Value.absent(),
+                Value<String> nilaiLama = const Value.absent(),
+                Value<String> nilaiBaru = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RiwayatPerubahanProdukTableCompanion(
+                id: id,
+                produkId: produkId,
+                kolomDiubah: kolomDiubah,
+                nilaiLama: nilaiLama,
+                nilaiBaru: nilaiBaru,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String produkId,
+                required String kolomDiubah,
+                required String nilaiLama,
+                required String nilaiBaru,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RiwayatPerubahanProdukTableCompanion.insert(
+                id: id,
+                produkId: produkId,
+                kolomDiubah: kolomDiubah,
+                nilaiLama: nilaiLama,
+                nilaiBaru: nilaiBaru,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RiwayatPerubahanProdukTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RiwayatPerubahanProdukTableTable,
+      RiwayatPerubahanProdukTableData,
+      $$RiwayatPerubahanProdukTableTableFilterComposer,
+      $$RiwayatPerubahanProdukTableTableOrderingComposer,
+      $$RiwayatPerubahanProdukTableTableAnnotationComposer,
+      $$RiwayatPerubahanProdukTableTableCreateCompanionBuilder,
+      $$RiwayatPerubahanProdukTableTableUpdateCompanionBuilder,
+      (
+        RiwayatPerubahanProdukTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $RiwayatPerubahanProdukTableTable,
+          RiwayatPerubahanProdukTableData
+        >,
+      ),
+      RiwayatPerubahanProdukTableData,
+      PrefetchHooks Function()
     >;
 typedef $$SupplierTableTableCreateCompanionBuilder =
     SupplierTableCompanion Function({
@@ -13302,6 +14203,7 @@ typedef $$ItemTransaksiTableTableCreateCompanionBuilder =
       required String id,
       required String transaksiId,
       required String produkId,
+      Value<String?> namaProduk,
       Value<int> jumlah,
       Value<double> hargaSatuan,
       Value<double> subtotal,
@@ -13312,6 +14214,7 @@ typedef $$ItemTransaksiTableTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> transaksiId,
       Value<String> produkId,
+      Value<String?> namaProduk,
       Value<int> jumlah,
       Value<double> hargaSatuan,
       Value<double> subtotal,
@@ -13339,6 +14242,11 @@ class $$ItemTransaksiTableTableFilterComposer
 
   ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13382,6 +14290,11 @@ class $$ItemTransaksiTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get jumlah => $composableBuilder(
     column: $table.jumlah,
     builder: (column) => ColumnOrderings(column),
@@ -13417,6 +14330,11 @@ class $$ItemTransaksiTableTableAnnotationComposer
 
   GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get jumlah =>
       $composableBuilder(column: $table.jumlah, builder: (column) => column);
@@ -13473,6 +14391,7 @@ class $$ItemTransaksiTableTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> transaksiId = const Value.absent(),
                 Value<String> produkId = const Value.absent(),
+                Value<String?> namaProduk = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
@@ -13481,6 +14400,7 @@ class $$ItemTransaksiTableTableTableManager
                 id: id,
                 transaksiId: transaksiId,
                 produkId: produkId,
+                namaProduk: namaProduk,
                 jumlah: jumlah,
                 hargaSatuan: hargaSatuan,
                 subtotal: subtotal,
@@ -13491,6 +14411,7 @@ class $$ItemTransaksiTableTableTableManager
                 required String id,
                 required String transaksiId,
                 required String produkId,
+                Value<String?> namaProduk = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
@@ -13499,6 +14420,7 @@ class $$ItemTransaksiTableTableTableManager
                 id: id,
                 transaksiId: transaksiId,
                 produkId: produkId,
+                namaProduk: namaProduk,
                 jumlah: jumlah,
                 hargaSatuan: hargaSatuan,
                 subtotal: subtotal,
@@ -14276,6 +15198,7 @@ typedef $$ItemPembelianTableTableCreateCompanionBuilder =
       required String id,
       required String pembelianId,
       required String produkId,
+      Value<String?> namaProduk,
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> subtotal,
@@ -14288,6 +15211,7 @@ typedef $$ItemPembelianTableTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> pembelianId,
       Value<String> produkId,
+      Value<String?> namaProduk,
       Value<int> jumlah,
       Value<double> hargaBeliSatuan,
       Value<double> subtotal,
@@ -14317,6 +15241,11 @@ class $$ItemPembelianTableTableFilterComposer
 
   ColumnFilters<String> get produkId => $composableBuilder(
     column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14370,6 +15299,11 @@ class $$ItemPembelianTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get jumlah => $composableBuilder(
     column: $table.jumlah,
     builder: (column) => ColumnOrderings(column),
@@ -14415,6 +15349,11 @@ class $$ItemPembelianTableTableAnnotationComposer
 
   GeneratedColumn<String> get produkId =>
       $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<String> get namaProduk => $composableBuilder(
+    column: $table.namaProduk,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get jumlah =>
       $composableBuilder(column: $table.jumlah, builder: (column) => column);
@@ -14477,6 +15416,7 @@ class $$ItemPembelianTableTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> pembelianId = const Value.absent(),
                 Value<String> produkId = const Value.absent(),
+                Value<String?> namaProduk = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
@@ -14487,6 +15427,7 @@ class $$ItemPembelianTableTableTableManager
                 id: id,
                 pembelianId: pembelianId,
                 produkId: produkId,
+                namaProduk: namaProduk,
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
@@ -14499,6 +15440,7 @@ class $$ItemPembelianTableTableTableManager
                 required String id,
                 required String pembelianId,
                 required String produkId,
+                Value<String?> namaProduk = const Value.absent(),
                 Value<int> jumlah = const Value.absent(),
                 Value<double> hargaBeliSatuan = const Value.absent(),
                 Value<double> subtotal = const Value.absent(),
@@ -14509,6 +15451,7 @@ class $$ItemPembelianTableTableTableManager
                 id: id,
                 pembelianId: pembelianId,
                 produkId: produkId,
+                namaProduk: namaProduk,
                 jumlah: jumlah,
                 hargaBeliSatuan: hargaBeliSatuan,
                 subtotal: subtotal,
@@ -18099,6 +19042,7 @@ typedef $$OnlineOrderItemTableTableCreateCompanionBuilder =
       Value<double> subtotal,
       Value<String?> satuanId,
       Value<double> konversi,
+      Value<bool> isUnavailable,
       Value<int> rowid,
     });
 typedef $$OnlineOrderItemTableTableUpdateCompanionBuilder =
@@ -18112,6 +19056,7 @@ typedef $$OnlineOrderItemTableTableUpdateCompanionBuilder =
       Value<double> subtotal,
       Value<String?> satuanId,
       Value<double> konversi,
+      Value<bool> isUnavailable,
       Value<int> rowid,
     });
 
@@ -18234,6 +19179,11 @@ class $$OnlineOrderItemTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isUnavailable => $composableBuilder(
+    column: $table.isUnavailable,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$OnlineOrderTableTableFilterComposer get onlineOrderId {
     final $$OnlineOrderTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -18343,6 +19293,11 @@ class $$OnlineOrderItemTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isUnavailable => $composableBuilder(
+    column: $table.isUnavailable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$OnlineOrderTableTableOrderingComposer get onlineOrderId {
     final $$OnlineOrderTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -18443,6 +19398,11 @@ class $$OnlineOrderItemTableTableAnnotationComposer
 
   GeneratedColumn<double> get konversi =>
       $composableBuilder(column: $table.konversi, builder: (column) => column);
+
+  GeneratedColumn<bool> get isUnavailable => $composableBuilder(
+    column: $table.isUnavailable,
+    builder: (column) => column,
+  );
 
   $$OnlineOrderTableTableAnnotationComposer get onlineOrderId {
     final $$OnlineOrderTableTableAnnotationComposer composer = $composerBuilder(
@@ -18564,6 +19524,7 @@ class $$OnlineOrderItemTableTableTableManager
                 Value<double> subtotal = const Value.absent(),
                 Value<String?> satuanId = const Value.absent(),
                 Value<double> konversi = const Value.absent(),
+                Value<bool> isUnavailable = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OnlineOrderItemTableCompanion(
                 id: id,
@@ -18575,6 +19536,7 @@ class $$OnlineOrderItemTableTableTableManager
                 subtotal: subtotal,
                 satuanId: satuanId,
                 konversi: konversi,
+                isUnavailable: isUnavailable,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -18588,6 +19550,7 @@ class $$OnlineOrderItemTableTableTableManager
                 Value<double> subtotal = const Value.absent(),
                 Value<String?> satuanId = const Value.absent(),
                 Value<double> konversi = const Value.absent(),
+                Value<bool> isUnavailable = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OnlineOrderItemTableCompanion.insert(
                 id: id,
@@ -18599,6 +19562,7 @@ class $$OnlineOrderItemTableTableTableManager
                 subtotal: subtotal,
                 satuanId: satuanId,
                 konversi: konversi,
+                isUnavailable: isUnavailable,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -18711,6 +19675,12 @@ class $AppDatabaseManager {
       $$ProdukTableTableTableManager(_db, _db.produkTable);
   $$SatuanProdukTableTableTableManager get satuanProdukTable =>
       $$SatuanProdukTableTableTableManager(_db, _db.satuanProdukTable);
+  $$RiwayatPerubahanProdukTableTableTableManager
+  get riwayatPerubahanProdukTable =>
+      $$RiwayatPerubahanProdukTableTableTableManager(
+        _db,
+        _db.riwayatPerubahanProdukTable,
+      );
   $$SupplierTableTableTableManager get supplierTable =>
       $$SupplierTableTableTableManager(_db, _db.supplierTable);
   $$SupplierProductsTableTableTableManager get supplierProductsTable =>

@@ -18,8 +18,19 @@ import 'supplier_page.dart';
 import 'produk_form_page.dart';
 import '../../widgets/cari_produk_dialog.dart';
 
+import '../../../domain/entities/purchase_order.dart';
+import '../../../domain/entities/purchase_order_item.dart';
+import '../../../domain/repositories/purchase_order_repository.dart';
+
 class PurchaseOrderFormPage extends StatefulWidget {
-  const PurchaseOrderFormPage({super.key});
+  final PurchaseOrder? initialPo;
+  final List<PurchaseOrderItem>? initialItems;
+
+  const PurchaseOrderFormPage({
+    super.key,
+    this.initialPo,
+    this.initialItems,
+  });
 
   @override
   State<PurchaseOrderFormPage> createState() => _PurchaseOrderFormPageState();
@@ -28,13 +39,46 @@ class PurchaseOrderFormPage extends StatefulWidget {
 class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
   Supplier? _selectedSupplier;
   final List<ItemPoForm> _items = [];
+  final List<ItemPoForm> _movedToBesokItems = [];
   final _currency = NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
   final _searchController = TextEditingController();
+  final _filterController = TextEditingController();
+  String _searchQuery = '';
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialPo != null) {
+      _selectedSupplier = Supplier(
+        id: widget.initialPo!.supplierId ?? '',
+        nama: widget.initialPo!.namaSupplier ?? '',
+        telepon: '',
+        alamat: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
+    if (widget.initialItems != null) {
+      for (var item in widget.initialItems!) {
+        _items.add(ItemPoForm(
+          produkId: item.produkId,
+          namaProduk: item.namaProduk ?? '',
+          satuanName: '', // Bisa diambil dari ekstrak string
+          qtyPesan: item.qtyPesan,
+          hargaSatuan: item.hargaSatuan,
+          totalHarga: item.subtotal,
+          satuanId: item.satuanId,
+          konversi: item.konversi,
+        ));
+      }
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _filterController.dispose();
     super.dispose();
   }
 
@@ -335,22 +379,63 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
     )).toList();
 
     setState(() => _isSaving = true);
-    bloc.add(AddPurchaseOrderEvent(
-      supplierId: _selectedSupplier!.id,
-      namaSupplier: _selectedSupplier!.nama,
-      items: itemsData,
-    ));
+    if (widget.initialPo != null) {
+      bloc.add(EditPurchaseOrderEvent(
+        poId: widget.initialPo!.id!,
+        supplierId: _selectedSupplier!.id,
+        namaSupplier: _selectedSupplier!.nama,
+        items: itemsData,
+      ));
+    } else {
+      bloc.add(AddPurchaseOrderEvent(
+        supplierId: _selectedSupplier!.id,
+        namaSupplier: _selectedSupplier!.nama,
+        items: itemsData,
+      ));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.initialPo != null;
     return BlocListener<PurchaseOrderBloc, PurchaseOrderState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is PurchaseOrderSuccess) {
           _isSaving = false;
+          if (_movedToBesokItems.isNotEmpty) {
+            try {
+              final repo = sl<PurchaseOrderRepository>();
+              final po = PurchaseOrder(
+                supplierId: _selectedSupplier?.id,
+                namaSupplier: _selectedSupplier?.nama,
+                status: 'open',
+                totalHarga: _movedToBesokItems.fold(0.0, (s, i) => s + i.totalHarga),
+                notes: 'Draft PO Besok',
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+              );
+              final newPoId = await repo.addPurchaseOrder(po);
+              for (final item in _movedToBesokItems) {
+                await repo.addPurchaseOrderItem(
+                  PurchaseOrderItem(
+                    poId: newPoId,
+                    produkId: item.produkId,
+                    namaProduk: item.namaProduk,
+                    qtyPesan: item.qtyPesan,
+                    hargaSatuan: item.hargaSatuan,
+                    subtotal: item.totalHarga,
+                    satuanId: item.satuanId,
+                    konversi: item.konversi,
+                  ),
+                );
+              }
+            } catch (e) {
+              debugPrint('Gagal menyimpan PO Besok: $e');
+            }
+          }
           if (context.mounted && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Purchase Order berhasil dibuat')),
+              SnackBar(content: Text(state.message)),
             );
             Navigator.pop(context);
           }
@@ -366,7 +451,7 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
       child: PopScope(
         canPop: true,
         child: Scaffold(
-          appBar: AppBar(title: const Text('Buat Purchase Order')),
+          appBar: AppBar(title: Text(isEdit ? 'Edit Purchase Order' : 'Buat Purchase Order')),
           body: Column(
             children: [
               _buildSupplierSection(),
@@ -471,20 +556,51 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
   }
 
   Widget _buildSearchSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        readOnly: true,
-        onTap: _openCariProduk,
-        decoration: InputDecoration(
-          hintText: 'Cari produk...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: _openScanner,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: TextField(
+            readOnly: true,
+            onTap: _openCariProduk,
+            decoration: InputDecoration(
+              hintText: 'Tambah Produk (Cari / Scan)...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.qr_code_scanner),
+                onPressed: _openScanner,
+              ),
+            ),
           ),
         ),
-      ),
+        if (_items.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _filterController,
+              decoration: InputDecoration(
+                hintText: 'Filter di keranjang...',
+                prefixIcon: const Icon(Icons.filter_list, size: 20),
+                isDense: true,
+                filled: true,
+                fillColor: AppTheme.surface,
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _filterController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (val) {
+                setState(() => _searchQuery = val);
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -503,12 +619,26 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
         ),
       );
     }
-    return ListView.builder(
+    
+    final displayItems = _searchQuery.isEmpty 
+        ? _items 
+        : _items.where((i) => i.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _items.length,
+      itemCount: displayItems.length,
+      onReorder: (oldIndex, newIndex) {
+        if (_searchQuery.isNotEmpty) return; // Disable reorder while filtering
+        setState(() {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final item = _items.removeAt(oldIndex);
+          _items.insert(newIndex, item);
+        });
+      },
       itemBuilder: (context, index) {
-        final item = _items[index];
+        final item = displayItems[index];
         return Card(
+          key: ValueKey('${item.produkId}_${item.satuanId}'),
           margin: const EdgeInsets.only(bottom: 4),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -523,10 +653,31 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      color: AppTheme.warningRed,
-                      onPressed: () => setState(() => _items.removeAt(index)),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      onSelected: (val) {
+                        if (val == 'pending') {
+                          setState(() {
+                            _movedToBesokItems.add(item);
+                            _items.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Produk dipindah ke antrean PO Besok')),
+                          );
+                        } else if (val == 'delete') {
+                          setState(() => _items.removeAt(index));
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'pending',
+                          child: Text('Pindah ke PO Besok'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Hapus Permanen', style: TextStyle(color: AppTheme.warningRed)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -554,6 +705,73 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                     Text(
                       _currency.format(item.subtotal),
                       style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      item.satuanName,
+                      style: const TextStyle(fontSize: 12, color: AppTheme.neutralGrey),
+                    ),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              if (item.qtyPesan > 1) {
+                                final newQty = item.qtyPesan - 1;
+                                setState(() => _items[index] = item.copyWith(
+                                  qtyPesan: newQty,
+                                  totalHarga: newQty * item.hargaSatuan,
+                                ));
+                              } else {
+                                setState(() => _items.removeAt(index));
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(30, 30),
+                              side: const BorderSide(color: AppTheme.neutralGrey),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            ),
+                            child: const Icon(Icons.remove, size: 16),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            '${item.qtyPesan}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final newQty = item.qtyPesan + 1;
+                              setState(() => _items[index] = item.copyWith(
+                                qtyPesan: newQty,
+                                totalHarga: newQty * item.hargaSatuan,
+                              ));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(30, 30),
+                              backgroundColor: AppTheme.primaryGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              elevation: 0,
+                            ),
+                            child: const Icon(Icons.add, size: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -605,7 +823,7 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
               ),
               child: _isSaving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Buat Purchase Order'),
+                  : Text(widget.initialPo != null ? 'Simpan Perubahan' : 'Buat Purchase Order'),
             ),
           ),
         ],

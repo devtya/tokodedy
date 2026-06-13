@@ -23,8 +23,13 @@ class CashierLoading extends CashierState {}
 class CashierReady extends CashierState {
   final List<CartItem> cart;
   final double jumlahBayar;
+  final int? highlightedIndex;
 
-  const CashierReady({this.cart = const [], this.jumlahBayar = 0});
+  const CashierReady({
+    this.cart = const [], 
+    this.jumlahBayar = 0,
+    this.highlightedIndex,
+  });
 
   double get total => cart.fold(0.0, (sum, item) => sum + item.subtotal);
   double get totalDiskon => cart.fold(
@@ -41,15 +46,21 @@ class CashierReady extends CashierState {
   double get kembalian =>
       jumlahBayar >= totalSetelahDiskon ? jumlahBayar - totalSetelahDiskon : 0;
 
-  CashierReady copyWith({List<CartItem>? cart, double? jumlahBayar}) {
+  CashierReady copyWith({
+    List<CartItem>? cart, 
+    double? jumlahBayar,
+    int? highlightedIndex,
+    bool clearHighlight = false,
+  }) {
     return CashierReady(
       cart: cart ?? this.cart,
       jumlahBayar: jumlahBayar ?? this.jumlahBayar,
+      highlightedIndex: clearHighlight ? null : (highlightedIndex ?? this.highlightedIndex),
     );
   }
 
   @override
-  List<Object?> get props => [cart, jumlahBayar];
+  List<Object?> get props => [cart, jumlahBayar, highlightedIndex];
 }
 
 class CashierSuccess extends CashierState {
@@ -64,11 +75,13 @@ class CashierError extends CashierState {
   final String message;
   final List<CartItem> cart;
   final double jumlahBayar;
+  final int? highlightedIndex;
 
   const CashierError(
     this.message, {
     this.cart = const [],
     this.jumlahBayar = 0,
+    this.highlightedIndex,
   });
 
   double get total => cart.fold(0.0, (sum, item) => sum + item.subtotal);
@@ -87,5 +100,5 @@ class CashierError extends CashierState {
       jumlahBayar >= totalSetelahDiskon ? jumlahBayar - totalSetelahDiskon : 0;
 
   @override
-  List<Object?> get props => [message, cart, jumlahBayar];
+  List<Object?> get props => [message, cart, jumlahBayar, highlightedIndex];
 }

@@ -41,6 +41,8 @@ class _CashierPageState extends State<CashierPage> {
     decimalDigits: 0,
   );
   final _bayarController = TextEditingController();
+  final ScrollController _cartScrollController = ScrollController();
+  int? _flashIndex;
 
   // Store last transaction data for printing
   List<CartItem>? _lastCartItems;
@@ -125,6 +127,27 @@ class _CashierPageState extends State<CashierPage> {
                           localBayar = double.tryParse(val) ?? 0;
                         });
                       },
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [10000.0, 20000.0, 50000.0, 100000.0].map((amount) {
+                        return OutlinedButton(
+                          onPressed: () {
+                            setDialogState(() {
+                              localBayar = amount;
+                              bayarCtrl.text = amount.toStringAsFixed(0);
+                              bayarCtrl.selection = TextSelection.collapsed(offset: bayarCtrl.text.length);
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            minimumSize: Size.zero,
+                          ),
+                          child: Text(_currency.format(amount)),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -446,6 +469,7 @@ class _CashierPageState extends State<CashierPage> {
 
   @override
   void dispose() {
+    _cartScrollController.dispose();
     _bayarController.dispose();
     super.dispose();
   }
@@ -482,6 +506,17 @@ class _CashierPageState extends State<CashierPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Produk tidak ditemukan')),
+        );
+      }
+      return;
+    }
+    if (produk.isArchived) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Produk diarsipkan dan tidak bisa dijual di Kasir'),
+            backgroundColor: AppTheme.warningRed,
+          ),
         );
       }
       return;
@@ -797,6 +832,15 @@ class _CashierPageState extends State<CashierPage> {
           if (context.mounted) {
             context.read<CashierBloc>().add(InitCashier());
           }
+        } else if (state is CashierReady && state.highlightedIndex != null) {
+          final idx = state.highlightedIndex!;
+          _scrollToIndex(idx);
+          setState(() => _flashIndex = idx);
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted && _flashIndex == idx) {
+              setState(() => _flashIndex = null);
+            }
+          });
         } else if (state is CashierError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -881,6 +925,17 @@ class _CashierPageState extends State<CashierPage> {
     return const CashierReady();
   }
 
+  void _scrollToIndex(int index) {
+    if (!_cartScrollController.hasClients) return;
+    // Estimate height of a mobile cart item card (roughly 120 pixels)
+    final offset = index * 120.0;
+    _cartScrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   Widget _buildCartList(CashierReady data) {
     if (data.cart.isEmpty) {
       return const Center(
@@ -900,17 +955,42 @@ class _CashierPageState extends State<CashierPage> {
       );
     }
     return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      controller: _cartScrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: data.cart.length,
       itemBuilder: (context, index) {
         final item = data.cart[index];
         final hasDiskon = item.diskonTipe != 0;
-        return Card(
-          margin: const EdgeInsets.only(bottom: 4),
+        final isFlashing = index == _flashIndex;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: isFlashing 
+                ? AppTheme.primaryGreen.withValues(alpha: 0.1) 
+                : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isFlashing
+                  ? AppTheme.primaryGreen
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white12
+                      : const Color(0xFFE5E7EB)),
+              width: isFlashing ? 2 : 1,
+            ),
+            boxShadow: isFlashing
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : [],
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

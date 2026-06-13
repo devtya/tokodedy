@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'online_order_item.dart';
 
 class OnlineOrder extends Equatable {
   final String id;
@@ -10,6 +11,7 @@ class OnlineOrder extends Equatable {
   final String? alamatPengiriman;
   final String? catatan;
   final DateTime createdAt;
+  final List<OnlineOrderItem> items;
 
   const OnlineOrder({
     required this.id,
@@ -21,6 +23,7 @@ class OnlineOrder extends Equatable {
     this.alamatPengiriman,
     this.catatan,
     required this.createdAt,
+    this.items = const [],
   });
 
   OnlineOrder copyWith({
@@ -36,6 +39,7 @@ class OnlineOrder extends Equatable {
       alamatPengiriman: alamatPengiriman,
       catatan: catatan,
       createdAt: createdAt,
+      items: items,
     );
   }
 
@@ -50,5 +54,6 @@ class OnlineOrder extends Equatable {
         alamatPengiriman,
         catatan,
         createdAt,
+        items,
       ];
 }

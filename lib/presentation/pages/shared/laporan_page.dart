@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 
 import '../../../core/theme/app_theme.dart';
@@ -91,6 +95,11 @@ class _LaporanPageState extends State<LaporanPage>
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () => _exportToPdf(context.read<LaporanBloc>().state),
+            tooltip: 'Export PDF',
+          ),
           IconButton(
             icon: const Icon(Icons.date_range),
             onPressed: _pickDateRange,
@@ -352,27 +361,54 @@ class _LaporanPageState extends State<LaporanPage>
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.star,
-                    label: 'Terlaris',
-                    value: items.first.namaProduk.length > 15
-                        ? '${items.first.namaProduk.substring(0, 15)}...'
-                        : items.first.namaProduk,
-                    color: Colors.amber,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.star,
+                        label: 'Terlaris',
+                        value: items.first.namaProduk.length > 15
+                            ? '${items.first.namaProduk.substring(0, 15)}...'
+                            : items.first.namaProduk,
+                        color: Colors.amber,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.shopping_bag,
+                        label: 'Total Terjual',
+                        value: '${items.fold(0, (s, i) => s + i.qtyTerjual)}',
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.shopping_bag,
-                    label: 'Total Terjual',
-                    value: '${items.fold(0, (s, i) => s + i.qtyTerjual)}',
-                    color: Colors.blue,
+                const SizedBox(height: 16),
+                if (items.isNotEmpty)
+                  SizedBox(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 40,
+                        sections: items.take(5).toList().asMap().entries.map((e) {
+                          final i = e.key;
+                          final item = e.value;
+                          final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.red];
+                          return PieChartSectionData(
+                            color: colors[i % colors.length],
+                            value: item.qtyTerjual.toDouble(),
+                            title: '${item.qtyTerjual}',
+                            radius: 50,
+                            titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
           );
@@ -702,6 +738,40 @@ class _LaporanPageState extends State<LaporanPage>
         padding: const EdgeInsets.all(32),
         child: Text(text, style: TextStyle(color: AppTheme.neutralGrey)),
       ),
+    );
+  }
+
+  Future<void> _exportToPdf(LaporanState state) async {
+    final pdf = pw.Document();
+    
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Laporan Tokodedy', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 8),
+              pw.Text('Dicetak pada: ${_dateFormat.format(DateTime.now())}'),
+              pw.SizedBox(height: 24),
+              pw.Text('Ringkasan Data', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 12),
+              if (state is LaporanLoaded)
+                pw.Text('Omset Hari Ini: ${_currency.format(state.omsetHariIni)}')
+              else if (state is LaporanLabaRugiLoaded)
+                pw.Text('Total Omzet: ${_currency.format(state.totalOmzet)}')
+              else if (state is LaporanArusKasLoaded)
+                pw.Text('Saldo Bersih: ${_currency.format(state.saldoBersih)}')
+              else
+                pw.Text('Data laporan detail dapat dilihat di aplikasi.'),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 }

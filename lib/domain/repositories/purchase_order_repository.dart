@@ -9,5 +9,7 @@ abstract class PurchaseOrderRepository {
   Future<void> addPurchaseOrderItem(PurchaseOrderItem item);
   Future<void> updatePurchaseOrderItem(PurchaseOrderItem item);
   Future<List<PurchaseOrderItem>> getItemsByPoId(String poId);
+  Future<void> updateStatus(String id, String status);
+  Future<void> deleteItemsByPoId(String poId);
   Future<void> deletePurchaseOrder(String id);
 }

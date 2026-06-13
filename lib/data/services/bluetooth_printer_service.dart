@@ -347,4 +347,80 @@ class BluetoothPrinterService implements PrinterService {
 
     return buffer;
   }
+
+  @override
+  Future<bool> printPickingList(ReceiptData data) async {
+    if (!await isConnected()) {
+      throw Exception('Printer tidak terhubung');
+    }
+    final bytes = _buildPickingListEscPos(data);
+    for (int i = 0; i < bytes.length; i += 512) {
+      final chunk = bytes.sublist(
+        i,
+        i + 512 > bytes.length ? bytes.length : i + 512,
+      );
+      await _writeBytes(chunk);
+    }
+    return true;
+  }
+
+  List<int> _buildPickingListEscPos(ReceiptData data) {
+    final buffer = <int>[];
+
+    void add(List<int> bytes) => buffer.addAll(bytes);
+    void addText(String text) => buffer.addAll(utf8.encode(text));
+
+    final lebar = data.lebarKertas == 58 ? 32 : 48;
+
+    // Initialize
+    add([0x1B, 0x40]);
+
+    // Header - center, bold, double
+    add([0x1B, 0x61, 0x01]); // center
+    add([0x1B, 0x21, 0x38]); // bold + double height + double width
+    addText('DAFTAR PENGAMBILAN');
+    add([0x0A]);
+    add([0x1B, 0x21, 0x00]); // normal
+    addText(data.namaToko);
+    add([0x0A, 0x0A]);
+
+    // Info
+    add([0x1B, 0x61, 0x00]); // left
+    addText('Pesanan: #${data.transaksiId}');
+    add([0x0A]);
+    addText('Tgl: ${data.tanggal}');
+    add([0x0A]);
+    addText('-' * lebar);
+    add([0x0A]);
+
+    // Items
+    for (final item in data.items) {
+      final parts = item.nama.split(' - ');
+      final namaProduk = parts.isNotEmpty ? parts[0] : item.nama;
+      final String unitName;
+      if (parts.length > 1) {
+        unitName = parts.sublist(1).join(' - ');
+      } else {
+        unitName = item.satuan ?? 'Pcs';
+      }
+
+      final String qtyPart = '${item.jumlah} $unitName';
+      
+      add([0x1B, 0x61, 0x00]); // left align
+      add([0x1B, 0x21, 0x10]); // bold
+      addText('[ ] $namaProduk');
+      add([0x0A]);
+      add([0x1B, 0x21, 0x00]); // normal
+      addText('    Qty: $qtyPart');
+      add([0x0A, 0x0A]);
+    }
+
+    addText('-' * lebar);
+    add([0x0A, 0x0A, 0x0A]);
+
+    // Cut paper
+    add([0x1D, 0x56, 0x41, 0x03]);
+
+    return buffer;
+  }
 }

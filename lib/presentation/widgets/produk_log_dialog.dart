@@ -10,6 +10,8 @@ import '../../domain/entities/transaksi.dart';
 import '../../domain/usecases/produk/get_last_harga_change.dart';
 import '../../domain/usecases/produk/get_last_pembelian.dart';
 import '../../domain/usecases/produk/get_last_penjualan.dart';
+import '../../domain/usecases/produk/get_riwayat_perubahan_by_produk.dart';
+import '../../domain/entities/riwayat_perubahan.dart';
 
 class ProdukLogDialog extends StatefulWidget {
   final Produk produk;
@@ -37,6 +39,7 @@ class _ProdukLogDialogState extends State<ProdukLogDialog> {
   Pembelian? _lastPembelian;
   Transaksi? _lastPenjualan;
   Notifikasi? _lastHargaChange;
+  List<RiwayatPerubahan> _riwayatPerubahan = [];
   bool _loading = true;
 
   @override
@@ -51,12 +54,15 @@ class _ProdukLogDialogState extends State<ProdukLogDialog> {
         sl<GetLastPembelianByProduk>().call(widget.produk.id!),
         sl<GetLastPenjualanByProduk>().call(widget.produk.id!),
         sl<GetLastHargaChangeByProduk>().call(widget.produk.nama),
+        sl<GetRiwayatPerubahanByProduk>().call(widget.produk.id!),
       ]);
       if (mounted) {
         setState(() {
           _lastPembelian = results[0] as Pembelian?;
           _lastPenjualan = results[1] as Transaksi?;
           _lastHargaChange = results[2] as Notifikasi?;
+          
+          _riwayatPerubahan = results[3] as List<RiwayatPerubahan>;
           _loading = false;
         });
       }
@@ -111,6 +117,14 @@ class _ProdukLogDialogState extends State<ProdukLogDialog> {
                 title: 'Perubahan Harga Terakhir',
                 child: _lastHargaChange != null
                     ? _buildHargaChangeContent()
+                    : _buildEmpty(),
+              ),
+              const SizedBox(height: 12),
+              _buildSection(
+                icon: Icons.history,
+                title: 'Riwayat Perubahan',
+                child: _riwayatPerubahan.isNotEmpty
+                    ? _buildRiwayatPerubahanContent()
                     : _buildEmpty(),
               ),
             ],
@@ -255,6 +269,36 @@ class _ProdukLogDialogState extends State<ProdukLogDialog> {
           _infoRow('Tanggal', _formatDate(n.createdAt)),
           _infoRow('Keterangan', n.pesan),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRiwayatPerubahanContent() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _riwayatPerubahan.map((r) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _formatDate(r.createdAt),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.neutralGrey.withValues(alpha: 0.7),
+                  ),
+                ),
+                Text(
+                  '${r.kolomDiubah}: ${r.nilaiLama} → ${r.nilaiBaru}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }

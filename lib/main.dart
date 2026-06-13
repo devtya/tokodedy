@@ -27,6 +27,7 @@ import 'presentation/blocs/theme/theme_cubit.dart';
 import 'presentation/pages/shared/home_page.dart';
 import 'presentation/pages/shared/initial_sync_page.dart';
 import 'presentation/pages/shared/login_page.dart';
+import 'presentation/pages/shared/pin_setup_page.dart';
 import 'presentation/pages/shared/pin_verify_page.dart';
 import 'presentation/pages/shared/reset_password_page.dart';
 
@@ -74,20 +75,7 @@ class _PinGateState extends State<_PinGate> {
         }
 
         if (state is PinNotSet) {
-          return FutureBuilder<bool>(
-            future: context.read<SyncBloc>().isInitialSyncDone,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (snapshot.data == true) {
-                return const HomePage();
-              }
-              return const InitialSyncPage(destination: HomePage());
-            },
-          );
+          return PinSetupPage(userId: widget.user.id!);
         }
 
         return PinVerifyPage(
@@ -100,12 +88,7 @@ class _PinGateState extends State<_PinGate> {
             );
           },
           onSkip: () {
-            context.read<LocalAuthBloc>().add(RemovePinEvent(widget.user.id!));
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
-              (route) => false,
-            );
+            context.read<AuthBloc>().add(LogoutEvent());
           },
         );
       },

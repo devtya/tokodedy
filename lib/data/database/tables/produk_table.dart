@@ -11,6 +11,7 @@ class ProdukTable extends Table {
   TextColumn? get kategori => text().nullable()();
   TextColumn get satuan   => text().withDefault(const Constant('pcs'))();
   TextColumn? get imageUrl => text().nullable()();
+  BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 

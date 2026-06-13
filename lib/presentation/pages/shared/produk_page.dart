@@ -31,6 +31,7 @@ class _ProdukPageState extends State<ProdukPage> {
   List<Produk> _filteredProducts = [];
   String? _selectedKategori;
   bool _loadingProducts = true;
+  bool _showArchived = false;
 
   @override
   void initState() {
@@ -70,7 +71,8 @@ class _ProdukPageState extends State<ProdukPage> {
         final matchKategori = _selectedKategori == null ||
             _selectedKategori == 'Semua' ||
             p.kategori == _selectedKategori;
-        return matchQuery && matchKategori;
+        final matchArchived = _showArchived ? p.isArchived : !p.isArchived;
+        return matchQuery && matchKategori && matchArchived;
       }).toList();
     });
   }
@@ -115,6 +117,28 @@ class _ProdukPageState extends State<ProdukPage> {
                   icon: const Icon(Icons.add_business),
                   tooltip: 'Tambah Produk',
                   onPressed: () => _openForm(),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'arsip') {
+                      setState(() {
+                        _showArchived = !_showArchived;
+                        _searchProducts(_searchController.text);
+                      });
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'arsip',
+                      child: Row(
+                        children: [
+                          Icon(_showArchived ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
+                          const SizedBox(width: 8),
+                          Text(_showArchived ? 'Sembunyikan Arsip' : 'Tampilkan Arsip'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -244,7 +268,6 @@ class _ProdukPageState extends State<ProdukPage> {
                   produk: produk,
                   onTap: isAdmin ? () => _openForm(produk: produk) : null,
                   onStockTap: isAdmin ? () => _openStok(produk) : null,
-                  onDelete: isAdmin ? () => _confirmDelete(produk.id!) : null,
                   onLogTap: () => _showProdukLog(produk, isAdmin),
                 );
               },
@@ -284,12 +307,14 @@ class _ProdukPageState extends State<ProdukPage> {
     );
   }
 
-  void _confirmDelete(String id) {
+  void _confirmDelete(Produk produk) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Produk'),
-        content: const Text('Yakin ingin menghapus produk ini?'),
+        title: Text(produk.isArchived ? 'Buka Arsip atau Hapus?' : 'Arsipkan atau Hapus?'),
+        content: Text(produk.isArchived 
+            ? 'Produk ini sedang diarsipkan. Anda bisa membukanya kembali atau menghapusnya permanen.' 
+            : 'Daripada dihapus permanen, lebih baik diarsipkan agar riwayat datanya tidak hilang.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -298,9 +323,17 @@ class _ProdukPageState extends State<ProdukPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<ProdukBloc>().add(DeleteProdukEvent(id));
+              context.read<ProdukBloc>().add(DeleteProdukEvent(produk.id!));
             },
-            child: const Text('Hapus'),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.warningRed),
+            child: const Text('Hapus Permanen'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<ProdukBloc>().add(ArchiveProdukEvent(produk.id!, !produk.isArchived));
+            },
+            child: Text(produk.isArchived ? 'Buka Arsip' : 'Arsipkan'),
           ),
         ],
       ),

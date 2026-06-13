@@ -1,12 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../widgets/barcode_scanner_widget.dart';
+import '../../../data/services/storage_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/di/injection.dart';
 import '../../../domain/entities/produk.dart';
 import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/repositories/produk_repository.dart';
+import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
 import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/produk/produk_event.dart';
 import '../../blocs/produk/produk_state.dart';
@@ -57,6 +64,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   bool _saved = false;
   bool _isSaving = false;
   final List<String> _addedIds = [];
+  String? _imageUrl;
+  bool _isUploadingImage = false;
 
   // ── Unit list (multi-satuan) ──
   final List<_UnitItem> _units = [];
@@ -68,6 +77,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
     _currentProduk = widget.produk;
 
     final p = _currentProduk;
+    _imageUrl = p?.imageUrl;
 
     _namaCtrl = TextEditingController(
       text: p?.nama ?? widget.initialName ?? '',
@@ -83,19 +93,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
     _satuanDasarCtrl = TextEditingController(text: p?.satuan ?? 'pcs');
 
     // Auto-sync Base Unit name with Satuan Dasar input when adding new product
-    _satuanDasarCtrl.addListener(() {
-      final idx = _units.indexWhere((u) => u.isBase);
-      if (idx != -1) {
-        final newName = _satuanDasarCtrl.text.trim().isEmpty
-            ? 'pcs'
-            : _satuanDasarCtrl.text.trim();
-        if (_units[idx].nama != newName) {
-          setState(() {
-            _units[idx] = _units[idx].copyWith(nama: newName);
-          });
-        }
-      }
-    });
+    _satuanDasarCtrl.addListener(_onSatuanDasarChanged);
 
     // Load existing satuan
     final existing = p?.satuanList;
@@ -115,6 +113,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       }
     } else if (_isEditing) {
       // Existing product without satuanList — pre-populate one base unit
+      // as placeholder, then load the real ones from DB asynchronously.
       _units.add(
         _UnitItem(
           id: _nextUnitId++,
@@ -125,6 +124,29 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           hargaJual: p.hargaJual,
         ),
       );
+      // Load satuan asli dari DB — jika berhasil, replace placeholder
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final repo = sl<ProdukRepository>();
+        final satuanDiDb = await repo.getSatuanByProdukId(p.id!);
+        if (satuanDiDb.isNotEmpty && mounted) {
+          setState(() {
+            _units.clear();
+            _nextUnitId = 1;
+            for (int i = 0; i < satuanDiDb.length; i++) {
+              _units.add(_UnitItem(
+                id: _nextUnitId++,
+                dbId: satuanDiDb[i].id,
+                nama: satuanDiDb[i].nama,
+                isBase: i == 0,
+                konversi: satuanDiDb[i].konversi,
+                hargaBeli: satuanDiDb[i].hargaBeli,
+                hargaJual: satuanDiDb[i].hargaJual,
+              ));
+            }
+            _updateBaseSatuan();
+          });
+        }
+      });
     } else {
       // NEW product — pre-populate one base unit with 0 price
       _units.add(
@@ -140,6 +162,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         ),
       );
     }
+    _updateBaseSatuan();
   }
 
   @override
@@ -161,6 +184,155 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   String get _displayCode =>
       _isEditing ? (_currentProduk!.barcode ?? _currentProduk!.nama) : 'BARU';
 
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Ambil dari Kamera'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _processImageSource(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Pilih dari Galeri'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _processImageSource(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Tempel URL Gambar'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showUrlInputDialog();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processImageSource(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: source,
+      imageQuality: 75,
+      maxWidth: 1080,
+      maxHeight: 1080,
+    );
+    if (pickedFile != null) {
+      _uploadImageFile(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _showUrlInputDialog() async {
+    final urlController = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Masukkan URL Gambar'),
+        content: TextField(
+          controller: urlController,
+          decoration: const InputDecoration(
+            hintText: 'https://...',
+            labelText: 'URL Gambar',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, urlController.text.trim()),
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      _downloadAndUploadImage(result);
+    }
+  }
+
+  Future<void> _downloadAndUploadImage(String urlStr) async {
+    setState(() => _isUploadingImage = true);
+    try {
+      final uri = Uri.tryParse(urlStr);
+      if (uri == null) throw Exception('URL tidak valid');
+      
+      final response = await http.get(uri);
+      if (response.statusCode != 200) {
+        throw Exception('Gagal mengunduh gambar (${response.statusCode})');
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/img_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(response.bodyBytes);
+
+      // Compress
+      List<int>? compressedBytes;
+      try {
+        compressedBytes = await FlutterImageCompress.compressWithFile(
+          tempFile.absolute.path,
+          quality: 75,
+          minWidth: 1080,
+          minHeight: 1080,
+        );
+      } catch (e) {
+        debugPrint('Kompresi gambar dilewati karena error: $e');
+      }
+
+      if (compressedBytes != null) {
+        final compressedFile = File('${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await compressedFile.writeAsBytes(compressedBytes);
+        await _uploadImageFile(compressedFile);
+      } else {
+        await _uploadImageFile(tempFile);
+      }
+    } catch (e) {
+      setState(() => _isUploadingImage = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadImageFile(File file) async {
+    setState(() => _isUploadingImage = true);
+    try {
+      final storage = sl<StorageService>();
+      final url = await storage.uploadProductImage(file);
+      if (mounted && url != null) {
+        setState(() {
+          _imageUrl = url;
+          _isUploadingImage = false;
+        });
+      } else {
+        setState(() => _isUploadingImage = false);
+      }
+    } catch (e) {
+      setState(() => _isUploadingImage = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengunggah gambar: $e')),
+        );
+      }
+    }
+  }
+
   void _resetForm({required bool copyName}) {
     setState(() {
       _currentProduk = null;
@@ -169,6 +341,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         _namaCtrl.clear();
         _kategoriCtrl.clear();
         _satuanDasarCtrl.text = 'pcs';
+        _imageUrl = null;
       }
       _barcodeCtrl.clear();
       _stokCtrl.text = '0';
@@ -187,6 +360,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           hargaJual: 0,
         ),
       );
+      _updateBaseSatuan();
     });
   }
 
@@ -206,10 +380,12 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       });
       _recalculateBaseHargaBeli();
     }
+    _updateBaseSatuan();
   }
 
   void _deleteUnit(int id) {
     setState(() => _units.removeWhere((u) => u.id == id));
+    _updateBaseSatuan();
   }
 
   void _addUnit() {
@@ -223,6 +399,32 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
     );
     setState(() => _units.add(newUnit));
     _editUnit(newUnit);
+  }
+
+  void _onSatuanDasarChanged() {
+    final idx = _units.indexWhere((u) => u.isBase);
+    if (idx != -1) {
+      final newName = _satuanDasarCtrl.text.trim().isEmpty
+          ? 'pcs'
+          : _satuanDasarCtrl.text.trim();
+      if (_units[idx].nama != newName) {
+        setState(() {
+          _units[idx] = _units[idx].copyWith(nama: newName);
+        });
+      }
+    }
+  }
+
+  void _updateBaseSatuan() {
+    if (_units.isEmpty) return;
+    _units.sort((a, b) => a.konversi.compareTo(b.konversi));
+    for (int i = 0; i < _units.length; i++) {
+      _units[i] = _units[i].copyWith(isBase: i == 0);
+    }
+    final base = _units.first;
+    _satuanDasarCtrl.removeListener(_onSatuanDasarChanged);
+    _satuanDasarCtrl.text = base.nama;
+    _satuanDasarCtrl.addListener(_onSatuanDasarChanged);
   }
 
   void _recalculateBaseHargaBeli() {
@@ -271,7 +473,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
   }
 
   // ── Submit ──
-  void _submit() {
+  Future<void> _submit() async {
     if (_isSaving) return;
     if (_namaCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(
@@ -279,6 +481,33 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       ).showSnackBar(const SnackBar(content: Text('Nama produk wajib diisi')));
       return;
     }
+
+    final barcode = _barcodeCtrl.text.trim();
+    if (barcode.isNotEmpty) {
+      setState(() => _isSaving = true);
+      try {
+        final existing = await sl<GetProdukByBarcode>().call(barcode);
+        if (existing != null) {
+          if (!_isEditing || existing.id != _currentProduk?.id) {
+            setState(() => _isSaving = false);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Barcode "$barcode" sudah digunakan oleh produk "${existing.nama}".'),
+                  backgroundColor: AppTheme.warningRed,
+                ),
+              );
+            }
+            return;
+          }
+        }
+      } catch (e) {
+        // Log or handle database fetch error
+      }
+      setState(() => _isSaving = false);
+    }
+    
+    if (!mounted) return;
 
     List<SatuanProduk>? satuanList;
     double hargaBeli;
@@ -314,9 +543,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       id: _currentProduk?.id,
       
       nama: _namaCtrl.text.trim().toUpperCase(),
-      barcode: _barcodeCtrl.text.trim().isEmpty
-          ? null
-          : _barcodeCtrl.text.trim(),
+      barcode: barcode.isEmpty ? null : barcode,
       hargaBeli: hargaBeli,
       hargaJual: hargaJual,
       stok: int.tryParse(_stokCtrl.text.trim()) ?? 0,
@@ -327,6 +554,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       satuan: _satuanDasarCtrl.text.trim().isEmpty
           ? 'pcs'
           : _satuanDasarCtrl.text.trim(),
+      imageUrl: _imageUrl,
       satuanList: satuanList,
     );
 
@@ -419,6 +647,10 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
               _buildHitungButton(),
               const SizedBox(height: 10),
               _buildDefaultCheckbox(),
+              if (_isEditing) ...[
+                const SizedBox(height: 32),
+                _buildDangerZone(),
+              ],
             ],
           ),
         ),
@@ -489,6 +721,36 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       children: [
         _sectionLabel('INFORMASI PRODUK'),
         const SizedBox(height: 8),
+        Center(
+          child: GestureDetector(
+            onTap: _pickImage,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: _colors.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _colors.outlineVariant),
+              ),
+              child: _isUploadingImage
+                  ? const Center(child: CircularProgressIndicator())
+                  : _imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(_imageUrl!, fit: BoxFit.cover),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, color: _colors.primary.withValues(alpha: 0.7), size: 32),
+                            const SizedBox(height: 4),
+                            Text('Foto', style: TextStyle(fontSize: 10, color: _colors.primary)),
+                          ],
+                        ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         TextField(
           controller: _namaCtrl,
           textCapitalization: TextCapitalization.characters,
@@ -888,6 +1150,146 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
         fontSize: 10,
         letterSpacing: 1.5,
         fontFamily: 'monospace',
+      ),
+    );
+  }
+
+  // ── Danger Zone ──
+  Widget _buildDangerZone() {
+    final produk = _currentProduk!;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.warningRed.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.warningRed.withValues(alpha: 0.05),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+              border: Border(bottom: BorderSide(color: AppTheme.warningRed.withValues(alpha: 0.1))),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppTheme.warningRed, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Danger Zone',
+                  style: TextStyle(
+                    color: AppTheme.warningRed,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDangerAction(
+                  title: produk.isArchived ? 'Buka Arsip Produk' : 'Arsipkan Produk',
+                  description: produk.isArchived 
+                    ? 'Kembalikan produk ini ke daftar utama agar dapat digunakan lagi.' 
+                    : 'Sembunyikan produk ini dari daftar utama tanpa menghapus riwayat transaksinya.',
+                  buttonText: produk.isArchived ? 'Buka Arsip' : 'Arsipkan',
+                  onTap: () {
+                    context.read<ProdukBloc>().add(ArchiveProdukEvent(produk.id!, !produk.isArchived));
+                    Navigator.pop(context); // Kembali ke halaman list
+                  },
+                ),
+                const Divider(height: 32),
+                _buildDangerAction(
+                  title: 'Hapus Produk Permanen',
+                  description: 'Aksi ini tidak dapat dibatalkan. Riwayat transaksi mungkin akan terdampak atau menampilkan data kosong jika produk ini dihapus.',
+                  buttonText: 'Hapus Permanen',
+                  isDestructive: true,
+                  onTap: () => _confirmDelete(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDangerAction({
+    required String title,
+    required String description,
+    required String buttonText,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  color: AppTheme.neutralGrey.withValues(alpha: 0.8),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        OutlinedButton(
+          onPressed: onTap,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: isDestructive ? AppTheme.warningRed : AppTheme.primaryGreen,
+            side: BorderSide(color: isDestructive ? AppTheme.warningRed : AppTheme.primaryGreen),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(buttonText),
+        ),
+      ],
+    );
+  }
+
+  void _confirmDelete() {
+    final produk = _currentProduk!;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Produk Permanen?'),
+        content: const Text('Apakah Anda yakin ingin menghapus produk ini secara permanen? Aksi ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx); // Close dialog
+              Navigator.pop(context); // Close form page
+              context.read<ProdukBloc>().add(DeleteProdukEvent(produk.id!));
+            },
+            style: TextButton.styleFrom(foregroundColor: AppTheme.warningRed),
+            child: const Text('Hapus Permanen'),
+          ),
+        ],
       ),
     );
   }

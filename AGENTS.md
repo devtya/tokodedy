@@ -10,7 +10,9 @@
 - **Linting**: flutter_lints ^6.0
 
 ## Related Projects
-- **DedyStore** (`d:\PROJECT\dedystore`): Proyek front-end toko online untuk pembeli yang terhubung dengan database Supabase Tokodedy. Segala bentuk koordinasi, todo list bersama, dan protokol sinkronisasi antar agen terdapat pada file `dedysync.md` di folder DedyStore.
+- **tokodedypc** (`d:\PROJECT\TOKO DEDY\tokodedypc`): Fork Windows Desktop dari project ini.
+- **DedyStore** (`d:\PROJECT\TOKO DEDY\dedystore`): Proyek front-end toko online (Next.js) untuk pembeli yang terhubung dengan database Supabase Tokodedy.
+- Segala koordinasi, todo list bersama, dan protokol sinkronisasi antar agen terdapat pada file `dedysync.md` di root folder `d:\PROJECT\TOKO DEDY`.
 
 ## Project structure (Clean Architecture)
 
@@ -37,10 +39,9 @@ lib/
 
 ## Database (Drift)
 
-- **16 tables**: 15 original + `SyncRecordTable` untuk UUID mapping sync
-- Defined in `lib/data/database/tables/`, aggregated in `lib/data/database/app_database.dart`
-- **Schema version 10**: v1→v6 original migrations, v6→v7 adds `SyncRecordTable`, v7→v8 adds `SupplierProductsTable`, v8→v9 adds `TokoTable` + `tokoId` columns, v9→v10 adds `isPpnEnabled` + `ppnPercent` to `pending_pembelian_table`
-- Connection via `LazyDatabase` → `NativeDatabase` (file: `hend_kasir.db` in app docs dir)
+- **24 tables**: Defined in `lib/data/database/tables/`, aggregated in `lib/data/database/app_database.dart`
+- **Schema version 1** (DB di-reset dari awal saat rename project dari `hend_kasir` → `tokodedy`)
+- Connection via `LazyDatabase` → `NativeDatabase` (file: `tokodedy.db` in app docs dir)
 
 ## Supabase Sync & Auth (Arsitektur V2)
 
@@ -51,8 +52,6 @@ lib/
 - File `supabase_setup.sql` / `supabase_setup_v2.sql` untuk setup tabel di project Supabase.
 - Defined in `lib/data/database/tables/`, aggregated in `lib/data/database/app_database.dart`
 - **Never override `primaryKey`** when using `autoIncrement()` — Drift handles it automatically
-- Connection via `LazyDatabase` → `NativeDatabase` (file: `hend_kasir.db` in app docs dir)
-- Schema version bump → update `schemaVersion` getter + add migration logic
 
 ## DI
 
@@ -71,7 +70,7 @@ lib/
 - **BLoCs** use `Bloc<Event, State>`, events defined in `*_event.dart`, states in `*_state.dart`
 - Register BLoCs as `sl.registerFactory()` (new instance per page), repos/usecases as `sl.registerLazySingleton()`
 - **ThemeCubit** registered as `registerLazySingleton` di `injection.dart`
-- No git repo initialized yet — `git init` required if committing
+- Git repo sudah aktif
 - No `opencode.json` or other agent config files exist
 
 ## Agent Behavior Rules
@@ -431,14 +430,60 @@ Current: **1.7.3**
 - **Deskripsi**: Tombol Share pada detail pembelian sekarang menggunakan `ShareReceiptPage` (digital nota visual PNG) seperti di kasir, bukan teks biasa. Nama toko di nota menggunakan nama supplier sebagai header. `DigitalReceiptWidget` ditambahkan parameter `statusTitle` untuk judul yang berbeda. Detail pembayaran (metode, tunai, kembalian) disembunyikan jika tidak relevan.
 - **Cara pakai**: Buka Pembelian Barang → tap item → "Share" → preview digital nota dengan nama supplier → "Bagikan via WA" atau "Cetak Thermal".
 - **Files**: `digital_receipt_widget.dart`, `pembelian_page.dart`
-- **Date**: 2026-05-30# # #   B u g :   H o m e   P a g e      B l a n k   a b u - a b u   ( G r e y   B o x )   s e t e l a h   O m z e t   H a r i   I n i 
- -   * * R o o t   c a u s e * * :   S a a t   f i t u r   O n l i n e   O r d e r   d i t a m b a h k a n ,   d e p e n d e n s i   O n l i n e O r d e r B l o c   t i d a k   t e r s i m p a n   k e   d a l a m   f i l e   i n j e c t i o n . c o n f i g . d a r t   p a d a   r e p o s i t o r i   k a r e n a   p e r i n t a h    u i l d _ r u n n e r   t i d a k   d i j a l a n k a n / d i c o m m i t   k e   g i t   s e c a r a   l o k a l .   A k i b a t n y a ,   p a d a   R e l e a s e   m o d e   d i   G i t H u b   A c t i o n s ,   p e m a n g g i l a n   s l < O n l i n e O r d e r B l o c > ( )   d i   h o m e _ p a g e . d a r t   m e l e m p a r k a n   S t a t e E r r o r   y a n g   g a g a l   t e r t a n g k a p ,   m e n y e b a b k a n   F l u t t e r   m e r e n d e r   E r r o r W i d g e t   ( k o t a k   a b u - a b u )   m e n u t u p i   s e l u r u h   U I   d i   b a w a h n y a   ( t e r m a s u k   Q u i c k   A c t i o n s ) . 
- -   * * F i x * * :   M e n j a l a n k a n    u i l d _ r u n n e r   d a n   m e n - c o m m i t   p e m b a r u a n   i n j e c t i o n . c o n f i g . d a r t   y a n g   m e m u a t   p e n d a f t a r a n   O n l i n e O r d e r B l o c   d a n   O n l i n e O r d e r R e p o s i t o r y I m p l   a g a r   C I   d a p a t   m e m b a n g u n   A P K   d e n g a n   D I   y a n g   b e n a r . 
- -   * * F i l e s * * :   l i b / c o r e / d i / i n j e c t i o n . c o n f i g . d a r t ` n -   * * D a t e * * :   2 0 2 6 - 0 6 - 0 2 
-  
- # # #   F i t u r :   N o t i f i k a s i   R e a l t i m e   P e s a n a n   O n l i n e 
- -   * * D e s k r i p s i * * :   M e n a m b a h k a n   l i s t e n e r   * S u p a b a s e   R e a l t i m e *   d i   S u p a b a s e S y n c S e r v i c e   y a n g   s e c a r a   a k t i f   m e n d e n g a r k a n   I N S E R T   p a d a   t a b e l   o n l i n e _ o r d e r s   y a n g   d i s a r i n g   b e r d a s a r k a n   	 o k o _ i d   m i l i k   k a s i r   y a n g   a k t i f .   K e t i k a   p e s a n a n   b a r u   m a s u k ,   s i s t e m   s e c a r a   o t o m a t i s   m e m a s u k k a n   n o t i f i k a s i   k e   d a l a m   d a t a b a s e   l o k a l   D r i f t   s e h i n g g a   i k o n   l o n c e n g   p r o f i l   l a n g s u n g   m e n a m p i l k a n   * b a d g e *   m e r a h ,   s e r t a   m e m i c u   p e m b a r u a n   d a t a   p e s a n a n   d i   O n l i n e O r d e r B l o c . 
- -   * * C a r a   p a k a i * * :   B e r j a l a n   o t o m a t i s   d i   l a t a r   b e l a k a n g   s e l a m a   a p l i k a s i   t e r b u k a . 
- -   * * F i l e s * * :   l i b / d a t a / s e r v i c e s / s u p a b a s e _ s y n c _ s e r v i c e . d a r t ,   l i b / p r e s e n t a t i o n / b l o c s / o n l i n e _ o r d e r / o n l i n e _ o r d e r _ b l o c . d a r t ,   l i b / p r e s e n t a t i o n / b l o c s / s y n c / s y n c _ b l o c . d a r t ` n -   * * D a t e * * :   2 0 2 6 - 0 6 - 0 2 
-  
- 
+- **Date**: 2026-05-30
+
+### Bug: Home Page — Blank abu-abu (Grey Box) setelah Omzet Hari Ini
+- **Root cause**: Saat fitur Online Order ditambahkan, dependensi OnlineOrderBloc tidak tersimpan ke dalam file injection.config.dart pada repository karena perintah build_runner tidak dijalankan/dicommit ke git secara lokal. Akibatnya, pada Release mode di GitHub Actions, pemanggilan sl<OnlineOrderBloc>() di home_page.dart melemparkan StateError yang gagal tertangkap, menyebabkan Flutter render ErrorWidget (kotak abu-abu) menutupi seluruh UI di bawahnya (termasuk Quick Actions).
+- **Fix**: Menjalankan build_runner dan men-commit pembaruan injection.config.dart yang memuat pendaftaran OnlineOrderBloc dan OnlineOrderRepositoryImpl agar CI dapat membangun APK dengan DI yang benar.
+- **Files**: lib/core/di/injection.config.dart
+- **Date**: 2026-06-02
+
+### Fitur: Notifikasi Realtime Pesanan Online
+- **Deskripsi**: Menambahkan listener *Supabase Realtime* di SupabaseSyncService yang secara aktif mendengarkan INSERT pada tabel online_orders yang disaring berdasarkan toko_id milik kasir yang aktif. Ketika pesanan baru masuk, sistem secara otomatis memasukkan notifikasi ke dalam database lokal Drift sehingga ikon lonceng profil langsung menampilkan *badge* merah, serta memicu pembaruan data pesanan di OnlineOrderBloc.
+- **Cara pakai**: Berjalan otomatis di latar belakang selama aplikasi terbuka.
+- **Files**: lib/data/services/supabase_sync_service.dart, lib/presentation/blocs/online_order/online_order_bloc.dart, lib/presentation/blocs/sync/sync_bloc.dart
+- **Date**: 2026-06-02
+
+### Fitur: Aksi Cepat Kustom — Hapus via Long Press
+- **Deskripsi**: Tombol aksi cepat di beranda sekarang bisa dihapus dengan long press. Muncul dialog konfirmasi hapus, dan daftar aksi cepat otomatis tersimpan ke SharedPreferences.
+- **Cara pakai**: Long press pada kartu aksi cepat di beranda → konfirmasi hapus.
+- **Files**: lib/presentation/pages/shared/home_page.dart
+- **Date**: 2026-06-03
+
+### Fitur: Base Satuan Otomatis ke Konversi Terkecil
+- **Deskripsi**: Saat menambah/mengedit satuan di form produk, sistem otomatis menentukan base satuan sebagai satuan dengan nilai konversi terkecil. Jika satuan baru dengan konversi lebih kecil ditambahkan, maka satuan tersebut otomatis menjadi base satuan baru. Nama base satuan juga otomatis tersinkronisasi ke field Satuan Dasar.
+- **Cara pakai**: Tambah satuan baru dengan konversi kecil (misal 1) → otomatis menjadi base satuan.
+- **Files**: lib/presentation/pages/shared/produk_form_page.dart
+- **Date**: 2026-06-03
+
+
+### Bug: Produk — Duplikat Satuan setelah import data
+- **Root cause**: Tiga penyebab ditemukan: (1) _onUpdateProduk di produk_bloc.dart menggunakan strategi *delete-all + reinsert*, sehingga jika Supabase background sync (pull()) terjadi di jeda antara delete dan insert, satuan lama balik lagi dari cloud → duplikat. (2) _saveSatuanKeProduk di pembelian_form_page.dart langsung ddSatuan() tanpa cek apakah satuan dengan nama yang sama sudah ada di produk. (3) initState di produk_form_page.dart membuat satuan dummy jika satuanList kosong — kalau disimpan, satuan asli Supabase kembali via pull → duplikat.
+- **Fix**: (1) Ganti strategi update satuan menjadi *smart upsert per-ID*: update satuan yang sudah ada (ada id), insert satuan baru (tidak ada id), hapus hanya satuan yang ID-nya sudah tidak ada di list baru. Tambahkan injection UpdateSatuan, DeleteSatuan, dan GetProdukById ke ProdukBloc. (2) Di _saveSatuanKeProduk, load satuan dari DB (getSatuanByProdukId) dahulu — jika nama sudah ada, gunakan satuan existing, tidak insert baru. (3) Di initState produk form, jika edit dan satuanList kosong, load dari DB secara async via ddPostFrameCallback dan replace placeholder setelah data siap.
+- **Files**: lib/presentation/blocs/produk/produk_bloc.dart, lib/presentation/pages/shared/pembelian_form_page.dart, lib/presentation/pages/shared/produk_form_page.dart
+- **Date**: 2026-06-03
+
+
+### Fitur: Bersihkan Duplikat Satuan (Settings)
+- **Deskripsi**: Menambahkan utilitas "Bersihkan Duplikat Satuan" di Pengaturan untuk memindai seluruh data produk dan menghapus satuan yang namanya ganda/dobel. Fitur ini menggunakan strategi proteksi cerdas: satuan yang sudah pernah direferensikan pada riwayat transaksi (kasir, pembelian, pending, purchase order) *tidak akan* dihapus untuk menjaga keutuhan data historis.
+- **Cara pakai**: Buka Pengaturan → gulir ke bawah bagian Sinkronisasi Cloud → ketuk opsi "Bersihkan Duplikat Satuan" (ikon sapu).
+- **Files**: lib/domain/repositories/produk_repository.dart, lib/data/repositories/produk_repository_impl.dart, lib/presentation/pages/shared/settings_page.dart
+- **Date**: 2026-06-03
+
+
+### Fitur: Urutkan Satuan Otomatis (Konversi Ascending)
+- **Deskripsi**: Daftar satuan produk kini secara otomatis selalu diurutkan berdasarkan nilai konversi terkecil ke terbesar. Ini berlaku secara global di seluruh aplikasi (Kasir, Pembelian, Tambah/Edit Produk) karena query pengembalian getSatuanByProdukId diubah untuk menggunakan fungsi ORDER BY konversi ASC. Satuan dasar (konversi = 1) akan selalu berada di urutan teratas, sementara satuan dengan konversi terbesar akan berada paling bawah.
+- **Files**: lib/data/repositories/produk_repository_impl.dart
+- **Date**: 2026-06-03
+
+
+### Fitur: Validasi Harga Beli Pembelian & Multi-Satuan
+- **Deskripsi**: Dialog "Validasi Perubahan Harga" saat menyimpan form Pembelian kini dimutakhirkan. Jika harga modal barang berubah dan barang tersebut memiliki banyak satuan (multi-satuan), dialog akan secara otomatis menampilkan SEMUA list konversi satuan milik barang tersebut. Harga modal baru akan dikalkulasi otomatis berjenjang sesuai nilai konversinya (modal dasar × nilai konversi). Kasir/Admin diwajibkan menyesuaikan harga jual lama dengan harga jual baru untuk setiap baris satuan. Pada saat disimpan, *hargaBeli* dan *hargaJual* pada tabel produk utama dan satuan_produk konversinya akan ikut terupdate semuanya secara global.
+- **Files**: lib/presentation/pages/shared/pembelian_form_page.dart
+- **Date**: 2026-06-03
+
+### Fitur: Halaman Khusus Riwayat Update Harga
+- **Deskripsi**: Menambahkan halaman "Riwayat Update Harga" (`RiwayatHargaPage`) yang dapat diakses melalui tombol "Lihat Semua" di bagian Dashboard. Daftar ini menampilkan seluruh riwayat perubahan harga produk (jual/beli). Apabila item dalam daftar ini diketuk, aplikasi akan langsung membuka halaman edit produk (`ProdukFormPage`) untuk memudahkan pengguna jika ingin melakukan penyesuaian harga lebih lanjut secara komprehensif, termasuk pada satuan-satuan konversinya.
+- **Cara pakai**: Di Beranda (Dashboard) → cari bagian "Update Harga Barang" → ketuk "Lihat Semua" → ketuk item produk manapun untuk mengeditnya.
+- **Files**: `lib/presentation/pages/shared/riwayat_harga_page.dart`, `lib/presentation/pages/shared/home_page.dart`, `lib/domain/repositories/produk_repository.dart`, `lib/data/repositories/produk_repository_impl.dart`, `lib/presentation/blocs/riwayat_harga/riwayat_harga_bloc.dart`
+- **Date**: 2026-06-05

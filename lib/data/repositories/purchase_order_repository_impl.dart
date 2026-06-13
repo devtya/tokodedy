@@ -189,4 +189,36 @@ class PurchaseOrderRepositoryImpl implements PurchaseOrderRepository {
     await _syncService.delete('purchase_order_items', id);
     await _syncService.delete('purchase_orders', id);
   }
+
+  @override
+  Future<void> updateStatus(String id, String status) async {
+    await (_db.update(_db.purchaseOrderTable)
+      ..where((t) => t.id.equals(id)))
+      .write(PurchaseOrderTableCompanion(
+        status: Value(status),
+        updatedAt: Value(DateTime.now()),
+      ));
+    
+    await _syncService.upsert('purchase_orders', {
+      'id': id,
+      'status': status,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
+  @override
+  Future<void> deleteItemsByPoId(String poId) async {
+    // Cari id item yang akan dihapus untuk disinkronisasi
+    final items = await (_db.select(_db.purchaseOrderItemTable)
+      ..where((t) => t.poId.equals(poId)))
+      .get();
+      
+    await (_db.delete(_db.purchaseOrderItemTable)
+      ..where((t) => t.poId.equals(poId)))
+      .go();
+
+    for (var item in items) {
+      await _syncService.delete('purchase_order_items', item.id);
+    }
+  }
 }

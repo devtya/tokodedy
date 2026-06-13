@@ -23,6 +23,14 @@ class InitialSyncTriggered extends SyncEvent {
   const InitialSyncTriggered();
 }
 
+class ForcePushProduk extends SyncEvent {
+  const ForcePushProduk();
+}
+
 class ClearSyncError extends SyncEvent {
   const ClearSyncError();
+}
+
+class ForceFullSyncTriggered extends SyncEvent {
+  const ForceFullSyncTriggered();
 }
