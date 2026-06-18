@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,33 @@ class SupabaseSyncService {
 
   final _onlineOrderEventController = StreamController<void>.broadcast();
   Stream<void> get onOnlineOrderReceived => _onlineOrderEventController.stream;
+
+  /// Trigger notifikasi ke listeners bahwa ada order online baru
+  void notifyOnlineOrderReceived() => _onlineOrderEventController.add(null);
+
+  /// Periodic polling timer untuk auto-refresh online orders (fallback)
+  Timer? _orderPollingTimer;
+
+  /// Mulai periodic polling online orders setiap [interval].
+  /// Berguna sebagai fallback jika Realtime subscription gagal.
+  void startPeriodicOrderPolling({Duration interval = const Duration(seconds: 30)}) {
+    _orderPollingTimer?.cancel();
+    _orderPollingTimer = Timer.periodic(interval, (_) async {
+      try {
+        await pullOnlineOrdersForce();
+        notifyOnlineOrderReceived();
+        debugPrint('[Polling] Online orders refreshed');
+      } catch (e) {
+        debugPrint('[Polling] Gagal refresh online orders: $e');
+      }
+    });
+  }
+
+  /// Hentikan periodic polling
+  void stopPeriodicOrderPolling() {
+    _orderPollingTimer?.cancel();
+    _orderPollingTimer = null;
+  }
 
   static const _lastSyncKey = 'last_sync_v2';
 
@@ -150,6 +178,8 @@ class SupabaseSyncService {
     if (_isRealtimeInitialized) return;
     _isRealtimeInitialized = true;
 
+    debugPrint('[Realtime] Initiating subscription...');
+
     _supabase
         .channel('public:online_orders')
         .onPostgresChanges(
@@ -158,14 +188,15 @@ class SupabaseSyncService {
             table: 'online_orders',
             callback: (payload) async {
               final newRecord = payload.newRecord;
+              debugPrint('[Realtime] INSERT detected: ${newRecord['id']} status=${newRecord['status']}');
               if (newRecord['status'] == 'pending' || newRecord['status'] == 'shipped') {
                 final orderId = newRecord['id'] as String;
                 final customerId = newRecord['customer_id'] as String;
                 final totalHarga = newRecord['total_harga'];
 
                 // Jeda awal: beri waktu agar app pelanggan selesai insert semua item ke Supabase
-                // Sesuai request user, kita beri delay 1 menit (60 detik) agar data lengkap masuk
-                await Future.delayed(const Duration(minutes: 1));
+                // Dikurangi dari 1 menit menjadi 3 detik agar kasir cepat menerima notifikasi
+                await Future.delayed(const Duration(seconds: 3));
 
                 // Pull data order & customer dulu
                 await pull();
@@ -183,22 +214,20 @@ class SupabaseSyncService {
                         .select()
                         .eq('online_order_id', orderId);
                     fetchedItems = (result as List).cast<Map<String, dynamic>>();
+                    debugPrint('[Realtime] Items retry $attempt: ${fetchedItems.length} items');
                   } catch (_) {}
 
                   if (fetchedItems.isNotEmpty) break;
 
-                  // Items belum ada, tunggu sebentar lalu coba lagi
                   if (attempt < maxRetries) {
                     await Future.delayed(retryDelay);
                   }
                 }
 
-                // Simpan items ke DB lokal (meskipun masih kosong setelah max retry)
                 if (fetchedItems.isNotEmpty) {
                   await _applyPulledRows('online_order_items', fetchedItems);
                 }
 
-                // Tarik customer kalau belum ada di DB lokal
                 try {
                   final customers = await _supabase
                       .from('online_customers')
@@ -209,20 +238,31 @@ class SupabaseSyncService {
                   }
                 } catch (_) {}
 
-                // Simpan notifikasi ke DB lokal (setelah data lengkap)
+                final judul = 'Pesanan Online Baru';
+                final pesan = 'Ada pesanan online baru (${fetchedItems.length} item, Total: Rp $totalHarga).';
                 await _db.into(_db.notifikasiTable).insert(NotifikasiTableCompanion.insert(
                   id: _uuid.v4(),
-                  judul: 'Pesanan Online Baru',
-                  pesan: 'Ada pesanan online baru (${fetchedItems.length} item, Total: Rp $totalHarga).',
+                  judul: judul,
+                  pesan: pesan,
                   tipe: const Value('ORDER'),
                   createdAt: Value(DateTime.now()),
                 ));
 
-                // Notify listeners untuk update UI — dijamin items sudah ada di DB lokal
                 _onlineOrderEventController.add(null);
               }
             })
-        .subscribe();
+        .subscribe((status, error) {
+          if (error != null) {
+            debugPrint('[Realtime] Subscription error: $error');
+            // Auto-retry setelah 10 detik
+            _isRealtimeInitialized = false;
+            Future.delayed(const Duration(seconds: 10), () {
+              initRealtimeListeners();
+            });
+          } else {
+            debugPrint('[Realtime] Subscription status: $status');
+          }
+        });
   }
 
   /// Force pull khusus untuk online_orders, online_customers, dan online_order_items
@@ -328,6 +368,9 @@ class SupabaseSyncService {
     return _prefs.getBool('initial_sync_done_v2') == true;
   }
 
+  /// Batas maksimal retry per item sebelum dihapus dari queue
+  static const int _maxRetryPerItem = 5;
+
   /// Flush antrian operasi yang belum berhasil di-sync
   Future<int> flushQueue() async {
     if (!(await isOnline)) return 0;
@@ -349,7 +392,31 @@ class SupabaseSyncService {
             .go();
         flushed++;
       } catch (_) {
-        // Biarkan di queue untuk retry berikutnya
+        // Hitung retry via payload JSON
+        try {
+          final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+          int retryCount = payload['_retryCount'] as int? ?? 0;
+          retryCount++;
+
+          if (retryCount >= _maxRetryPerItem) {
+            // Hapus dari queue — sudah terlalu sering gagal
+            await (_db.delete(_db.pendingSyncQueueTable)
+              ..where((t) => t.id.equals(item.id)))
+                .go();
+            debugPrint('[Sync] Queue item ${item.id} (${item.targetTable}/${item.recordId}) '
+                'dihapus setelah $retryCount× gagal');
+          } else {
+            // Update retry count di payload
+            payload['_retryCount'] = retryCount;
+            await (_db.update(_db.pendingSyncQueueTable)
+              ..where((t) => t.id.equals(item.id)))
+                .write(PendingSyncQueueTableCompanion(
+                  payload: Value(jsonEncode(payload)),
+                ));
+          }
+        } catch (_) {
+          // Jika gagal parse payload, biarkan di queue
+        }
       }
     }
 

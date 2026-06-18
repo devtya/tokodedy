@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
+import '../../../data/services/fcm_service.dart';
+import '../../../data/services/supabase_sync_service.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/theme/app_theme.dart';
@@ -74,11 +78,30 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
   bool _emailPromptShown = false;
   final List<_QuickActionDef> _customQuickActions = [];
   static const _prefsKey = 'custom_quick_actions';
+  StreamSubscription? _onlineOrderSub;
 
   @override
   void initState() {
     super.initState();
     _loadCustomQuickActions();
+    
+    _onlineOrderSub = sl<SupabaseSyncService>().onOnlineOrderReceived.listen((_) {
+      if (mounted) {
+        _reloadDashboardAndNotif();
+      }
+    });
+
+    FirebaseMessaging.instance.getToken().then((token) {
+      if (token != null) {
+        FcmService.saveTokenToSupabase(token);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _onlineOrderSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadCustomQuickActions() async {
@@ -450,16 +473,27 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (prev, current) => current is Unauthenticated,
-      listener: (context, state) {
-        _emailPromptShown = false;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (prev, current) => current is Unauthenticated,
+          listener: (context, state) {
+            _emailPromptShown = false;
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+              (route) => false,
+            );
+          },
+        ),
+        BlocListener<OnlineOrderBloc, OnlineOrderState>(
+          listenWhen: (prev, current) => current is OnlineOrderLoaded,
+          listener: (context, state) {
+            // Trigger update notifikasi tiap kali data online order dimuat/di-refresh (karena ada notif baru)
+            context.read<NotifikasiBloc>().add(LoadNotifikasi());
+          },
+        ),
+      ],
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
           String username = '';

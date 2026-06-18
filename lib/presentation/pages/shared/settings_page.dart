@@ -11,6 +11,7 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/theme/theme_cubit.dart';
 import '../../blocs/sync/sync_bloc.dart';
+import '../../../data/services/supabase_sync_service.dart';
 import 'login_page.dart';
 import 'pin_settings_page.dart';
 import 'printer_settings_page.dart';
@@ -445,6 +446,68 @@ class _SettingsPageState extends State<SettingsPage> {
                             Navigator.pop(context); // Tutup loading
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Gagal membersihkan satuan: $e')),
+                            );
+                          }
+                        }
+                      }
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.sync_problem, color: Colors.orange),
+                    title: const Text('Sync Ulang Semua Data'),
+                    subtitle: const Text('Push ulang semua produk & flush antrian'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Sync Ulang Semua Data?'),
+                          content: const Text(
+                            'Fungsi ini akan mengirim ulang semua data produk ke cloud '
+                            'dan membersihkan antrian sinkronisasi yang gagal.\n\n'
+                            'Koneksi internet diperlukan.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                              child: const Text('Sync Sekarang'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true && context.mounted) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        try {
+                          final syncService = sl<SupabaseSyncService>();
+                          final pushed = await syncService.forcePushSemuaProduk();
+                          final flushed = await syncService.flushQueue();
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            context.read<SyncBloc>().add(const SyncTriggered());
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Sync selesai! $pushed produk dipush, $flushed antrian dibersihkan.'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Sync gagal: $e')),
                             );
                           }
                         }

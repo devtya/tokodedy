@@ -31,7 +31,14 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
   @override
   void initState() {
     super.initState();
-    context.read<LocalAuthBloc>().add(CheckPinEvent(widget.userId));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<LocalAuthBloc>().state;
+      if (state is PinReady && state.biometricEnabled && !_hasAutoTriggered) {
+        _hasAutoTriggered = true;
+        _biometricLogin();
+      }
+    });
   }
 
   @override

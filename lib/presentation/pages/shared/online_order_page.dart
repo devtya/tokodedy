@@ -106,7 +106,17 @@ class _OnlineOrderPageState extends State<OnlineOrderPage> {
             ],
           ),
         ),
-        body: BlocBuilder<OnlineOrderBloc, OnlineOrderState>(
+        body: BlocConsumer<OnlineOrderBloc, OnlineOrderState>(
+          listener: (context, state) {
+            if (state is OnlineOrderError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
           builder: (context, state) {
             if (state is OnlineOrderLoading) {
               return const Center(child: CircularProgressIndicator());

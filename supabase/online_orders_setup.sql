@@ -45,7 +45,7 @@ CREATE POLICY "kasir_read_customers" ON online_customers
 CREATE TABLE IF NOT EXISTS online_orders (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   customer_id      UUID NOT NULL REFERENCES online_customers(id) ON DELETE RESTRICT,
-  status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'completed', 'cancelled')),
+  status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'ready', 'completed', 'cancelled')),
   total_harga      NUMERIC(15,2) NOT NULL DEFAULT 0,
   metode_pengiriman TEXT NOT NULL DEFAULT 'pickup' CHECK (metode_pengiriman IN ('pickup', 'delivery')),
   alamat_pengiriman TEXT,
@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS online_order_items (
   jumlah           INTEGER NOT NULL DEFAULT 1,
   subtotal         NUMERIC(15,2) NOT NULL DEFAULT 0,
   satuan_id        UUID REFERENCES satuan_produk(id) ON DELETE SET NULL,
-  konversi         NUMERIC(15,4) NOT NULL DEFAULT 1
+  konversi         NUMERIC(15,4) NOT NULL DEFAULT 1,
+  is_unavailable   BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- RLS online_order_items
@@ -114,7 +115,24 @@ CREATE POLICY "kasir_access_order_items" ON online_order_items
   FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 
 -- ============================================================
--- 5. ENABLE REALTIME
+-- 5. FCM TOKENS — Device token untuk push notification via Firebase Cloud Messaging
+-- ============================================================
+CREATE TABLE IF NOT EXISTS fcm_tokens (
+  token      TEXT PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS fcm_tokens
+ALTER TABLE fcm_tokens ENABLE ROW LEVEL SECURITY;
+-- Setiap user (kasir/owner) dapat mengelola token miliknya sendiri
+CREATE POLICY "user_manage_own_token" ON fcm_tokens
+  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+-- Service role (dari DedyStore API) dapat membaca semua token untuk kirim notifikasi
+-- (service role bypass RLS secara default, tapi policy ini tetap dibuat untuk dokumentasi)
+
+-- ============================================================
+-- 6. ENABLE REALTIME
 -- ============================================================
 -- Aktifkan Realtime untuk tabel online_orders agar notifikasi langsung masuk ke kasir
 DO $$
@@ -126,5 +144,12 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE online_orders;
   END IF;
 END $$;
+
+-- ============================================================
+-- MIGRATIONS (untuk database yang sudah ada)
+-- ============================================================
+ALTER TABLE produk              ADD COLUMN IF NOT EXISTS image_url       TEXT;
+ALTER TABLE produk              ADD COLUMN IF NOT EXISTS is_archived     BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE online_order_items  ADD COLUMN IF NOT EXISTS is_unavailable  BOOLEAN NOT NULL DEFAULT FALSE;
 
 NOTIFY pgrst, 'reload schema';

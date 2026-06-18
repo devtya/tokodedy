@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, User;
 import 'package:workmanager/workmanager.dart';
@@ -6,6 +7,8 @@ import 'package:workmanager/workmanager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'data/services/supabase_sync_service.dart';
+import 'data/services/local_notification_service.dart';
+import 'data/services/fcm_service.dart';
 
 import 'domain/entities/user.dart';
 import 'core/config.dart';
@@ -23,6 +26,7 @@ import 'presentation/blocs/local_auth/local_auth_bloc.dart';
 import 'presentation/blocs/local_auth/local_auth_event.dart';
 import 'presentation/blocs/local_auth/local_auth_state.dart';
 import 'presentation/blocs/sync/sync_bloc.dart';
+import 'presentation/blocs/online_order/online_order_bloc.dart';
 import 'presentation/blocs/theme/theme_cubit.dart';
 import 'presentation/pages/shared/home_page.dart';
 import 'presentation/pages/shared/initial_sync_page.dart';
@@ -30,6 +34,10 @@ import 'presentation/pages/shared/login_page.dart';
 import 'presentation/pages/shared/pin_setup_page.dart';
 import 'presentation/pages/shared/pin_verify_page.dart';
 import 'presentation/pages/shared/reset_password_page.dart';
+import 'presentation/pages/shared/online_order_page.dart';
+
+/// Global navigator key untuk akses dari service layer (notifikasi, dll)
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> _checkUpdate() async {
   try {
@@ -96,6 +104,15 @@ class _PinGateState extends State<_PinGate> {
   }
 }
 
+/// Handler untuk FCM ketika app dalam keadaan terminated (killed).
+/// Cukup log saja — Android otomatis menampilkan system tray notification
+/// karena payload FCM memiliki field `notification`.
+/// Data akan ter-pull oleh periodic polling atau Realtime setelah app aktif.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  debugPrint('[FCM Background] Message received: orderId=${message.data['orderId']}');
+}
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -107,6 +124,7 @@ void callbackDispatcher() {
       );
       await initDependencies();
       final syncService = sl<SupabaseSyncService>();
+      await syncService.pullOnlineOrdersForce();
       await syncService.flushQueue();
       return Future.value(true);
     } catch (e) {
@@ -139,6 +157,23 @@ void main() async {
 
   await initDependencies();
 
+  await sl<LocalNotificationService>().initialize(
+    onNotificationTap: (payload) {
+      if (payload == 'online_orders') {
+        appNavigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => BlocProvider.value(
+            value: sl<OnlineOrderBloc>(),
+            child: const OnlineOrderPage(),
+          )),
+        );
+      }
+    },
+  );
+
+  // Register background & foreground FCM handlers
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await FcmService.init();
+
   _checkUpdate();
   runApp(const TokodedyApp());
 }
@@ -151,8 +186,6 @@ class TokodedyApp extends StatefulWidget {
 }
 
 class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
-  final _navigatorKey = GlobalKey<NavigatorState>();
-
   @override
   void initState() {
     super.initState();
@@ -165,11 +198,30 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (data.event == AuthChangeEvent.passwordRecovery) {
         // User klik link reset password dari email → buka halaman isi password baru
-        _navigatorKey.currentState?.push(
+        appNavigatorKey.currentState?.push(
           MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
         );
       }
     });
+
+    // Handle FCM notification tap (app di background → foreground)
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleFcmNotificationTap);
+
+    // Handle FCM notification yang membuka app dari keadaan terminated (killed)
+    FirebaseMessaging.instance.getInitialMessage().then(_handleFcmNotificationTap);
+  }
+
+  void _handleFcmNotificationTap(RemoteMessage? message) {
+    if (message == null) return;
+    final orderId = message.data['orderId'];
+    if (orderId != null) {
+      appNavigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => BlocProvider.value(
+          value: sl<OnlineOrderBloc>(),
+          child: const OnlineOrderPage(),
+        )),
+      );
+    }
   }
 
   @override
@@ -216,7 +268,7 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
               child: TranslationProvider(
                 child: Builder(builder: (context) {
                   return MaterialApp(
-                    navigatorKey: _navigatorKey,
+                    navigatorKey: appNavigatorKey,
                     title: 'Tokodedy',
                     debugShowCheckedModeBanner: false,
                     themeMode: themeMode,

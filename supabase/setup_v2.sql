@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS produk (
   stok_minimum INTEGER,
   kategori    TEXT,
   satuan      TEXT NOT NULL DEFAULT 'pcs',
+  image_url   TEXT,
+  is_archived BOOLEAN NOT NULL DEFAULT FALSE,
   updated_at  TIMESTAMPTZ DEFAULT NOW(),
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
@@ -311,3 +313,9 @@ CREATE POLICY "authorized_access" ON pending_pembelian_item FOR ALL USING (EXIST
 CREATE POLICY "authorized_access" ON supplier_products     FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 CREATE POLICY "authorized_access" ON purchase_orders       FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
 CREATE POLICY "authorized_access" ON purchase_order_items  FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid()));
+
+-- ============================================================
+-- MIGRATIONS (untuk database yang sudah ada)
+-- ============================================================
+ALTER TABLE produk              ADD COLUMN IF NOT EXISTS image_url    TEXT;
+ALTER TABLE produk              ADD COLUMN IF NOT EXISTS is_archived  BOOLEAN NOT NULL DEFAULT FALSE;

@@ -101,10 +101,25 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   }
 
   void _init() {
+    // 1. Mulai periodic polling online orders (fallback jika Realtime gagal)
+    _syncService.startPeriodicOrderPolling();
+
+    // 2. Init realtime subscription sejak awal
+    _syncService.initRealtimeListeners();
+
+    // 3. Cek konektivitas awal dan trigger sync status
+    _connectivity.checkConnectivity().then((result) {
+      final online = result.any((r) => r != ConnectivityResult.none);
+      add(SyncStatusChanged(online));
+    });
+
+    // 4. Listen perubahan konektivitas
     _connectivitySub = _connectivity.onConnectivityChanged.listen((result) {
       final online = result.any((r) => r != ConnectivityResult.none);
       add(SyncStatusChanged(online));
     });
+
+    // 5. Periodic sync tiap 5 menit
     _periodicTimer = Timer.periodic(
       const Duration(minutes: 5),
       (_) => add(const SyncTriggered()),
