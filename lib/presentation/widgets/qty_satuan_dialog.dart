@@ -185,10 +185,11 @@ class _QtySatuanDialogState extends State<QtySatuanDialog> {
       child: Container(
         width: 400,
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Text(
               widget.produk.nama,
               style: const TextStyle(
@@ -322,6 +323,7 @@ class _QtySatuanDialogState extends State<QtySatuanDialog> {
               ],
             ),
           ],
+        ),
         ),
       ),
     );

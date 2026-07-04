@@ -66,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -82,6 +82,19 @@ class AppDatabase extends _$AppDatabase {
         try { await m.addColumn(itemPembelianTable, itemPembelianTable.namaProduk); } catch (_) {}
         try { await m.addColumn(itemTransaksiTable, itemTransaksiTable.namaProduk); } catch (_) {}
         try { await m.addColumn(onlineOrderItemTable, onlineOrderItemTable.namaProduk); } catch (_) {}
+      }
+      if (from < 4) {
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_satuan_produk_unique '
+          'ON satuan_produk_table (produk_id, nama)',
+        );
+      }
+      if (from < 5) {
+        try {
+          await m.addColumn(localAuthTable, localAuthTable.pinLength);
+        } catch (_) {
+          // Kolom pin_length sudah ada — aman diabaikan.
+        }
       }
     },
     beforeOpen: (details) async {

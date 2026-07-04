@@ -16,7 +16,7 @@ class FcmService {
     try {
       await Firebase.initializeApp();
     } catch (e) {
-      debugPrint('Firebase initialization error: $e');
+      if (kDebugMode) debugPrint('Firebase initialization error: $e');
       return;
     }
 
@@ -27,17 +27,17 @@ class FcmService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('User granted FCM permission');
+      if (kDebugMode) debugPrint('User granted FCM permission');
 
       try {
         String? token = await _firebaseMessaging.getToken();
         if (token != null) {
           _cachedToken = token;
-          debugPrint('FCM Token: $token');
+          if (kDebugMode) debugPrint('FCM Token: $token');
           await saveTokenToSupabase(token);
         }
       } catch (e) {
-        debugPrint('Failed to get FCM token: $e');
+        if (kDebugMode) debugPrint('Failed to get FCM token: $e');
       }
 
       // Simpan token lagi setiap kali user login (misal setelah reinstall)
@@ -54,7 +54,7 @@ class FcmService {
       
       // Handle foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        debugPrint('Got a message whilst in the foreground!');
+        if (kDebugMode) debugPrint('Got a message whilst in the foreground!');
         if (message.notification != null) {
           sl<LocalNotificationService>().showNotification(
             id: DateTime.now().millisecond,
@@ -71,7 +71,7 @@ class FcmService {
             await syncService.pullOnlineOrdersForce();
             syncService.notifyOnlineOrderReceived();
           } catch (e) {
-            debugPrint('Gagal pull order dari FCM foreground: $e');
+            if (kDebugMode) debugPrint('Gagal pull order dari FCM foreground: $e');
           }
         }
       });
@@ -90,7 +90,7 @@ class FcmService {
         'updated_at': DateTime.now().toIso8601String(),
       }, onConflict: 'token');
     } catch (e) {
-      debugPrint('Gagal menyimpan token FCM ke Supabase: $e');
+      if (kDebugMode) debugPrint('Gagal menyimpan token FCM ke Supabase: $e');
     }
   }
 }

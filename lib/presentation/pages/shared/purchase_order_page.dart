@@ -129,7 +129,14 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
                       padding: EdgeInsets.all(16),
                       child: Text('Tidak ada item.'),
                     )
-                  else
+                  else ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '${items.length} item',
+                        style: const TextStyle(fontSize: 12, color: AppTheme.neutralGrey),
+                      ),
+                    ),
                     Expanded(
                       child: ListView.builder(
                         itemCount: items.length,
@@ -189,6 +196,7 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
                         },
                       ),
                     ),
+                  ],
                   const Divider(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

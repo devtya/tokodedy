@@ -17,6 +17,7 @@ import 'produk_form_page.dart';
 import 'stok_page.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
+import '../../../core/services/stok_minimum_preference.dart';
 
 class ProdukPage extends StatefulWidget {
   const ProdukPage({super.key});
@@ -340,49 +341,168 @@ class _ProdukPageState extends State<ProdukPage> {
     );
   }
 
-  void _openGlobalStockSettings() {
-    final controller = TextEditingController(
-      text: '0',
-    );
-
-    showDialog(
+  void _openGlobalStockSettings() async {
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Stok Minimum Global'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Batas peringatan stok tipis untuk semua produk',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Jumlah Stok',
-                border: OutlineInputBorder(),
+      builder: (ctx) => const _GlobalStockSettingsDialog(),
+    );
+    if (saved == true && mounted) {
+      setState(() {
+        _searchProducts(_searchController.text);
+      });
+    }
+  }
+}
+
+class _GlobalStockSettingsDialog extends StatefulWidget {
+  const _GlobalStockSettingsDialog();
+
+  @override
+  State<_GlobalStockSettingsDialog> createState() => _GlobalStockSettingsDialogState();
+}
+
+class _GlobalStockSettingsDialogState extends State<_GlobalStockSettingsDialog> {
+  late final TextEditingController _controller;
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _loadValue();
+  }
+
+  Future<void> _loadValue() async {
+    try {
+      final val = await StokMinimumPreference.getStokMinimumGlobal();
+      if (mounted) {
+        setState(() {
+          _controller.text = val.toString();
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _controller.text = '0';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _validate(String val) {
+    if (val.trim().isEmpty) {
+      setState(() {
+        _errorText = 'Jumlah stok tidak boleh kosong';
+      });
+      return;
+    }
+    final numValue = int.tryParse(val.trim());
+    if (numValue == null) {
+      setState(() {
+        _errorText = 'Input harus berupa angka';
+      });
+    } else if (numValue < 0) {
+      setState(() {
+        _errorText = 'Angka tidak boleh negatif';
+      });
+    } else {
+      setState(() {
+        _errorText = null;
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    final text = _controller.text;
+    _validate(text);
+    if (_errorText != null) return;
+
+    final value = int.parse(text.trim());
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      await StokMinimumPreference.setStokMinimumGlobal(value);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Stok minimum global diperbarui')),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan: $e'),
+            backgroundColor: AppTheme.warningRed,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Stok Minimum Global'),
+      content: _isLoading
+          ? const SizedBox(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Batas peringatan stok tipis untuk semua produk',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _controller,
+                    keyboardType: TextInputType.number,
+                    onChanged: _validate,
+                    decoration: InputDecoration(
+                      labelText: 'Jumlah Stok',
+                      errorText: _errorText,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
+          child: const Text('Batal'),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (ctx.mounted && mounted) {
-                Navigator.pop(ctx);
-                setState(() {});
-              }
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
+        ElevatedButton(
+          onPressed: (_isLoading || _isSaving || _errorText != null) ? null : _save,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Text('Simpan'),
+        ),
+      ],
     );
   }
 }

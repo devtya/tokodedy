@@ -115,7 +115,8 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
         final s = p.satuanList?.where((sl) => sl.id == terima.satuanId).firstOrNull;
         final hJual = s != null ? s.hargaJual : (p.hargaJual * terima.konversi);
         if (hJual <= 0) {
-          final poItem = _items.firstWhere((i) => i.id == terima.poItemId);
+          final poItem = _items.where((i) => i.id == terima.poItemId).firstOrNull;
+          if (poItem == null) continue;
           zeroPriceItems.add(poItem);
         }
         

@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -43,9 +44,9 @@ class SupabaseSyncService {
       try {
         await pullOnlineOrdersForce();
         notifyOnlineOrderReceived();
-        debugPrint('[Polling] Online orders refreshed');
+        if (kDebugMode) debugPrint('[Polling] Online orders refreshed');
       } catch (e) {
-        debugPrint('[Polling] Gagal refresh online orders: $e');
+        if (kDebugMode) debugPrint('[Polling] Gagal refresh online orders: $e');
       }
     });
   }
@@ -79,6 +80,82 @@ class SupabaseSyncService {
     return !result.contains(ConnectivityResult.none) && result.isNotEmpty;
   }
 
+  /// Pastikan session Supabase valid, refresh jika perlu
+  Future<bool> _ensureValidSession() async {
+    try {
+      final session = _supabase.auth.currentSession;
+
+      if (session == null) {
+        if (kDebugMode) debugPrint('[Sync] currentSession null — mencoba recover dari backup...');
+        try {
+          const storage = FlutterSecureStorage();
+          final stored = await storage.read(key: 'supabase_session_backup');
+          if (stored != null && stored.isNotEmpty) {
+            final recovered = await _supabase.auth.recoverSession(stored);
+            if (recovered.session != null) {
+              if (kDebugMode) debugPrint('[Sync] Session BERHASIL di-recover dari backup');
+              return true;
+            }
+          } else {
+            if (kDebugMode) debugPrint('[Sync] Tidak ada backup session');
+          }
+        } catch (recoverError) {
+          if (kDebugMode) debugPrint('[Sync] recoverSession gagal: $recoverError');
+        }
+
+        if (kDebugMode) debugPrint('[Sync] No Supabase session — akan antri');
+        await _insertSessionExpiredNotification();
+        return false;
+      }
+
+      // Cek apakah session expired atau mendekati expired (dalam 5 menit)
+      final expiresAt = session.expiresAt;
+      if (expiresAt != null) {
+        final expiry = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000);
+        final fiveMinFromNow = DateTime.now().add(const Duration(minutes: 5));
+        if (expiry.isBefore(fiveMinFromNow)) {
+          if (kDebugMode) debugPrint('[Sync] Session mendekati expired, mencoba refresh...');
+          final refreshed = await _supabase.auth.refreshSession();
+          if (refreshed.session != null) {
+            if (kDebugMode) debugPrint('[Sync] Session berhasil di-refresh');
+            return true;
+          }
+          if (kDebugMode) debugPrint('[Sync] Gagal refresh session');
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Sync] Session check error: $e');
+      return false;
+    }
+  }
+
+  /// Buat notifikasi lokal jika session expired dan tidak bisa di-recover
+  Future<void> _insertSessionExpiredNotification() async {
+    try {
+      // Hindari spam — cek apakah notifikasi serupa sudah ada dalam 24 jam
+      final existing = await (_db.select(_db.notifikasiTable)
+        ..where((t) => t.tipe.equals('SYNC_ERROR'))
+        ..where((t) => t.createdAt.isBiggerThanValue(
+          DateTime.now().subtract(const Duration(hours: 24))))
+      ).get();
+
+      if (existing.isNotEmpty) return;
+
+      await _db.into(_db.notifikasiTable).insert(NotifikasiTableCompanion.insert(
+        id: _uuid.v4(),
+        judul: 'Sinkronisasi Cloud Terputus',
+        pesan: 'Session Supabase telah berakhir. Buka Pengaturan → Sinkronisasi Cloud → '
+            'login ulang dengan email & password untuk mengaktifkan sync kembali.',
+        tipe: const Value('SYNC_ERROR'),
+        createdAt: Value(DateTime.now()),
+      ));
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SyncService] insertSessionExpiredNotification error: $e');
+    }
+  }
+
   /// Push: upsert record ke Supabase atau antri jika offline
   Future<void> upsert(String tableName, Map<String, dynamic> data) async {
     // Inject timestamp agar proses pull() di device lain bisa mendeteksi perubahan
@@ -90,34 +167,48 @@ class SupabaseSyncService {
     }
 
     if (await isOnline) {
+      final sessionValid = await _ensureValidSession();
+      if (!sessionValid) {
+        if (kDebugMode) debugPrint('[Sync] Session invalid, enqueuing upsert: $tableName ${data['id']}');
+        await _enqueue(tableName, 'upsert', data['id'] as String, data);
+        return;
+      }
+
       try {
         await _supabase.from(tableName).upsert(data, onConflict: 'id');
-        print('Supabase sync upsert success: $tableName ${data['id']}');
+        if (kDebugMode) debugPrint('Supabase sync upsert success: $tableName ${data['id']}');
         return;
       } catch (e) {
-        print('Supabase sync upsert failed for $tableName ${data['id']}: $e');
+        if (kDebugMode) debugPrint('Supabase sync upsert failed for $tableName ${data['id']}: $e');
         // Jika gagal, antri
       }
     }
     // Offline → antri
-    print('Supabase offline, enqueuing upsert: $tableName ${data['id']}');
+    if (kDebugMode) debugPrint('Supabase offline, enqueuing upsert: $tableName ${data['id']}');
     await _enqueue(tableName, 'upsert', data['id'] as String, data);
   }
 
   /// Delete: hapus record dari Supabase atau antri jika offline
   Future<void> delete(String tableName, String id) async {
     if (await isOnline) {
+      final sessionValid = await _ensureValidSession();
+      if (!sessionValid) {
+        if (kDebugMode) debugPrint('[Sync] Session invalid, enqueuing delete: $tableName $id');
+        await _enqueue(tableName, 'delete', id, {'id': id});
+        return;
+      }
+
       try {
         await _supabase.from(tableName).delete().eq('id', id);
-        print('Supabase sync delete success: $tableName $id');
+        if (kDebugMode) debugPrint('Supabase sync delete success: $tableName $id');
         return;
       } catch (e) {
-        print('Supabase sync delete failed for $tableName $id: $e');
+        if (kDebugMode) debugPrint('Supabase sync delete failed for $tableName $id: $e');
         // Jika gagal, antri
       }
     }
     // Offline → antri
-    print('Supabase offline, enqueuing delete: $tableName $id');
+    if (kDebugMode) debugPrint('Supabase offline, enqueuing delete: $tableName $id');
     await _enqueue(tableName, 'delete', id, {'id': id});
   }
 
@@ -126,8 +217,13 @@ class SupabaseSyncService {
     void Function(String table, int count)? onTablePulled,
     bool force = false,
   }) async {
-    final lastSync = _prefs.getString(_lastSyncKey) ?? '1970-01-01T00:00:00Z';
+    final raw = _prefs.getString(_lastSyncKey) ?? '1970-01-01T00:00:00Z';
+    final lastSync = (!raw.contains('Z') && !raw.contains('+'))
+        ? '1970-01-01T00:00:00Z'
+        : raw;
     final pulledTables = <String>[];
+
+    bool allSuccess = true;
 
     for (final table in _pullOrder) {
       try {
@@ -144,8 +240,9 @@ class SupabaseSyncService {
         await _applyPulledRows(table, rows.cast<Map<String, dynamic>>());
         pulledTables.add(table);
         onTablePulled?.call(table, rows.length);
-      } catch (_) {
-        // Skip tabel yang error (mungkin belum punya updated_at)
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[SyncService] pull error on $table: $e\n$stack');
+        allSuccess = false;
       }
     }
 
@@ -164,23 +261,56 @@ class SupabaseSyncService {
         await _applyPulledRows(table, rows.cast<Map<String, dynamic>>());
         pulledTables.add(table);
         onTablePulled?.call(table, rows.length);
-      } catch (_) {}
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[SyncService] pull error on $table: $e\n$stack');
+        allSuccess = false;
+      }
     }
 
-    await _prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
+    // Back-fill online_order_items — skipped by main loop because the table
+    // has no created_at/updated_at column for date-range filtering.
+    try {
+      final recentOrders = await _supabase
+          .from('online_orders')
+          .select('id')
+          .gte('updated_at', lastSync);
+      final orderIds = (recentOrders as List)
+          .map((o) => (o as Map<String, dynamic>)['id'] as String)
+          .toList();
+      for (var i = 0; i < orderIds.length; i += 100) {
+        final chunk = orderIds.skip(i).take(100).toList();
+        final items = await _supabase
+            .from('online_order_items')
+            .select()
+            .inFilter('online_order_id', chunk);
+        if ((items as List).isNotEmpty) {
+          await _applyPulledRows('online_order_items', items.cast<Map<String, dynamic>>());
+        }
+      }
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('[SyncService] pull error on online_order_items backfill: $e\n$stack');
+      allSuccess = false;
+    }
+
+    if (allSuccess) {
+      await _prefs.setString(_lastSyncKey, DateTime.now().toUtc().toIso8601String());
+    } else {
+      if (kDebugMode) debugPrint('[SyncService] pull() completed with errors — last_sync NOT advanced');
+    }
     return pulledTables;
   }
 
   bool _isRealtimeInitialized = false;
+  RealtimeChannel? _realtimeChannel;
 
   /// Initialize realtime listener for Supabase
   void initRealtimeListeners() {
     if (_isRealtimeInitialized) return;
     _isRealtimeInitialized = true;
 
-    debugPrint('[Realtime] Initiating subscription...');
+    if (kDebugMode) debugPrint('[Realtime] Initiating subscription...');
 
-    _supabase
+    _realtimeChannel = _supabase
         .channel('public:online_orders')
         .onPostgresChanges(
             event: PostgresChangeEvent.insert,
@@ -188,7 +318,7 @@ class SupabaseSyncService {
             table: 'online_orders',
             callback: (payload) async {
               final newRecord = payload.newRecord;
-              debugPrint('[Realtime] INSERT detected: ${newRecord['id']} status=${newRecord['status']}');
+              if (kDebugMode) debugPrint('[Realtime] INSERT detected: ${newRecord['id']} status=${newRecord['status']}');
               if (newRecord['status'] == 'pending' || newRecord['status'] == 'shipped') {
                 final orderId = newRecord['id'] as String;
                 final customerId = newRecord['customer_id'] as String;
@@ -214,8 +344,10 @@ class SupabaseSyncService {
                         .select()
                         .eq('online_order_id', orderId);
                     fetchedItems = (result as List).cast<Map<String, dynamic>>();
-                    debugPrint('[Realtime] Items retry $attempt: ${fetchedItems.length} items');
-                  } catch (_) {}
+                    if (kDebugMode) debugPrint('[Realtime] Items retry $attempt: ${fetchedItems.length} items');
+                  } catch (e) {
+                    if (kDebugMode) debugPrint('[Realtime] Items retry error: $e');
+                  }
 
                   if (fetchedItems.isNotEmpty) break;
 
@@ -236,7 +368,9 @@ class SupabaseSyncService {
                   if ((customers as List).isNotEmpty) {
                     await _applyPulledRows('online_customers', customers.cast<Map<String, dynamic>>());
                   }
-                } catch (_) {}
+                } catch (e) {
+                  if (kDebugMode) debugPrint('[Realtime] customer fetch error: $e');
+                }
 
                 final judul = 'Pesanan Online Baru';
                 final pesan = 'Ada pesanan online baru (${fetchedItems.length} item, Total: Rp $totalHarga).';
@@ -253,14 +387,22 @@ class SupabaseSyncService {
             })
         .subscribe((status, error) {
           if (error != null) {
-            debugPrint('[Realtime] Subscription error: $error');
+            if (kDebugMode) debugPrint('[Realtime] Subscription error: $error');
+            // Tear down old channel before resubscribe to avoid duplicates
+            if (_realtimeChannel != null) {
+              try {
+                _supabase.removeChannel(_realtimeChannel!);
+              } catch (e) {
+                if (kDebugMode) debugPrint('[Realtime] removeChannel error: $e');
+              }
+            }
             // Auto-retry setelah 10 detik
             _isRealtimeInitialized = false;
             Future.delayed(const Duration(seconds: 10), () {
               initRealtimeListeners();
             });
           } else {
-            debugPrint('[Realtime] Subscription status: $status');
+            if (kDebugMode) debugPrint('[Realtime] Subscription status: $status');
           }
         });
   }
@@ -314,7 +456,9 @@ class SupabaseSyncService {
           }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SyncService] pullOnlineOrdersForce error: $e');
+    }
   }
 
   /// Full sync: download semua data toko dari Supabase (untuk install baru)
@@ -340,7 +484,9 @@ class SupabaseSyncService {
         if ((rows as List).isNotEmpty) {
           await _applyPulledRows(table, rows.cast<Map<String, dynamic>>());
         }
-      } catch (_) {}
+      } catch (e) {
+        if (kDebugMode) debugPrint('[SyncService] initialSync table $table error: $e');
+      }
 
       done++;
       onProgress(done, total);
@@ -358,9 +504,11 @@ class SupabaseSyncService {
           role: Value(p['role'] as String? ?? 'kasir'),
         ));
       }
-    } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SyncService] initialSync profiles error: $e');
+    }
 
-    await _prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
+    await _prefs.setString(_lastSyncKey, DateTime.now().toUtc().toIso8601String());
     await _prefs.setBool('initial_sync_done_v2', true);
   }
 
@@ -371,9 +519,17 @@ class SupabaseSyncService {
   /// Batas maksimal retry per item sebelum dihapus dari queue
   static const int _maxRetryPerItem = 5;
 
+  /// Jumlah item yang masih antri
+  Future<int> pendingQueueCount() async {
+    return _db.select(_db.pendingSyncQueueTable).get().then((q) => q.length);
+  }
+
   /// Flush antrian operasi yang belum berhasil di-sync
   Future<int> flushQueue() async {
     if (!(await isOnline)) return 0;
+
+    final sessionValid = await _ensureValidSession();
+    if (!sessionValid) return 0;
 
     final queue = await _db.select(_db.pendingSyncQueueTable).get();
     int flushed = 0;
@@ -382,7 +538,8 @@ class SupabaseSyncService {
       try {
         final payload = jsonDecode(item.payload) as Map<String, dynamic>;
         if (item.operation == 'upsert') {
-          await _supabase.from(item.targetTable).upsert(payload, onConflict: 'id');
+          final cleanPayload = Map<String, dynamic>.from(payload)..remove('_retryCount');
+          await _supabase.from(item.targetTable).upsert(cleanPayload, onConflict: 'id');
         } else if (item.operation == 'delete') {
           await _supabase.from(item.targetTable).delete().eq('id', item.recordId);
         }
@@ -391,7 +548,8 @@ class SupabaseSyncService {
           ..where((t) => t.id.equals(item.id)))
             .go();
         flushed++;
-      } catch (_) {
+      } catch (e) {
+        if (kDebugMode) debugPrint('[SyncService] flushQueue item ${item.id} (${item.targetTable}/${item.recordId}) error: $e');
         // Hitung retry via payload JSON
         try {
           final payload = jsonDecode(item.payload) as Map<String, dynamic>;
@@ -403,7 +561,7 @@ class SupabaseSyncService {
             await (_db.delete(_db.pendingSyncQueueTable)
               ..where((t) => t.id.equals(item.id)))
                 .go();
-            debugPrint('[Sync] Queue item ${item.id} (${item.targetTable}/${item.recordId}) '
+            if (kDebugMode) debugPrint('[Sync] Queue item ${item.id} (${item.targetTable}/${item.recordId}) '
                 'dihapus setelah $retryCount× gagal');
           } else {
             // Update retry count di payload
@@ -414,8 +572,8 @@ class SupabaseSyncService {
                   payload: Value(jsonEncode(payload)),
                 ));
           }
-        } catch (_) {
-          // Jika gagal parse payload, biarkan di queue
+        } catch (innerE) {
+          if (kDebugMode) debugPrint('[SyncService] flushQueue retry update error for ${item.id}: $innerE');
         }
       }
     }

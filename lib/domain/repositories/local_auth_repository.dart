@@ -3,6 +3,7 @@ abstract class LocalAuthRepository {
   Future<void> setPin(String userId, String pin);
   Future<bool> verifyPin(String userId, String pin);
   Future<void> removePin(String userId);
+  Future<int> getPinLength(String userId);
 
   Future<void> recordFailedAttempt(String userId);
   Future<void> resetAttempts(String userId);

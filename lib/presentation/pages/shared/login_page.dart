@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
@@ -36,23 +37,25 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Reset Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Masukkan email terdaftar Anda.\nKami akan mengirim tautan reset password.',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Masukkan email terdaftar Anda.\nKami akan mengirim tautan reset password.',
+                style: TextStyle(fontSize: 13),
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -107,7 +110,11 @@ class _LoginPageState extends State<LoginPage> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-      if (username.isEmpty || password.isEmpty) {
+    if (kDebugMode) debugPrint('[LoginPage] _login() CALLED | username="$username" | password.length=${password.length}');
+    if (kDebugMode) debugPrint('[LoginPage] Controllers NOT cleared — no .clear() call in this method');
+
+    if (username.isEmpty || password.isEmpty) {
+      if (kDebugMode) debugPrint('[LoginPage] Validation FAILED — empty fields');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Username/Email dan Password tidak boleh kosong'),
@@ -116,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    if (kDebugMode) debugPrint('[LoginPage] Dispatching LoginEvent to AuthBloc');
     context.read<AuthBloc>().add(LoginEvent(username, password));
   }
 

@@ -160,10 +160,25 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
     try {
       // Flush antrian operasi offline
+      final queueCount = await _syncService.pendingQueueCount();
       final flushed = await _syncService.flushQueue();
       if (flushed > 0) {
         _addLog(SyncLogEntry.tablePush('queue', flushed));
         _addLog(SyncLogEntry.pushDone(1));
+      } else if (queueCount > 0) {
+        // Ada item di queue tapi tidak ada yang terkirim — session mungkin expired
+        _addLog(SyncLogEntry.error(
+          'Gagal mengirim $queueCount item antrian. Periksa session/login ulang.',
+        ));
+        emit(SyncError(
+          message: 'Gagal mengirim $queueCount item antrian. Buka Pengaturan → '
+              'Sinkronisasi Cloud untuk login ulang.',
+          isOnline: online,
+          lastSync: _lastSync,
+          logs: List.of(_logs),
+        ));
+        _scheduleRetry(emit);
+        return;
       }
       emit(SyncInProgress(isOnline: online, logs: List.of(_logs)));
 

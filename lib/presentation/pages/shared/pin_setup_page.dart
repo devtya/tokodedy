@@ -5,6 +5,9 @@ import 'home_page.dart';
 import '../../blocs/local_auth/local_auth_bloc.dart';
 import '../../blocs/local_auth/local_auth_event.dart';
 import '../../blocs/local_auth/local_auth_state.dart';
+import '../../../presentation/widgets/pin_numpad.dart';
+
+enum _PinSetupStep { create, confirm }
 
 class PinSetupPage extends StatefulWidget {
   final String userId;
@@ -16,51 +19,99 @@ class PinSetupPage extends StatefulWidget {
 }
 
 class _PinSetupPageState extends State<PinSetupPage> {
-  final _pinController = TextEditingController();
-  final _confirmController = TextEditingController();
-  bool _obscurePin = true;
-  bool _obscureConfirm = true;
+  String _pin = '';
+  String _confirmPin = '';
   String _error = '';
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    _confirmController.dispose();
-    super.dispose();
-  }
+  _PinSetupStep _step = _PinSetupStep.create;
 
   void _save() {
-    final pin = _pinController.text.trim();
-    final confirm = _confirmController.text.trim();
-
-    if (pin.isEmpty || confirm.isEmpty) {
+    if (_pin.isEmpty || _confirmPin.isEmpty) {
       setState(() => _error = 'PIN tidak boleh kosong');
       return;
     }
-    if (pin.length < 4 || pin.length > 6) {
+    if (_pin.length < 4 || _pin.length > 6) {
       setState(() => _error = 'PIN harus 4-6 digit');
       return;
     }
-    if (pin != confirm) {
-      setState(() => _error = 'PIN tidak cocok');
+    if (_pin != _confirmPin) {
+      setState(() {
+        _error = 'PIN tidak cocok';
+        _step = _PinSetupStep.create;
+        _pin = '';
+        _confirmPin = '';
+      });
       return;
     }
-    if (pin == confirm) {
-      context.read<LocalAuthBloc>().add(SetPinEvent(widget.userId, pin));
+    context.read<LocalAuthBloc>().add(SetPinEvent(widget.userId, _pin));
+  }
+
+  void _onDigit(String digit) {
+    setState(() {
+      _error = '';
+      if (_step == _PinSetupStep.create) {
+        if (_pin.length < 6) {
+          _pin += digit;
+        }
+      } else {
+        if (_confirmPin.length < 6) {
+          _confirmPin += digit;
+        }
+      }
+    });
+  }
+
+  void _onBackspace() {
+    setState(() {
+      _error = '';
+      if (_step == _PinSetupStep.create) {
+        if (_pin.isNotEmpty) {
+          _pin = _pin.substring(0, _pin.length - 1);
+        }
+      } else {
+        if (_confirmPin.isNotEmpty) {
+          _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1);
+        }
+      }
+    });
+  }
+
+  void _goToConfirm() {
+    if (_pin.length < 4) {
+      setState(() => _error = 'PIN minimal 4 digit');
+      return;
     }
+    setState(() {
+      _step = _PinSetupStep.confirm;
+      _error = '';
+    });
+  }
+
+  void _goBackToCreate() {
+    setState(() {
+      _step = _PinSetupStep.create;
+      _confirmPin = '';
+      _error = '';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Atur PIN')),
+      backgroundColor: isDark ? AppTheme.background : AppTheme.lightBackground,
+      appBar: AppBar(
+        title: Text(
+          _step == _PinSetupStep.create ? 'Buat PIN Baru' : 'Konfirmasi PIN',
+        ),
+      ),
       body: BlocConsumer<LocalAuthBloc, LocalAuthState>(
         listener: (context, state) {
           if (state is PinSetSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('PIN berhasil disimpan'),
-                backgroundColor: AppTheme.primaryGreen,
+                backgroundColor: AppTheme.primary,
               ),
             );
             if (Navigator.canPop(context)) {
@@ -81,132 +132,117 @@ class _PinSetupPageState extends State<PinSetupPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.pin,
-                      size: 64,
-                      color: AppTheme.primaryGreen,
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Buat PIN Keamanan',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'PIN digunakan untuk login cepat tanpa password',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppTheme.neutralGrey,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _pinController,
-                      obscureText: _obscurePin,
-                      maxLength: 6,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        letterSpacing: 8,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        hintText: 'PIN (4-6 digit)',
-                        hintStyle: const TextStyle(fontSize: 16),
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePin
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+          final currentPin =
+              _step == _PinSetupStep.create ? _pin : _confirmPin;
+          final canProceed = _step == _PinSetupStep.create
+              ? _pin.length >= 4
+              : _confirmPin.length >= 4;
+
+          return Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.pin,
+                            size: 64,
+                            color: isDark ? AppTheme.primary : AppTheme.primary,
                           ),
-                          onPressed: () {
-                            setState(() => _obscurePin = !_obscurePin);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _confirmController,
-                      obscureText: _obscureConfirm,
-                      maxLength: 6,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        letterSpacing: 8,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        hintText: 'Konfirmasi PIN',
-                        hintStyle: const TextStyle(fontSize: 16),
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirm
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                          const SizedBox(height: 24),
+                          Text(
+                            _step == _PinSetupStep.create
+                                ? 'Buat PIN Baru'
+                                : 'Konfirmasi PIN',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.white : AppTheme.lightText,
+                            ),
                           ),
-                          onPressed: () {
-                            setState(
-                              () => _obscureConfirm = !_obscureConfirm,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    if (_error.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          _error,
-                          style: const TextStyle(
-                            color: AppTheme.warningRed,
-                            fontSize: 13,
+                          const SizedBox(height: 8),
+                          Text(
+                            _step == _PinSetupStep.create
+                                ? 'Masukkan PIN 4-6 digit'
+                                : 'Masukkan ulang PIN untuk konfirmasi',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppTheme.neutralGrey
+                                  : AppTheme.lightTextSecondary,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _save,
-                        child: const Text(
-                          'SIMPAN PIN',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 32),
+                          PinDots(
+                            digitCount: currentPin.length,
+                            totalDigits: 6,
+                            isError: _error.isNotEmpty,
                           ),
-                        ),
+                          if (_error.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                _error,
+                                style: const TextStyle(
+                                  color: AppTheme.error,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: !canProceed
+                                  ? null
+                                  : (_step == _PinSetupStep.create
+                                      ? _goToConfirm
+                                      : _save),
+                              child: Text(
+                                _step == _PinSetupStep.create
+                                    ? 'LANJUT'
+                                    : 'SIMPAN PIN',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_step == _PinSetupStep.confirm) ...[
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: _goBackToCreate,
+                              child: Text(
+                                'Kembali',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? AppTheme.primary
+                                      : AppTheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text(
-                        'Nanti Saja',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              PinNumpad(
+                enabled: true,
+                onDigit: _onDigit,
+                onBackspace: _onBackspace,
+              ),
+            ],
           );
         },
       ),

@@ -107,6 +107,7 @@ class BuatTransaksi {
           ItemTransaksi(
                   transaksiId: transaksiId,
             produkId: item.produkId,
+            namaProduk: item.namaProduk,
             jumlah: item.jumlah,
             hargaSatuan: item.hargaJual,
             subtotal: item.totalSetelahDiskon,

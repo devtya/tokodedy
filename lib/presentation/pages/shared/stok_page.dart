@@ -31,23 +31,25 @@ class _StokPageState extends State<StokPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Tambah Stok'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: jumlahController,
-              decoration: const InputDecoration(labelText: 'Jumlah'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: keteranganController,
-              decoration: const InputDecoration(
-                labelText: 'Keterangan',
-                hintText: 'Opsional',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: jumlahController,
+                decoration: const InputDecoration(labelText: 'Jumlah'),
+                keyboardType: TextInputType.number,
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: keteranganController,
+                decoration: const InputDecoration(
+                  labelText: 'Keterangan',
+                  hintText: 'Opsional',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

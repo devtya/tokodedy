@@ -68,6 +68,7 @@ class SelesaikanOnlineOrder {
           ItemTransaksi(
             transaksiId: transaksiId,
             produkId: item.produkId,
+            namaProduk: item.namaProduk,
             jumlah: item.jumlah,
             hargaSatuan: item.hargaSatuan,
             subtotal: item.subtotal,

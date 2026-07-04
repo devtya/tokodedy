@@ -98,16 +98,17 @@ class _CashierPageState extends State<CashierPage> {
               ),
               content: SizedBox(
                 width: 400,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _infoRow('Total', _currency.format(data.totalSetelahDiskon)),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: bayarCtrl,
-                      keyboardType: TextInputType.number,
-                      autofocus: true,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _infoRow('Total', _currency.format(data.totalSetelahDiskon)),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: bayarCtrl,
+                        keyboardType: TextInputType.number,
+                        autofocus: true,
                       decoration: InputDecoration(
                         labelText: 'Jumlah Bayar',
                         prefixText: 'Rp ',
@@ -169,6 +170,7 @@ class _CashierPageState extends State<CashierPage> {
                     ),
                   ],
                 ),
+              ),
               ),
               actions: [
                 TextButton(
@@ -559,29 +561,31 @@ class _CashierPageState extends State<CashierPage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: Text('Diskon - ${item.namaProduk}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('Tidak')),
-                  ButtonSegment(value: 1, label: Text('%')),
-                  ButtonSegment(value: 2, label: Text('Rp')),
-                ],
-                selected: {tipe},
-                onSelectionChanged: (v) => setDialogState(() => tipe = v.first),
-              ),
-              const SizedBox(height: 12),
-              if (tipe > 0)
-                TextField(
-                  controller: valueController,
-                  decoration: InputDecoration(
-                    labelText: tipe == 1 ? 'Persen (%)' : 'Nominal (Rp)',
-                    hintText: tipe == 1 ? '10' : '5000',
-                  ),
-                  keyboardType: TextInputType.number,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: 0, label: Text('Tidak')),
+                    ButtonSegment(value: 1, label: Text('%')),
+                    ButtonSegment(value: 2, label: Text('Rp')),
+                  ],
+                  selected: {tipe},
+                  onSelectionChanged: (v) => setDialogState(() => tipe = v.first),
                 ),
-            ],
+                const SizedBox(height: 12),
+                if (tipe > 0)
+                  TextField(
+                    controller: valueController,
+                    decoration: InputDecoration(
+                      labelText: tipe == 1 ? 'Persen (%)' : 'Nominal (Rp)',
+                      hintText: tipe == 1 ? '10' : '5000',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -730,19 +734,21 @@ class _CashierPageState extends State<CashierPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Simpan Pending'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: namaController,
-              decoration: const InputDecoration(labelText: 'Nama Pelanggan *'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: catatanController,
-              decoration: const InputDecoration(labelText: 'Catatan'),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: namaController,
+                decoration: const InputDecoration(labelText: 'Nama Pelanggan *'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: catatanController,
+                decoration: const InputDecoration(labelText: 'Catatan'),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

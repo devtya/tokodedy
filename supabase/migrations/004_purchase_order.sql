@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
   harga_satuan  NUMERIC(15,2) NOT NULL DEFAULT 0,
   subtotal      NUMERIC(15,2) NOT NULL DEFAULT 0,
   satuan_id     TEXT,
-  konversi      NUMERIC(15,4) NOT NULL DEFAULT 1.0
+  konversi      NUMERIC(15,4) NOT NULL DEFAULT 1.0,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 3. INDEX

@@ -148,32 +148,34 @@ class _UserManagementPageState extends State<UserManagementPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Reset PIN ${user.nama ?? "Kasir"}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Masukkan PIN baru untuk user ini.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pinCtrl,
-              obscureText: true,
-              maxLength: 6,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'PIN Baru (4-6 digit)',
-                prefixIcon: Icon(Icons.pin),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Masukkan PIN baru untuk user ini.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: pinCtrl,
+                obscureText: true,
+                maxLength: 6,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'PIN Baru (4-6 digit)',
+                  prefixIcon: Icon(Icons.pin),
+                ),
               ),
-            ),
-            TextField(
-              controller: confirmCtrl,
-              obscureText: true,
-              maxLength: 6,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Konfirmasi PIN',
-                prefixIcon: Icon(Icons.pin),
+              TextField(
+                controller: confirmCtrl,
+                obscureText: true,
+                maxLength: 6,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Konfirmasi PIN',
+                  prefixIcon: Icon(Icons.pin),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

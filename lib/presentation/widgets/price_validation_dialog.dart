@@ -79,9 +79,15 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
     for (var item in widget.changedItems) {
       if (_valData.containsKey(item.produkId)) continue;
 
-      final produk = widget.produkMap[item.produkId]!;
-      // Harga modal (dasar) baru = harga beli form / konversi
-      final baseCost = item.hargaBeliSatuan / item.konversi;
+      final produk = widget.produkMap[item.produkId];
+      if (produk == null) continue;
+
+      // Guard: konversi 0 atau negatif (data lama/korup) akan menghasilkan
+      // Infinity/NaN kalau dipakai sebagai pembagi. Fallback ke harga beli
+      // form apa adanya supaya dialog tidak menampilkan "Rp ∞".
+      final baseCost = item.konversi > 0
+          ? item.hargaBeliSatuan / item.konversi
+          : item.hargaBeliSatuan;
       
       final units = <_UnitValData>[];
       
@@ -96,18 +102,32 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
       ));
       
       // Konversi units
+      // PENTING: dedup berdasarkan id (identitas row di database), bukan
+      // nama (string bebas). Dedup by nama bikin unit ke-skip diam-diam
+      // kalau ada dua row satuan_produk dengan nama sama untuk produk yang
+      // sama (typo/duplikat input) — unit itu lalu tidak ikut ter-update
+      // saat _saveChanges(), tapi tetap ada di database dengan harga lama.
       final satuanList = produk.satuanList ?? [];
-      final addedUnitNames = {(produk.satuan ?? 'pcs').toUpperCase()};
+      final addedUnitIds = <String>{};
+      final baseUnitNama = (produk.satuan ?? 'pcs').toUpperCase();
       
       for (var s in satuanList) {
-        if (addedUnitNames.contains(s.nama.toUpperCase())) continue;
-        addedUnitNames.add(s.nama.toUpperCase());
+        if (s.id == null) continue; // row tanpa id tidak bisa diidentifikasi unik, skip aman
+        if (addedUnitIds.contains(s.id)) continue;
+        // Skip kalau unit ini representasi base unit (nama sama dengan produk.satuan)
+        // -- dicek terpisah dari dedup id supaya tidak bias false-positive
+        if (s.nama.toUpperCase() == baseUnitNama && s.konversi == 1.0) continue;
+        addedUnitIds.add(s.id!);
+        
+        // Guard yang sama untuk konversi per-unit: konversi <= 0 dianggap rusak,
+        // jangan ikut dikalikan supaya tidak merembet jadi Infinity/NaN di UI.
+        final konversiAman = s.konversi > 0 ? s.konversi : 1.0;
         
         units.add(_UnitValData(
           satuanId: s.id,
           namaSatuan: s.nama,
-          konversi: s.konversi,
-          hargaBeliBaru: baseCost * s.konversi,
+          konversi: konversiAman,
+          hargaBeliBaru: baseCost * konversiAman,
           hargaJualLama: s.hargaJual,
           jualController: TextEditingController(text: s.hargaJual.toStringAsFixed(0)),
         ));
@@ -141,7 +161,8 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
         final produk = pData.produk;
         
         // Update Base Product
-        final baseUnit = pData.units.firstWhere((u) => u.satuanId == null);
+        final baseUnit = pData.units.where((u) => u.satuanId == null).firstOrNull;
+        if (baseUnit == null) continue;
         final newBaseJual = double.tryParse(baseUnit.jualController.text) ?? baseUnit.hargaJualLama;
         
         final updatedProduk = produk.copyWith(
@@ -151,13 +172,21 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
         await updateProduk(updatedProduk);
         
         // Update Satuan Konversi
-        final satuanList = produk.satuanList ?? [];
-        for (var s in satuanList) {
-          final uData = pData.units.firstWhere((u) => u.satuanId == s.id);
+        // PENTING: iterasi dari pData.units (sumber yang sudah divalidasi &
+        // di-dedup berdasarkan id), bukan dari produk.satuanList lagi.
+        // Sebelumnya kode ini me-re-lookup uData dari satuanList per s.id,
+        // yang gagal diam-diam kalau ada row id yang sama tapi tidak masuk
+        // ke units saat initState (misal karena collide dengan base unit) --
+        // hasilnya update baru ke base unit, tapi row satuan_produk terkait
+        // tetap menyimpan harga lama dan jadi tidak sinkron.
+        for (var uData in pData.units) {
+          if (uData.satuanId == null) continue; // base unit sudah diupdate di atas
           final newJual = double.tryParse(uData.jualController.text) ?? uData.hargaJualLama;
+          final existing = produk.satuanList?.where((s) => s.id == uData.satuanId).firstOrNull;
+          if (existing == null) continue;
           
           await repo.updateSatuan(
-            s.copyWith(
+            existing.copyWith(
               hargaBeli: uData.hargaBeliBaru,
               hargaJual: newJual,
             ),
@@ -175,6 +204,8 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AlertDialog(
       title: const Text('Validasi Perubahan Harga'),
       content: SizedBox(
@@ -183,9 +214,9 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Harga modal berubah! Berikut harga modal baru (dikonversi otomatis). Silakan sesuaikan harga jual untuk tiap satuan:',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(fontSize: 13, color: isDark ? AppTheme.neutralGrey : AppTheme.lightTextSecondary),
             ),
             const SizedBox(height: 16),
             Flexible(
@@ -202,7 +233,7 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
                       children: [
                         Text(
                           pData.produk.nama,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : AppTheme.lightText),
                         ),
                         const SizedBox(height: 8),
                         ...pData.units.map((uData) {
@@ -210,8 +241,8 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              border: Border.all(color: Colors.grey.shade300),
+                              color: isDark ? AppTheme.surfaceContainerLow : AppTheme.lightBackground,
+                              border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Column(
@@ -240,14 +271,14 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    const Text('Harga Jual:', style: TextStyle(fontSize: 12)),
+                                    Text('Harga Jual:', style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : AppTheme.lightTextSecondary)),
                                     const SizedBox(width: 8),
                                     Text(
                                       _currency.format(uData.hargaJualLama),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         decoration: TextDecoration.lineThrough,
                                         fontSize: 12,
-                                        color: Colors.grey,
+                                        color: isDark ? AppTheme.neutralGrey : AppTheme.lightGrey,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -257,11 +288,17 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
                                       child: TextField(
                                         controller: uData.jualController,
                                         keyboardType: TextInputType.number,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
-                                        decoration: const InputDecoration(
+                                        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.lightText),
+                                        decoration: InputDecoration(
                                           prefixText: 'Rp ',
                                           isDense: true,
-                                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                          filled: true,
+                                          fillColor: isDark ? AppTheme.surfaceInput : AppTheme.lightBackground,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                            borderSide: BorderSide(color: isDark ? AppTheme.border : AppTheme.lightBorder),
+                                          ),
                                         ),
                                         onTap: () {
                                           uData.jualController.selection = TextSelection(
@@ -289,7 +326,7 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context, false),
-          child: const Text('Batal'),
+          child: Text('Batal', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.lightText)),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _saveChanges,

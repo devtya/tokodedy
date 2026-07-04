@@ -17,6 +17,7 @@ import 'pin_settings_page.dart';
 import 'printer_settings_page.dart';
 import 'user_management_page.dart';
 import '../../../domain/repositories/produk_repository.dart';
+import '../../../domain/repositories/purchase_order_repository.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -508,6 +509,80 @@ class _SettingsPageState extends State<SettingsPage> {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Sync gagal: $e')),
+                            );
+                          }
+                        }
+                      }
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.file_upload_outlined, color: Colors.indigo),
+                    title: const Text('Push Ulang Data PO'),
+                    subtitle: const Text('Kirim ulang item Purchase Order yang gagal sync'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Push Ulang Data PO?'),
+                          content: const Text(
+                            'Fungsi ini akan mengirim ulang SEMUA item Purchase Order '
+                            'yang tersimpan di HP ini ke cloud Supabase.\n\n'
+                            'Gunakan jika item PO tidak muncul di perangkat lain.\n\n'
+                            'Koneksi internet diperlukan.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: TextButton.styleFrom(foregroundColor: Colors.indigo),
+                              child: const Text('Push Sekarang'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true && context.mounted) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        try {
+                          final repo = sl<PurchaseOrderRepository>();
+                          final pushed = await repo.rePushAllPurchaseOrderItems();
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+
+                            if (pushed > 0) {
+                              context.read<SyncBloc>().add(const SyncTriggered());
+                            }
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  pushed > 0
+                                      ? 'Berhasil! $pushed item PO di-push ke cloud.'
+                                      : 'Tidak ada item PO yang perlu di-push.',
+                                ),
+                                backgroundColor: pushed > 0 ? Colors.indigo : Colors.grey,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Gagal push data PO: $e'),
+                                backgroundColor: AppTheme.warningRed,
+                              ),
                             );
                           }
                         }

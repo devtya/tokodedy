@@ -39,11 +39,11 @@
 
 ```bash
 # Debug dengan Supabase sync
-flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+flutter run
 
 # Release APK
-flutter build apk --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+flutter build apk --release
 
-# Windows Desktop
-flutter build windows --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+# Windows Desktop (project tokodedypc)
+flutter build windows --release
 ```

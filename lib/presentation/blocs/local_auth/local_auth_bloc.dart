@@ -35,6 +35,7 @@ class LocalAuthBloc extends Bloc<LocalAuthEvent, LocalAuthState> {
       final lockoutUntil = await _repo.getLockoutUntil(event.userId);
       final locked = _repo.isLockedOut(lockoutUntil);
       final attempts = await _repo.getFailedAttempts(event.userId);
+      final pinLen = await _repo.getPinLength(event.userId);
 
       emit(PinReady(
         biometricAvailable: bioAvail,
@@ -42,6 +43,7 @@ class LocalAuthBloc extends Bloc<LocalAuthEvent, LocalAuthState> {
         isLockedOut: locked,
         failedAttempts: attempts,
         lockoutUntil: lockoutUntil,
+        pinLength: pinLen,
       ));
     } catch (e) {
       emit(PinError(e.toString()));

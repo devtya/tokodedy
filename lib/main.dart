@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, User;
@@ -110,7 +111,7 @@ class _PinGateState extends State<_PinGate> {
 /// Data akan ter-pull oleh periodic polling atau Realtime setelah app aktif.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('[FCM Background] Message received: orderId=${message.data['orderId']}');
+  if (kDebugMode) debugPrint('[FCM Background] Message received: orderId=${message.data['orderId']}');
 }
 
 @pragma('vm:entry-point')
@@ -279,17 +280,30 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
                     localizationsDelegates: GlobalMaterialLocalizations.delegates,
                     home: BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
-                        if (state is AuthInitial ||
-                            state is AuthLoading &&
-                                state is! Authenticated &&
-                                state is! Unauthenticated) {
+                        if (kDebugMode) debugPrint('[Main-BlocBuilder] state=${state.runtimeType} | '
+                            'isInitial=${state is AuthInitial} '
+                            'isLoading=${state is AuthLoading} '
+                            'isAuthd=${state is Authenticated} '
+                            'isUnauthd=${state is Unauthenticated}');
+                        // Hanya splash untuk initial startup (AuthInitial).
+                        // JANGAN splash untuk AuthLoading — itu akan meng-unmount
+                        // LoginPage dan menghancurkan controllers + BlocListener.
+                        // LoginPage internal sudah handle loading state via
+                        // BlocBuilder di tombolnya sendiri.
+                        if (state is AuthInitial) {
+                          if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing SPLASH (initial startup)');
                           return const Scaffold(
                             body: Center(child: CircularProgressIndicator()),
                           );
                         }
                         if (state is Authenticated) {
+                          if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing _PinGate');
                           return _PinGate(user: state.user);
                         }
+                        // AuthLoading, AuthError, Unauthenticated semua return
+                        // LoginPage — biarkan LoginPage internal yang handle
+                        // loading/error state masing-masing.
+                        if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing LoginPage');
                         return const LoginPage();
                       },
                     ),

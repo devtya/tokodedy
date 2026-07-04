@@ -5,6 +5,7 @@ import '../../blocs/local_auth/local_auth_bloc.dart';
 import '../../blocs/local_auth/local_auth_event.dart';
 import '../../blocs/local_auth/local_auth_state.dart';
 import '../../../i18n/strings.g.dart';
+import '../../../presentation/widgets/pin_numpad.dart';
 
 class PinVerifyPage extends StatefulWidget {
   final String userId;
@@ -23,10 +24,10 @@ class PinVerifyPage extends StatefulWidget {
 }
 
 class _PinVerifyPageState extends State<PinVerifyPage> {
-  final _pinController = TextEditingController();
-  final _pinFocusNode = FocusNode();
+  String _pin = '';
   String _error = '';
   bool _hasAutoTriggered = false;
+  int _pinLength = 6;
 
   @override
   void initState() {
@@ -38,18 +39,14 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
         _hasAutoTriggered = true;
         _biometricLogin();
       }
+      if (state is PinReady) {
+        _pinLength = state.pinLength;
+      }
     });
   }
 
-  @override
-  void dispose() {
-    _pinController.dispose();
-    _pinFocusNode.dispose();
-    super.dispose();
-  }
-
   void _verify() {
-    final pin = _pinController.text.trim();
+    final pin = _pin.trim();
     if (pin.isEmpty) {
       setState(() => _error = 'Masukkan PIN');
       return;
@@ -61,145 +58,167 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
     context.read<LocalAuthBloc>().add(BiometricLoginEvent(widget.userId));
   }
 
+  void _onDigit(String digit) {
+    if (_pin.length >= _pinLength) return;
+    setState(() {
+      _pin += digit;
+      _error = '';
+      if (_pin.length == _pinLength) _verify();
+    });
+  }
+
+  void _onBackspace() {
+    if (_pin.isEmpty) return;
+    setState(() {
+      _pin = _pin.substring(0, _pin.length - 1);
+      _error = '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      body: BlocConsumer<LocalAuthBloc, LocalAuthState>(
-        listener: (context, state) {
-          if (state is PinVerified) {
-            widget.onVerified();
-          } else if (state is PinError) {
-            setState(() => _error = state.message);
-          } else if (state is PinReady) {
-            if (state.isLockedOut) {
-              setState(() => _error = 'Terlalu banyak percobaan. Tunggu 30 detik.');
+      backgroundColor: isDark ? AppTheme.background : AppTheme.lightBackground,
+      body: SafeArea(
+        child: BlocConsumer<LocalAuthBloc, LocalAuthState>(
+          listener: (context, state) {
+            if (state is PinVerified) {
+              widget.onVerified();
+            } else if (state is PinError) {
+              setState(() {
+                _error = state.message;
+                _pin = '';
+              });
+            } else if (state is PinReady) {
+              _pinLength = state.pinLength;
+              if (state.isLockedOut) {
+                setState(() =>
+                    _error = 'Terlalu banyak percobaan. Tunggu 30 detik.');
+              }
+              if (state.biometricEnabled && !_hasAutoTriggered) {
+                _hasAutoTriggered = true;
+                _biometricLogin();
+              }
+            } else if (state is PinNotSet) {
+              widget.onSkip();
             }
-            if (state.biometricEnabled && !_hasAutoTriggered) {
-              _hasAutoTriggered = true;
-              _biometricLogin();
+          },
+          builder: (context, state) {
+            if (state is LocalAuthLoading) {
+              return const Center(child: CircularProgressIndicator());
             }
-          } else if (state is PinNotSet) {
-            widget.onSkip();
-          }
-        },
-        builder: (context, state) {
-          if (state is LocalAuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
 
-          final isLocked = state is PinReady && state.isLockedOut;
-          final bioAvail = state is PinReady && state.biometricAvailable;
+            final isLocked = state is PinReady && state.isLockedOut;
+            final bioAvail = state is PinReady && state.biometricAvailable;
+            final curPinLength = state is PinReady ? state.pinLength : _pinLength;
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.lock_outline,
-                      size: 64,
-                      color: AppTheme.primaryGreen,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      t.pin.title,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      t.pin.verify_title,
-                      style: TextStyle(
-                        color: AppTheme.neutralGrey,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _pinController,
-                      focusNode: _pinFocusNode,
-                      obscureText: true,
-                      maxLength: 6,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        letterSpacing: 8,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        hintText: '••••••',
-                        hintStyle: TextStyle(
-                          fontSize: 24,
-                          letterSpacing: 8,
-                          color: AppTheme.neutralGrey.withValues(alpha: 0.4),
-                        ),
-                        border: const OutlineInputBorder(),
-                      ),
-                      enabled: !isLocked,
-                      onChanged: (val) {
-                        if (val.length == 6) {
-                          _verify();
-                        }
-                      },
-                    ),
-                    if (_error.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          _error,
-                          style: const TextStyle(
-                            color: AppTheme.warningRed,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: isLocked ? null : _verify,
-                        child: const Text(
-                          'VERIFIKASI',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (bioAvail) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed: isLocked ? null : _biometricLogin,
-                          icon: const Icon(Icons.fingerprint),
-                          label: const Text('Gunakan Sidik Jari'),
+            return Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.lock_outline,
+                              size: 64,
+                              color: isDark ? AppTheme.primary : AppTheme.primary,
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              t.pin.title,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppTheme.white : AppTheme.lightText,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              t.pin.verify_title,
+                              style: TextStyle(
+                                color: isDark ? AppTheme.neutralGrey : AppTheme.lightTextSecondary,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            PinDots(
+                              digitCount: _pin.length,
+                              totalDigits: curPinLength,
+                              isError: _error.isNotEmpty,
+                            ),
+                            if (_error.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _error,
+                                  style: const TextStyle(
+                                    color: AppTheme.error,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed:
+                                    (isLocked || _pin.isEmpty) ? null : _verify,
+                                child: const Text(
+                                  'VERIFIKASI',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (bioAvail) ...[
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: OutlinedButton.icon(
+                                  onPressed:
+                                      isLocked ? null : _biometricLogin,
+                                  icon: const Icon(Icons.fingerprint),
+                                  label: const Text('Gunakan Sidik Jari'),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: widget.onSkip,
+                              child: Text(
+                                'Login dengan Password',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppTheme.primary : AppTheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 24),
-                    TextButton(
-                      onPressed: widget.onSkip,
-                      child: const Text(
-                        'Login dengan Password',
-                        style: TextStyle(fontSize: 13),
-                      ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+                PinNumpad(
+                  enabled: !isLocked,
+                  onDigit: _onDigit,
+                  onBackspace: _onBackspace,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

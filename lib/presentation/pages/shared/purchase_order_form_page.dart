@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/barcode_scanner_widget.dart';
@@ -245,45 +246,47 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Edit - ${item.namaProduk}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: hargaController,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'Harga Satuan', prefixText: 'Rp '),
-              onChanged: (val) {
-                final harga = double.tryParse(val) ?? 0;
-                final qty = int.tryParse(qtyController.text) ?? 1;
-                totalController.text = (harga * qty).toStringAsFixed(0);
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: qtyController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Jumlah Pesan'),
-              onChanged: (val) {
-                final qty = int.tryParse(val) ?? 1;
-                final harga = double.tryParse(hargaController.text) ?? 0;
-                totalController.text = (harga * qty).toStringAsFixed(0);
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: totalController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Total Harga', prefixText: 'Rp '),
-              onChanged: (val) {
-                final total = double.tryParse(val) ?? 0;
-                final qty = int.tryParse(qtyController.text) ?? 1;
-                if (qty > 0) {
-                  hargaController.text = (total / qty).toStringAsFixed(2);
-                }
-              },
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: hargaController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Harga Satuan', prefixText: 'Rp '),
+                onChanged: (val) {
+                  final harga = double.tryParse(val) ?? 0;
+                  final qty = int.tryParse(qtyController.text) ?? 1;
+                  totalController.text = (harga * qty).toStringAsFixed(0);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: qtyController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Jumlah Pesan'),
+                onChanged: (val) {
+                  final qty = int.tryParse(val) ?? 1;
+                  final harga = double.tryParse(hargaController.text) ?? 0;
+                  totalController.text = (harga * qty).toStringAsFixed(0);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: totalController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Total Harga', prefixText: 'Rp '),
+                onChanged: (val) {
+                  final total = double.tryParse(val) ?? 0;
+                  final qty = int.tryParse(qtyController.text) ?? 1;
+                  if (qty > 0) {
+                    hargaController.text = (total / qty).toStringAsFixed(2);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -430,7 +433,7 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                 );
               }
             } catch (e) {
-              debugPrint('Gagal menyimpan PO Besok: $e');
+              if (kDebugMode) debugPrint('Gagal menyimpan PO Besok: $e');
             }
           }
           if (context.mounted && mounted) {

@@ -19,6 +19,7 @@ class PinReady extends LocalAuthState {
   final bool isLockedOut;
   final int failedAttempts;
   final DateTime? lockoutUntil;
+  final int pinLength;
 
   const PinReady({
     this.biometricAvailable = false,
@@ -26,6 +27,7 @@ class PinReady extends LocalAuthState {
     this.isLockedOut = false,
     this.failedAttempts = 0,
     this.lockoutUntil,
+    this.pinLength = 6,
   });
 
   @override
@@ -35,6 +37,7 @@ class PinReady extends LocalAuthState {
         isLockedOut,
         failedAttempts,
         lockoutUntil,
+        pinLength,
       ];
 }
 

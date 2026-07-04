@@ -30,11 +30,20 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
           LocalAuthTableCompanion(
             userId: Value(userId),
             pinHash: Value(hash),
+            pinLength: Value(pin.length),
             failedAttempts: const Value(0),
             lockoutUntil: const Value(null),
           ),
         );
     await _prefs.setBool('$_hasPinPrefix$userId', true);
+  }
+
+  @override
+  Future<int> getPinLength(String userId) async {
+    final row = await (_db.select(_db.localAuthTable)
+          ..where((t) => t.userId.equals(userId)))
+        .getSingleOrNull();
+    return row?.pinLength ?? 6;
   }
 
   @override

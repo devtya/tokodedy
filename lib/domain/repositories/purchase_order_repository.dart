@@ -12,4 +12,9 @@ abstract class PurchaseOrderRepository {
   Future<void> updateStatus(String id, String status);
   Future<void> deleteItemsByPoId(String poId);
   Future<void> deletePurchaseOrder(String id);
+
+  /// Push ulang SEMUA item PO dari Drift lokal ke Supabase.
+  /// Berguna setelah perbaikan skema cloud (misal: tambah kolom created_at).
+  /// Return jumlah item yang berhasil di-push.
+  Future<int> rePushAllPurchaseOrderItems();
 }

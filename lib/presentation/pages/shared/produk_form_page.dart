@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../widgets/barcode_scanner_widget.dart';
@@ -290,7 +291,7 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
           minHeight: 1080,
         );
       } catch (e) {
-        debugPrint('Kompresi gambar dilewati karena error: $e');
+        if (kDebugMode) debugPrint('Kompresi gambar dilewati karena error: $e');
       }
 
       if (compressedBytes != null) {
@@ -1956,7 +1957,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
   @override
   void initState() {
     super.initState();
-    debugPrint(
+    if (kDebugMode) debugPrint(
       '[SearchPicker] initState title=${widget.title} items=${widget.items.length}',
     );
     _ctrl = TextEditingController(text: widget.initialValue);
@@ -1968,13 +1969,13 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
 
   @override
   void dispose() {
-    debugPrint('[SearchPicker] dispose');
+    if (kDebugMode) debugPrint('[SearchPicker] dispose');
     _ctrl.dispose();
     super.dispose();
   }
 
   void _filter(String v) {
-    debugPrint('[SearchPicker] filter input="$v"');
+    if (kDebugMode) debugPrint('[SearchPicker] filter input="$v"');
     final q = v.toUpperCase();
     setState(() {
       _filtered = q.isEmpty
@@ -1985,7 +1986,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('[SearchPicker] build filtered=${_filtered.length}');
+    if (kDebugMode) debugPrint('[SearchPicker] build filtered=${_filtered.length}');
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       child: SizedBox(
@@ -2028,7 +2029,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
                     return ListTile(
                       title: Text(item),
                       onTap: () {
-                        debugPrint('[SearchPicker] select existing="$item"');
+                        if (kDebugMode) debugPrint('[SearchPicker] select existing="$item"');
                         Navigator.pop(context, item);
                       },
                     );
@@ -2042,7 +2043,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
                     ),
                     title: Text("Gunakan '$typed'"),
                     onTap: () {
-                      debugPrint('[SearchPicker] select new="$typed"');
+                      if (kDebugMode) debugPrint('[SearchPicker] select new="$typed"');
                       Navigator.pop(context, typed);
                     },
                   );
@@ -2053,7 +2054,7 @@ class _SearchPickerDialogState extends State<_SearchPickerDialog> {
               padding: const EdgeInsets.all(8),
               child: TextButton(
                 onPressed: () {
-                  debugPrint('[SearchPicker] tap Tutup');
+                  if (kDebugMode) debugPrint('[SearchPicker] tap Tutup');
                   Navigator.pop(context);
                 },
                 child: const Text('Tutup'),

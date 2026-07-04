@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 import '../../domain/entities/user.dart';
@@ -26,37 +28,72 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User?> login(String email, String password) async {
-    final response = await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+    if (kDebugMode) debugPrint('[AuthRepo] login() CALLED | email="$email" | password.length=${password.length}');
 
-    final authUser = response.user;
-    if (authUser == null) return null;
+    try {
+      if (kDebugMode) debugPrint('[AuthRepo] Calling _supabase.auth.signInWithPassword(email: "$email") ...');
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
-    // Ambil profile dari Supabase
-    final profileData = await _supabase
-        .from('profiles')
-        .select()
-        .eq('id', authUser.id)
-        .maybeSingle();
+      if (kDebugMode) debugPrint('[AuthRepo] signInWithPassword RESPONSE:');
+      if (kDebugMode) debugPrint('  - user: ${response.user?.id ?? "null"}');
+      if (kDebugMode) debugPrint('  - user.email: ${response.user?.email ?? "null"}');
+      if (kDebugMode) debugPrint('  - session: ${response.session?.accessToken != null ? "has token" : "null"}');
+      if (kDebugMode) debugPrint('  - session.expiresIn: ${response.session?.expiresIn}');
+      if (response.session == null) {
+        if (kDebugMode) debugPrint('  ⚠️ session is NULL — mungkin email/password salah atau user tidak terdaftar');
+      }
 
-    if (profileData == null) {
-      throw Exception('Profil tidak ditemukan. Hubungi pemilik toko.');
+      final authUser = response.user;
+      if (authUser == null) {
+        if (kDebugMode) debugPrint('[AuthRepo] authUser is null → returning null');
+        return null;
+      }
+
+      // Ambil profile dari Supabase
+      if (kDebugMode) debugPrint('[AuthRepo] Fetching profile for id="${authUser.id}" ...');
+      final profileData = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+      if (kDebugMode) debugPrint('[AuthRepo] profileData: ${profileData != null ? "found" : "null"}');
+      if (profileData == null) {
+        if (kDebugMode) debugPrint('[AuthRepo] Profile NOT found → throwing Exception');
+        throw Exception('Profil tidak ditemukan. Hubungi pemilik toko.');
+      }
+
+      if (kDebugMode) debugPrint('  - nama: ${profileData['nama']}');
+      if (kDebugMode) debugPrint('  - role: ${profileData['role']}');
+      if (kDebugMode) debugPrint('  - email: ${profileData['email']}');
+
+      final user = User(
+        id: authUser.id,
+        nama: profileData['nama'] as String?,
+        role: profileData['role'] as String? ?? 'kasir',
+        email: authUser.email,
+        createdAt: DateTime.tryParse(authUser.createdAt),
+      );
+
+      await _saveSession(user);
+      await _backupSupabaseSession();
+      await _upsertLocalProfile(user);
+
+      if (kDebugMode) debugPrint('[AuthRepo] login() SUCCESS → returning User(${user.nama})');
+      return user;
+    } on AuthApiException catch (e) {
+      // Tangani error auth dari Supabase (invalid credentials, dll)
+      // Return null agar AuthBloc menampilkan "Username atau password salah!"
+      if (kDebugMode) debugPrint('[AuthRepo] AuthApiException: message="${e.message}" statusCode=${e.statusCode} code=${e.code}');
+      return null;
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('[AuthRepo] login() EXCEPTION: $e');
+      if (kDebugMode) debugPrint('[AuthRepo] STACKTRACE: $stack');
+      rethrow;
     }
-
-    final user = User(
-      id: authUser.id,
-      nama: profileData['nama'] as String?,
-      role: profileData['role'] as String? ?? 'kasir',
-      email: authUser.email,
-      createdAt: DateTime.tryParse(authUser.createdAt),
-    );
-
-    await _saveSession(user);
-    await _upsertLocalProfile(user);
-
-    return user;
   }
 
   @override
@@ -99,6 +136,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
 
     await _saveSession(user);
+    await _backupSupabaseSession();
     await _upsertLocalProfile(user);
 
     return user;
@@ -207,6 +245,21 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   // ───────────── LOCAL HELPERS ─────────────
+
+  Future<void> _backupSupabaseSession() async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session != null) {
+        const storage = FlutterSecureStorage();
+        await storage.write(
+          key: 'supabase_session_backup',
+          value: jsonEncode(session.toJson()),
+        );
+      }
+    } catch (_) {
+      // backup failure is non-critical
+    }
+  }
 
   Future<void> _saveSession(User user) async {
     final hasPin = user.id != null && await _localAuth.hasPin(user.id!);

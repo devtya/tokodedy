@@ -221,4 +221,32 @@ class PurchaseOrderRepositoryImpl implements PurchaseOrderRepository {
       await _syncService.delete('purchase_order_items', item.id);
     }
   }
+
+  @override
+  Future<int> rePushAllPurchaseOrderItems() async {
+    final items = await _db.select(_db.purchaseOrderItemTable).get();
+    if (items.isEmpty) return 0;
+
+    int pushed = 0;
+    for (final item in items) {
+      try {
+        await _syncService.upsert('purchase_order_items', {
+          'id': item.id,
+          'po_id': item.poId,
+          'produk_id': item.produkId,
+          'nama_produk': item.namaProduk,
+          'qty_pesan': item.qtyPesan,
+          'qty_terima': item.qtyTerima,
+          'harga_satuan': item.hargaSatuan,
+          'subtotal': item.subtotal,
+          'satuan_id': item.satuanId,
+          'konversi': item.konversi,
+        });
+        pushed++;
+      } catch (_) {
+        // _syncService.upsert() sudah handle error internal + enqueue
+      }
+    }
+    return pushed;
+  }
 }

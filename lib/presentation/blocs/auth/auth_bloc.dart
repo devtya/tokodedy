@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -46,23 +47,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
+    if (kDebugMode) debugPrint('[AuthBloc] _onLogin START | usernameOrEmail="${event.usernameOrEmail}" | password.length=${event.password.length}');
     emit(AuthLoading());
     try {
+      if (kDebugMode) debugPrint('[AuthBloc] Calling authRepository.login() ...');
       final user = await authRepository
           .login(event.usernameOrEmail, event.password)
           .timeout(const Duration(seconds: 30));
+      if (kDebugMode) debugPrint('[AuthBloc] authRepository.login() returned: ${user != null ? "User(${user.nama}, ${user.email})" : "null"}');
       if (user != null) {
+        if (kDebugMode) debugPrint('[AuthBloc] Emitting Authenticated');
         emit(Authenticated(user));
       } else {
+        if (kDebugMode) debugPrint('[AuthBloc] login returned null → emitting AuthError');
         emit(const AuthError('Username atau password salah!'));
       }
-    } on TimeoutException {
+    } on TimeoutException catch (e) {
+      if (kDebugMode) debugPrint('[AuthBloc] TIMEOUT after 30s: $e');
       emit(const AuthError(
         'Koneksi lambat. Periksa internet Anda dan coba lagi.',
       ));
-    } catch (e) {
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('[AuthBloc] EXCEPTION: $e');
+      if (kDebugMode) debugPrint('[AuthBloc] STACKTRACE: $stack');
       emit(AuthError(e.toString()));
     }
+    if (kDebugMode) debugPrint('[AuthBloc] _onLogin END');
   }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {

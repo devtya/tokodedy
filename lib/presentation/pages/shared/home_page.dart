@@ -272,25 +272,27 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Lengkapi Email'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Anda login menggunakan username. Silakan isi email '
-              'untuk keamanan akun dan fitur lupa password.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Anda login menggunakan username. Silakan isi email '
+                'untuk keamanan akun dan fitur lupa password.',
+                style: TextStyle(fontSize: 14),
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -516,9 +518,11 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
             });
           }
 
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.transparent,
+              backgroundColor: isDark ? AppTheme.surfaceContainerLow : AppTheme.lightSurface,
               elevation: 0,
               scrolledUnderElevation: 0,
               title: const Text('Tokodedy', style: TextStyle(fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
@@ -610,8 +614,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                  color: Colors.transparent,
                                   borderRadius: BorderRadius.circular(9999),
+                                  border: Border.all(color: AppTheme.primaryGreen, width: 1.2),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
