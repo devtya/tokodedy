@@ -4,8 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 @lazySingleton
 class PrinterSettings {
-  static const _keyType = 'printer_type';
-  static const _keyUrl = 'printer_url';
   static const _keyEnabled = 'printer_enabled';
   static const _keyAutoPrint = 'printer_auto_print';
   static const _keyLebarKertas = 'printer_lebar_kertas';
@@ -13,15 +11,14 @@ class PrinterSettings {
   static const _keyAlamatToko = 'printer_alamat_toko';
   static const _keyFontSize = 'printer_font_size';
 
+  static const _keyDeviceAddress = 'printer_device_address';
+
   final SharedPreferences prefs;
 
   PrinterSettings(this.prefs);
 
-  String get type => prefs.getString(_keyType) ?? 'network';
-  set type(String v) => prefs.setString(_keyType, v);
-
-  String get url => prefs.getString(_keyUrl) ?? 'http://192.168.1.100:5000';
-  set url(String v) => prefs.setString(_keyUrl, v);
+  String get deviceAddress => prefs.getString(_keyDeviceAddress) ?? '';
+  set deviceAddress(String v) => prefs.setString(_keyDeviceAddress, v);
 
   bool get enabled {
     return prefs.getBool(_keyEnabled) ?? false;

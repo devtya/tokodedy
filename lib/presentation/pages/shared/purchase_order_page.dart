@@ -13,7 +13,11 @@ import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/purchase_order/purchase_order_bloc.dart';
 import '../../blocs/purchase_order/purchase_order_event.dart';
 import '../../blocs/purchase_order/purchase_order_state.dart';
+import '../../blocs/supplier/supplier_bloc.dart';
+import '../../../domain/usecases/stok/generate_po_dari_stok_minimum.dart';
+import '../../../domain/entities/supplier.dart';
 import 'purchase_order_form_page.dart';
+import 'supplier_page.dart';
 import 'purchase_order_receive_page.dart';
 import 'share_receipt_page.dart';
 
@@ -32,6 +36,177 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
   void initState() {
     super.initState();
     context.read<PurchaseOrderBloc>().add(LoadPurchaseOrders());
+  }
+
+  void _showAutoPODialog() async {
+    final usecase = sl<GeneratePODariStokMinimum>();
+    final rekomendasi = await usecase();
+
+    if (!mounted) return;
+
+    if (rekomendasi.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua stok produk masih di atas minimum.')),
+      );
+      return;
+    }
+
+    Supplier? selectedSupplier;
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              height: MediaQuery.of(context).size.height * 0.85,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Draft PO Otomatis',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const Text('Daftar produk dengan stok menipis:'),
+                  const SizedBox(height: 16),
+                  
+                  // Supplier Selector
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.business),
+                      title: Text(selectedSupplier?.nama ?? 'Pilih Supplier'),
+                      subtitle: selectedSupplier == null
+                          ? const Text('Wajib pilih supplier', style: TextStyle(color: AppTheme.warningRed))
+                          : null,
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        final supplierBloc = sl<SupplierBloc>();
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: supplierBloc,
+                              child: const SupplierPage(isPicking: true),
+                            ),
+                          ),
+                        );
+                        if (result != null && result is Supplier) {
+                          setState(() => selectedSupplier = result);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: rekomendasi.length,
+                      itemBuilder: (context, index) {
+                        final item = rekomendasi[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.produk.nama, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      Text('Stok: ${item.stokSaatIni} (min: ${item.stokMinimum})', style: const TextStyle(fontSize: 12, color: AppTheme.neutralGrey)),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.remove_circle_outline),
+                                      onPressed: () {
+                                        if (item.qtyPesan > 0) {
+                                          setState(() => item.qtyPesan--);
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(
+                                      width: 40,
+                                      child: Text('${item.qtyPesan}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.add_circle_outline),
+                                      onPressed: () {
+                                        setState(() => item.qtyPesan++);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: (selectedSupplier == null || isSaving)
+                          ? null
+                          : () {
+                              final finalItems = rekomendasi.where((e) => e.qtyPesan > 0).toList();
+                              if (finalItems.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Semua Qty Pesan = 0. Tidak ada item untuk PO.')),
+                                );
+                                return;
+                              }
+                              
+                              setState(() => isSaving = true);
+
+                              final poItems = finalItems.map((e) => ItemPoData(
+                                produkId: e.produk.id!,
+                                namaProduk: e.produk.nama,
+                                qtyPesan: e.qtyPesan,
+                                hargaSatuan: e.produk.hargaBeli,
+                                subtotal: e.produk.hargaBeli * e.qtyPesan,
+                                satuanId: null, // Assume primary unit for auto PO
+                                konversi: 1,
+                              )).toList();
+
+                              context.read<PurchaseOrderBloc>().add(AddPurchaseOrderEvent(
+                                supplierId: selectedSupplier!.id,
+                                namaSupplier: selectedSupplier!.nama,
+                                notes: 'Auto PO dari stok minimum',
+                                items: poItems,
+                              ));
+
+                              Navigator.pop(ctx);
+                            },
+                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen, foregroundColor: Colors.white),
+                      child: isSaving ? const CircularProgressIndicator(color: Colors.white) : const Text('Buat PO'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Color _statusColor(String status) {
@@ -511,6 +686,11 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
       appBar: AppBar(
         title: const Text('Purchase Order'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: _showAutoPODialog,
+            tooltip: 'Auto PO',
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _openCreateForm,

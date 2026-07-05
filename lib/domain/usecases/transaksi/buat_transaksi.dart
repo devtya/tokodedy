@@ -92,6 +92,7 @@ class BuatTransaksi {
         (sum, item) => sum + item.totalSetelahDiskon,
       );
       final status = namaPelanggan != null ? 'hutang' : 'lunas';
+      final notifiedProdukIds = <String>{};
 
       final transaksiId = await transaksiRepository.addTransaksi(
         Transaksi(
@@ -120,15 +121,30 @@ class BuatTransaksi {
           final newStok = produk.stok - jumlahDikurangi;
           await produkRepository.updateStok(item.produkId, newStok);
 
-          if (newStok < 5) {
-            await notifikasiRepository.addNotifikasi(
-              Notifikasi(
-                          judul: 'Stok Menipis - ${produk.nama}',
-                pesan:
-                    'Sisa stok ${produk.nama} saat ini adalah $newStok. Segera lakukan pembelian (restock).',
-                tipe: 'WARNING',
-              ),
-            );
+          final updatedProduk = await produkRepository.getProdukById(item.produkId);
+          if (updatedProduk != null && !notifiedProdukIds.contains(updatedProduk.id)) {
+            final stok = updatedProduk.stok;
+            final minimum = updatedProduk.stokMinimum ?? 0;
+            
+            if (stok <= 0) {
+              await notifikasiRepository.addNotifikasi(
+                Notifikasi(
+                  judul: 'Stok Habis - ${updatedProduk.nama}',
+                  pesan: '${updatedProduk.nama} sudah habis. Segera lakukan pembelian.',
+                  tipe: 'WARNING',
+                ),
+              );
+              notifiedProdukIds.add(updatedProduk.id!);
+            } else if (updatedProduk.stokMinimum != null && stok <= minimum) {
+              await notifikasiRepository.addNotifikasi(
+                Notifikasi(
+                  judul: 'Stok Menipis - ${updatedProduk.nama}',
+                  pesan: 'Sisa stok ${updatedProduk.nama}: $stok ${updatedProduk.satuan}. Minimum: $minimum.',
+                  tipe: 'WARNING',
+                ),
+              );
+              notifiedProdukIds.add(updatedProduk.id!);
+            }
           }
         }
 

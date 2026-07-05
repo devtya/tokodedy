@@ -47,4 +47,25 @@ class LocalNotificationService {
       payload: payload,
     );
   }
+
+  Future<void> showStokNotification({required int id, required String title, required String body, String? payload}) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'stok_channel',
+      'Peringatan Stok',
+      channelDescription: 'Notifikasi stok menipis dan stok habis',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+    await _flutterLocalNotificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: platformChannelSpecifics,
+      payload: payload,
+    );
+  }
 }

@@ -12252,6 +12252,882 @@ class OnlineOrderItemTableCompanion extends UpdateCompanion<OnlineOrderItem> {
   }
 }
 
+class $KasHarianTableTable extends KasHarianTable
+    with TableInfo<$KasHarianTableTable, KasHarianTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $KasHarianTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modalAwalMeta = const VerificationMeta(
+    'modalAwal',
+  );
+  @override
+  late final GeneratedColumn<double> modalAwal = GeneratedColumn<double>(
+    'modal_awal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _keteranganMeta = const VerificationMeta(
+    'keterangan',
+  );
+  @override
+  late final GeneratedColumn<String> keterangan = GeneratedColumn<String>(
+    'keterangan',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tanggalMeta = const VerificationMeta(
+    'tanggal',
+  );
+  @override
+  late final GeneratedColumn<DateTime> tanggal = GeneratedColumn<DateTime>(
+    'tanggal',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    modalAwal,
+    keterangan,
+    tanggal,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'kas_harian_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<KasHarianTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('modal_awal')) {
+      context.handle(
+        _modalAwalMeta,
+        modalAwal.isAcceptableOrUnknown(data['modal_awal']!, _modalAwalMeta),
+      );
+    }
+    if (data.containsKey('keterangan')) {
+      context.handle(
+        _keteranganMeta,
+        keterangan.isAcceptableOrUnknown(data['keterangan']!, _keteranganMeta),
+      );
+    }
+    if (data.containsKey('tanggal')) {
+      context.handle(
+        _tanggalMeta,
+        tanggal.isAcceptableOrUnknown(data['tanggal']!, _tanggalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tanggalMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  KasHarianTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return KasHarianTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      modalAwal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}modal_awal'],
+      )!,
+      keterangan: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}keterangan'],
+      ),
+      tanggal: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}tanggal'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $KasHarianTableTable createAlias(String alias) {
+    return $KasHarianTableTable(attachedDatabase, alias);
+  }
+}
+
+class KasHarianTableData extends DataClass
+    implements Insertable<KasHarianTableData> {
+  final String id;
+  final double modalAwal;
+  final String? keterangan;
+  final DateTime tanggal;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const KasHarianTableData({
+    required this.id,
+    required this.modalAwal,
+    this.keterangan,
+    required this.tanggal,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['modal_awal'] = Variable<double>(modalAwal);
+    if (!nullToAbsent || keterangan != null) {
+      map['keterangan'] = Variable<String>(keterangan);
+    }
+    map['tanggal'] = Variable<DateTime>(tanggal);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  KasHarianTableCompanion toCompanion(bool nullToAbsent) {
+    return KasHarianTableCompanion(
+      id: Value(id),
+      modalAwal: Value(modalAwal),
+      keterangan: keterangan == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keterangan),
+      tanggal: Value(tanggal),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory KasHarianTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return KasHarianTableData(
+      id: serializer.fromJson<String>(json['id']),
+      modalAwal: serializer.fromJson<double>(json['modalAwal']),
+      keterangan: serializer.fromJson<String?>(json['keterangan']),
+      tanggal: serializer.fromJson<DateTime>(json['tanggal']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'modalAwal': serializer.toJson<double>(modalAwal),
+      'keterangan': serializer.toJson<String?>(keterangan),
+      'tanggal': serializer.toJson<DateTime>(tanggal),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  KasHarianTableData copyWith({
+    String? id,
+    double? modalAwal,
+    Value<String?> keterangan = const Value.absent(),
+    DateTime? tanggal,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => KasHarianTableData(
+    id: id ?? this.id,
+    modalAwal: modalAwal ?? this.modalAwal,
+    keterangan: keterangan.present ? keterangan.value : this.keterangan,
+    tanggal: tanggal ?? this.tanggal,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  KasHarianTableData copyWithCompanion(KasHarianTableCompanion data) {
+    return KasHarianTableData(
+      id: data.id.present ? data.id.value : this.id,
+      modalAwal: data.modalAwal.present ? data.modalAwal.value : this.modalAwal,
+      keterangan: data.keterangan.present
+          ? data.keterangan.value
+          : this.keterangan,
+      tanggal: data.tanggal.present ? data.tanggal.value : this.tanggal,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KasHarianTableData(')
+          ..write('id: $id, ')
+          ..write('modalAwal: $modalAwal, ')
+          ..write('keterangan: $keterangan, ')
+          ..write('tanggal: $tanggal, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, modalAwal, keterangan, tanggal, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is KasHarianTableData &&
+          other.id == this.id &&
+          other.modalAwal == this.modalAwal &&
+          other.keterangan == this.keterangan &&
+          other.tanggal == this.tanggal &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class KasHarianTableCompanion extends UpdateCompanion<KasHarianTableData> {
+  final Value<String> id;
+  final Value<double> modalAwal;
+  final Value<String?> keterangan;
+  final Value<DateTime> tanggal;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const KasHarianTableCompanion({
+    this.id = const Value.absent(),
+    this.modalAwal = const Value.absent(),
+    this.keterangan = const Value.absent(),
+    this.tanggal = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  KasHarianTableCompanion.insert({
+    required String id,
+    this.modalAwal = const Value.absent(),
+    this.keterangan = const Value.absent(),
+    required DateTime tanggal,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tanggal = Value(tanggal);
+  static Insertable<KasHarianTableData> custom({
+    Expression<String>? id,
+    Expression<double>? modalAwal,
+    Expression<String>? keterangan,
+    Expression<DateTime>? tanggal,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (modalAwal != null) 'modal_awal': modalAwal,
+      if (keterangan != null) 'keterangan': keterangan,
+      if (tanggal != null) 'tanggal': tanggal,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  KasHarianTableCompanion copyWith({
+    Value<String>? id,
+    Value<double>? modalAwal,
+    Value<String?>? keterangan,
+    Value<DateTime>? tanggal,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return KasHarianTableCompanion(
+      id: id ?? this.id,
+      modalAwal: modalAwal ?? this.modalAwal,
+      keterangan: keterangan ?? this.keterangan,
+      tanggal: tanggal ?? this.tanggal,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (modalAwal.present) {
+      map['modal_awal'] = Variable<double>(modalAwal.value);
+    }
+    if (keterangan.present) {
+      map['keterangan'] = Variable<String>(keterangan.value);
+    }
+    if (tanggal.present) {
+      map['tanggal'] = Variable<DateTime>(tanggal.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KasHarianTableCompanion(')
+          ..write('id: $id, ')
+          ..write('modalAwal: $modalAwal, ')
+          ..write('keterangan: $keterangan, ')
+          ..write('tanggal: $tanggal, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PengeluaranOperasionalTableTable extends PengeluaranOperasionalTable
+    with
+        TableInfo<
+          $PengeluaranOperasionalTableTable,
+          PengeluaranOperasionalTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PengeluaranOperasionalTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
+  @override
+  late final GeneratedColumn<double> jumlah = GeneratedColumn<double>(
+    'jumlah',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _kategoriMeta = const VerificationMeta(
+    'kategori',
+  );
+  @override
+  late final GeneratedColumn<String> kategori = GeneratedColumn<String>(
+    'kategori',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Lain-lain'),
+  );
+  static const VerificationMeta _keteranganMeta = const VerificationMeta(
+    'keterangan',
+  );
+  @override
+  late final GeneratedColumn<String> keterangan = GeneratedColumn<String>(
+    'keterangan',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tanggalMeta = const VerificationMeta(
+    'tanggal',
+  );
+  @override
+  late final GeneratedColumn<DateTime> tanggal = GeneratedColumn<DateTime>(
+    'tanggal',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    jumlah,
+    kategori,
+    keterangan,
+    tanggal,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pengeluaran_operasional_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PengeluaranOperasionalTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('jumlah')) {
+      context.handle(
+        _jumlahMeta,
+        jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
+      );
+    }
+    if (data.containsKey('kategori')) {
+      context.handle(
+        _kategoriMeta,
+        kategori.isAcceptableOrUnknown(data['kategori']!, _kategoriMeta),
+      );
+    }
+    if (data.containsKey('keterangan')) {
+      context.handle(
+        _keteranganMeta,
+        keterangan.isAcceptableOrUnknown(data['keterangan']!, _keteranganMeta),
+      );
+    }
+    if (data.containsKey('tanggal')) {
+      context.handle(
+        _tanggalMeta,
+        tanggal.isAcceptableOrUnknown(data['tanggal']!, _tanggalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tanggalMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PengeluaranOperasionalTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PengeluaranOperasionalTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      jumlah: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}jumlah'],
+      )!,
+      kategori: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kategori'],
+      )!,
+      keterangan: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}keterangan'],
+      ),
+      tanggal: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}tanggal'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PengeluaranOperasionalTableTable createAlias(String alias) {
+    return $PengeluaranOperasionalTableTable(attachedDatabase, alias);
+  }
+}
+
+class PengeluaranOperasionalTableData extends DataClass
+    implements Insertable<PengeluaranOperasionalTableData> {
+  final String id;
+  final double jumlah;
+  final String kategori;
+  final String? keterangan;
+  final DateTime tanggal;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PengeluaranOperasionalTableData({
+    required this.id,
+    required this.jumlah,
+    required this.kategori,
+    this.keterangan,
+    required this.tanggal,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['jumlah'] = Variable<double>(jumlah);
+    map['kategori'] = Variable<String>(kategori);
+    if (!nullToAbsent || keterangan != null) {
+      map['keterangan'] = Variable<String>(keterangan);
+    }
+    map['tanggal'] = Variable<DateTime>(tanggal);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PengeluaranOperasionalTableCompanion toCompanion(bool nullToAbsent) {
+    return PengeluaranOperasionalTableCompanion(
+      id: Value(id),
+      jumlah: Value(jumlah),
+      kategori: Value(kategori),
+      keterangan: keterangan == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keterangan),
+      tanggal: Value(tanggal),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PengeluaranOperasionalTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PengeluaranOperasionalTableData(
+      id: serializer.fromJson<String>(json['id']),
+      jumlah: serializer.fromJson<double>(json['jumlah']),
+      kategori: serializer.fromJson<String>(json['kategori']),
+      keterangan: serializer.fromJson<String?>(json['keterangan']),
+      tanggal: serializer.fromJson<DateTime>(json['tanggal']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'jumlah': serializer.toJson<double>(jumlah),
+      'kategori': serializer.toJson<String>(kategori),
+      'keterangan': serializer.toJson<String?>(keterangan),
+      'tanggal': serializer.toJson<DateTime>(tanggal),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PengeluaranOperasionalTableData copyWith({
+    String? id,
+    double? jumlah,
+    String? kategori,
+    Value<String?> keterangan = const Value.absent(),
+    DateTime? tanggal,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PengeluaranOperasionalTableData(
+    id: id ?? this.id,
+    jumlah: jumlah ?? this.jumlah,
+    kategori: kategori ?? this.kategori,
+    keterangan: keterangan.present ? keterangan.value : this.keterangan,
+    tanggal: tanggal ?? this.tanggal,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PengeluaranOperasionalTableData copyWithCompanion(
+    PengeluaranOperasionalTableCompanion data,
+  ) {
+    return PengeluaranOperasionalTableData(
+      id: data.id.present ? data.id.value : this.id,
+      jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
+      kategori: data.kategori.present ? data.kategori.value : this.kategori,
+      keterangan: data.keterangan.present
+          ? data.keterangan.value
+          : this.keterangan,
+      tanggal: data.tanggal.present ? data.tanggal.value : this.tanggal,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PengeluaranOperasionalTableData(')
+          ..write('id: $id, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('kategori: $kategori, ')
+          ..write('keterangan: $keterangan, ')
+          ..write('tanggal: $tanggal, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    jumlah,
+    kategori,
+    keterangan,
+    tanggal,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PengeluaranOperasionalTableData &&
+          other.id == this.id &&
+          other.jumlah == this.jumlah &&
+          other.kategori == this.kategori &&
+          other.keterangan == this.keterangan &&
+          other.tanggal == this.tanggal &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PengeluaranOperasionalTableCompanion
+    extends UpdateCompanion<PengeluaranOperasionalTableData> {
+  final Value<String> id;
+  final Value<double> jumlah;
+  final Value<String> kategori;
+  final Value<String?> keterangan;
+  final Value<DateTime> tanggal;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PengeluaranOperasionalTableCompanion({
+    this.id = const Value.absent(),
+    this.jumlah = const Value.absent(),
+    this.kategori = const Value.absent(),
+    this.keterangan = const Value.absent(),
+    this.tanggal = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PengeluaranOperasionalTableCompanion.insert({
+    required String id,
+    this.jumlah = const Value.absent(),
+    this.kategori = const Value.absent(),
+    this.keterangan = const Value.absent(),
+    required DateTime tanggal,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tanggal = Value(tanggal);
+  static Insertable<PengeluaranOperasionalTableData> custom({
+    Expression<String>? id,
+    Expression<double>? jumlah,
+    Expression<String>? kategori,
+    Expression<String>? keterangan,
+    Expression<DateTime>? tanggal,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (jumlah != null) 'jumlah': jumlah,
+      if (kategori != null) 'kategori': kategori,
+      if (keterangan != null) 'keterangan': keterangan,
+      if (tanggal != null) 'tanggal': tanggal,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PengeluaranOperasionalTableCompanion copyWith({
+    Value<String>? id,
+    Value<double>? jumlah,
+    Value<String>? kategori,
+    Value<String?>? keterangan,
+    Value<DateTime>? tanggal,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PengeluaranOperasionalTableCompanion(
+      id: id ?? this.id,
+      jumlah: jumlah ?? this.jumlah,
+      kategori: kategori ?? this.kategori,
+      keterangan: keterangan ?? this.keterangan,
+      tanggal: tanggal ?? this.tanggal,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (jumlah.present) {
+      map['jumlah'] = Variable<double>(jumlah.value);
+    }
+    if (kategori.present) {
+      map['kategori'] = Variable<String>(kategori.value);
+    }
+    if (keterangan.present) {
+      map['keterangan'] = Variable<String>(keterangan.value);
+    }
+    if (tanggal.present) {
+      map['tanggal'] = Variable<DateTime>(tanggal.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PengeluaranOperasionalTableCompanion(')
+          ..write('id: $id, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('kategori: $kategori, ')
+          ..write('keterangan: $keterangan, ')
+          ..write('tanggal: $tanggal, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -12302,6 +13178,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $OnlineOrderItemTableTable onlineOrderItemTable =
       $OnlineOrderItemTableTable(this);
+  late final $KasHarianTableTable kasHarianTable = $KasHarianTableTable(this);
+  late final $PengeluaranOperasionalTableTable pengeluaranOperasionalTable =
+      $PengeluaranOperasionalTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -12332,6 +13211,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     onlineCustomerTable,
     onlineOrderTable,
     onlineOrderItemTable,
+    kasHarianTable,
+    pengeluaranOperasionalTable,
   ];
 }
 
@@ -19802,6 +20683,492 @@ typedef $$OnlineOrderItemTableTableProcessedTableManager =
       OnlineOrderItem,
       PrefetchHooks Function({bool onlineOrderId, bool produkId, bool satuanId})
     >;
+typedef $$KasHarianTableTableCreateCompanionBuilder =
+    KasHarianTableCompanion Function({
+      required String id,
+      Value<double> modalAwal,
+      Value<String?> keterangan,
+      required DateTime tanggal,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$KasHarianTableTableUpdateCompanionBuilder =
+    KasHarianTableCompanion Function({
+      Value<String> id,
+      Value<double> modalAwal,
+      Value<String?> keterangan,
+      Value<DateTime> tanggal,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$KasHarianTableTableFilterComposer
+    extends Composer<_$AppDatabase, $KasHarianTableTable> {
+  $$KasHarianTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get modalAwal => $composableBuilder(
+    column: $table.modalAwal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get tanggal => $composableBuilder(
+    column: $table.tanggal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$KasHarianTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $KasHarianTableTable> {
+  $$KasHarianTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get modalAwal => $composableBuilder(
+    column: $table.modalAwal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get tanggal => $composableBuilder(
+    column: $table.tanggal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$KasHarianTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $KasHarianTableTable> {
+  $$KasHarianTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get modalAwal =>
+      $composableBuilder(column: $table.modalAwal, builder: (column) => column);
+
+  GeneratedColumn<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get tanggal =>
+      $composableBuilder(column: $table.tanggal, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$KasHarianTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $KasHarianTableTable,
+          KasHarianTableData,
+          $$KasHarianTableTableFilterComposer,
+          $$KasHarianTableTableOrderingComposer,
+          $$KasHarianTableTableAnnotationComposer,
+          $$KasHarianTableTableCreateCompanionBuilder,
+          $$KasHarianTableTableUpdateCompanionBuilder,
+          (
+            KasHarianTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $KasHarianTableTable,
+              KasHarianTableData
+            >,
+          ),
+          KasHarianTableData,
+          PrefetchHooks Function()
+        > {
+  $$KasHarianTableTableTableManager(
+    _$AppDatabase db,
+    $KasHarianTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$KasHarianTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$KasHarianTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$KasHarianTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<double> modalAwal = const Value.absent(),
+                Value<String?> keterangan = const Value.absent(),
+                Value<DateTime> tanggal = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => KasHarianTableCompanion(
+                id: id,
+                modalAwal: modalAwal,
+                keterangan: keterangan,
+                tanggal: tanggal,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<double> modalAwal = const Value.absent(),
+                Value<String?> keterangan = const Value.absent(),
+                required DateTime tanggal,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => KasHarianTableCompanion.insert(
+                id: id,
+                modalAwal: modalAwal,
+                keterangan: keterangan,
+                tanggal: tanggal,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$KasHarianTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $KasHarianTableTable,
+      KasHarianTableData,
+      $$KasHarianTableTableFilterComposer,
+      $$KasHarianTableTableOrderingComposer,
+      $$KasHarianTableTableAnnotationComposer,
+      $$KasHarianTableTableCreateCompanionBuilder,
+      $$KasHarianTableTableUpdateCompanionBuilder,
+      (
+        KasHarianTableData,
+        BaseReferences<_$AppDatabase, $KasHarianTableTable, KasHarianTableData>,
+      ),
+      KasHarianTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$PengeluaranOperasionalTableTableCreateCompanionBuilder =
+    PengeluaranOperasionalTableCompanion Function({
+      required String id,
+      Value<double> jumlah,
+      Value<String> kategori,
+      Value<String?> keterangan,
+      required DateTime tanggal,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PengeluaranOperasionalTableTableUpdateCompanionBuilder =
+    PengeluaranOperasionalTableCompanion Function({
+      Value<String> id,
+      Value<double> jumlah,
+      Value<String> kategori,
+      Value<String?> keterangan,
+      Value<DateTime> tanggal,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$PengeluaranOperasionalTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PengeluaranOperasionalTableTable> {
+  $$PengeluaranOperasionalTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kategori => $composableBuilder(
+    column: $table.kategori,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get tanggal => $composableBuilder(
+    column: $table.tanggal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PengeluaranOperasionalTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PengeluaranOperasionalTableTable> {
+  $$PengeluaranOperasionalTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kategori => $composableBuilder(
+    column: $table.kategori,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get tanggal => $composableBuilder(
+    column: $table.tanggal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PengeluaranOperasionalTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PengeluaranOperasionalTableTable> {
+  $$PengeluaranOperasionalTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get jumlah =>
+      $composableBuilder(column: $table.jumlah, builder: (column) => column);
+
+  GeneratedColumn<String> get kategori =>
+      $composableBuilder(column: $table.kategori, builder: (column) => column);
+
+  GeneratedColumn<String> get keterangan => $composableBuilder(
+    column: $table.keterangan,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get tanggal =>
+      $composableBuilder(column: $table.tanggal, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PengeluaranOperasionalTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PengeluaranOperasionalTableTable,
+          PengeluaranOperasionalTableData,
+          $$PengeluaranOperasionalTableTableFilterComposer,
+          $$PengeluaranOperasionalTableTableOrderingComposer,
+          $$PengeluaranOperasionalTableTableAnnotationComposer,
+          $$PengeluaranOperasionalTableTableCreateCompanionBuilder,
+          $$PengeluaranOperasionalTableTableUpdateCompanionBuilder,
+          (
+            PengeluaranOperasionalTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $PengeluaranOperasionalTableTable,
+              PengeluaranOperasionalTableData
+            >,
+          ),
+          PengeluaranOperasionalTableData,
+          PrefetchHooks Function()
+        > {
+  $$PengeluaranOperasionalTableTableTableManager(
+    _$AppDatabase db,
+    $PengeluaranOperasionalTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PengeluaranOperasionalTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$PengeluaranOperasionalTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PengeluaranOperasionalTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<double> jumlah = const Value.absent(),
+                Value<String> kategori = const Value.absent(),
+                Value<String?> keterangan = const Value.absent(),
+                Value<DateTime> tanggal = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PengeluaranOperasionalTableCompanion(
+                id: id,
+                jumlah: jumlah,
+                kategori: kategori,
+                keterangan: keterangan,
+                tanggal: tanggal,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<double> jumlah = const Value.absent(),
+                Value<String> kategori = const Value.absent(),
+                Value<String?> keterangan = const Value.absent(),
+                required DateTime tanggal,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PengeluaranOperasionalTableCompanion.insert(
+                id: id,
+                jumlah: jumlah,
+                kategori: kategori,
+                keterangan: keterangan,
+                tanggal: tanggal,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PengeluaranOperasionalTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PengeluaranOperasionalTableTable,
+      PengeluaranOperasionalTableData,
+      $$PengeluaranOperasionalTableTableFilterComposer,
+      $$PengeluaranOperasionalTableTableOrderingComposer,
+      $$PengeluaranOperasionalTableTableAnnotationComposer,
+      $$PengeluaranOperasionalTableTableCreateCompanionBuilder,
+      $$PengeluaranOperasionalTableTableUpdateCompanionBuilder,
+      (
+        PengeluaranOperasionalTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $PengeluaranOperasionalTableTable,
+          PengeluaranOperasionalTableData
+        >,
+      ),
+      PengeluaranOperasionalTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -19866,4 +21233,12 @@ class $AppDatabaseManager {
       $$OnlineOrderTableTableTableManager(_db, _db.onlineOrderTable);
   $$OnlineOrderItemTableTableTableManager get onlineOrderItemTable =>
       $$OnlineOrderItemTableTableTableManager(_db, _db.onlineOrderItemTable);
+  $$KasHarianTableTableTableManager get kasHarianTable =>
+      $$KasHarianTableTableTableManager(_db, _db.kasHarianTable);
+  $$PengeluaranOperasionalTableTableTableManager
+  get pengeluaranOperasionalTable =>
+      $$PengeluaranOperasionalTableTableTableManager(
+        _db,
+        _db.pengeluaranOperasionalTable,
+      );
 }

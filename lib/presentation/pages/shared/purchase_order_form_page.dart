@@ -909,11 +909,45 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
-                        item.namaProduk,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            item.namaProduk,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () => _showUbahSatuanBottomSheet(index, item),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    item.satuanName,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -956,49 +990,11 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                               const Icon(Icons.edit, size: 12, color: AppTheme.neutralGrey),
                               const SizedBox(width: 4),
                               Text(
-                                '${_currency.format(item.hargaSatuan)} / ${item.satuanName}',
+                                _currency.format(item.hargaSatuan),
                                 style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _currency.format(item.subtotal),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () => _showUbahSatuanBottomSheet(index, item),
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              item.satuanName,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
-                          ],
                         ),
                       ),
                     ),
@@ -1058,6 +1054,11 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _currency.format(item.subtotal),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

@@ -7,10 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/services/bluetooth_printer_service.dart';
-import '../../../data/services/printer_service.dart';
 import '../../../data/services/printer_settings.dart';
-import '../../../data/services/network_printer_service.dart';
-
 class PrinterSettingsPage extends StatefulWidget {
   const PrinterSettingsPage({super.key});
 
@@ -20,10 +17,8 @@ class PrinterSettingsPage extends StatefulWidget {
 
 class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   late PrinterSettings _settings;
-  PrinterService? _printerService;
   BluetoothPrinterService? _btService;
 
-  final _urlController = TextEditingController();
   final _namaTokoController = TextEditingController();
   final _alamatTokoController = TextEditingController();
 
@@ -40,21 +35,10 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   void initState() {
     super.initState();
     _settings = sl<PrinterSettings>();
-    _initService();
-    _urlController.text = _settings.url;
+    _btService = sl<BluetoothPrinterService>();
     _namaTokoController.text = _settings.namaToko;
     _alamatTokoController.text = _settings.alamatToko;
     _checkConnection();
-  }
-
-  void _initService() {
-    if (_settings.type == 'bluetooth') {
-      _btService = sl<BluetoothPrinterService>();
-      _printerService = _btService;
-    } else {
-      _printerService = NetworkPrinterService(baseUrl: _settings.url);
-      _btService = null;
-    }
   }
 
   Future<bool> _requestBluetoothPermissions() async {
@@ -78,7 +62,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   Future<void> _checkConnection() async {
     setState(() => _isLoading = true);
     try {
-      _printerConnected = await _printerService!.isConnected();
+      _printerConnected = await _btService!.isConnected();
       _status = _printerConnected ? 'Printer terhubung' : 'Printer tidak terhubung';
     } catch (e) {
       _status = 'Error: $e';
@@ -90,7 +74,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   Future<void> _testPrint() async {
     setState(() => _isLoading = true);
     try {
-      final success = await _printerService!.testPrint();
+      final success = await _btService!.testPrint();
       _status = success ? 'Test print berhasil!' : 'Test print gagal';
     } catch (e) {
       _status = 'Error: $e';
@@ -195,25 +179,13 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
     setState(() => _isLoading = false);
   }
 
-  void _switchType(String type) {
-    setState(() {
-      _settings.type = type;
-      _initService();
-      _status = '';
-      _printerConnected = false;
-      _btDevices = [];
-    });
-  }
-
   void _setFontSize(String? value) {
     if (value != null) setState(() => _settings.fontSize = value);
   }
 
   void _saveSettings() {
-    _settings.url = _urlController.text;
     _settings.namaToko = _namaTokoController.text;
     _settings.alamatToko = _alamatTokoController.text;
-    _initService();
     updatePrinterService();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pengaturan disimpan')),
@@ -222,7 +194,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
 
   @override
   void dispose() {
-    _urlController.dispose();
     _namaTokoController.dispose();
     _alamatTokoController.dispose();
     super.dispose();
@@ -261,86 +232,9 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
           ),
           const SizedBox(height: 12),
 
-          // Tipe Printer
+          // Bluetooth settings
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'TIPE PRINTER',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.neutralGrey,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  RadioListTile<String>(
-                    title: const Text('Network (HTTP)'),
-                    subtitle: const Text('via print_server.py'),
-                    value: 'network',
-                    groupValue: _settings.type,
-                    onChanged: (v) => _switchType(v!),
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Bluetooth'),
-                    subtitle: const Text('Langsung ke printer'),
-                    value: 'bluetooth',
-                    groupValue: _settings.type,
-                    onChanged: (v) => _switchType(v!),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Network settings (hanya untuk tipe network)
-          if (_settings.type == 'network') ...[
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'ALAMAT PRINT SERVER',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.neutralGrey,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _urlController,
-                      decoration: const InputDecoration(
-                        hintText: 'http://192.168.1.100:5000',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.dns),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'IP PC yang menjalankan print_server.py',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.neutralGrey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-
-          // Bluetooth settings (hanya untuk tipe bluetooth)
-          if (_settings.type == 'bluetooth') ...[
-            Card(
-              child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,8 +338,7 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-          ],
+          const SizedBox(height: 12),
 
           // Lebar kertas
           Card(

@@ -45,6 +45,9 @@ import 'supplier_page.dart';
 import 'transaksi_page.dart';
 import 'user_management_page.dart';
 import 'online_order_page.dart';
+import 'stok_opname_page.dart';
+import 'kas_harian_page.dart';
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -135,6 +138,8 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     _QuickActionDef('Supplier', Icons.business, Colors.brown),
     _QuickActionDef('Hutang', Icons.account_balance_wallet, AppTheme.warningOrange),
     _QuickActionDef('Online Order', Icons.shopping_cart_checkout, Colors.indigo),
+    _QuickActionDef('Stok Opname', Icons.fact_check_outlined, Colors.deepPurple, isAdmin: true),
+    _QuickActionDef('Kas Harian', Icons.account_balance_outlined, Colors.teal, isAdmin: true),
   ];
 
   Widget _buildQuickActionPage(String label) {
@@ -179,6 +184,10 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
           value: sl<OnlineOrderBloc>(),
           child: const OnlineOrderPage(),
         );
+      case 'Stok Opname':
+        return const StokOpnamePage();
+      case 'Kas Harian':
+        return const KasHarianPage();
       default:
         return const SizedBox.shrink();
     }
@@ -208,9 +217,9 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     );
   }
 
-  void _showAddQuickActionDialog() {
+  void _showAddQuickActionDialog(bool isAdmin) {
     final available = _availableQuickActions.where(
-      (a) => !_customQuickActions.any((c) => c.label == a.label),
+      (a) => (!a.isAdmin || isAdmin) && !_customQuickActions.any((c) => c.label == a.label),
     ).toList();
 
     if (available.isEmpty) {
@@ -453,6 +462,26 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                     onTap: () {
                       Navigator.pop(context);
                       _navigateAndReload(const UserManagementPage());
+                    },
+                  ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.fact_check_outlined,
+                    label: 'Stok Opname',
+                    color: Colors.deepPurple,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(const StokOpnamePage());
+                    },
+                  ),
+                if (isAdmin)
+                  _LainnyaGridItem(
+                    icon: Icons.account_balance_outlined,
+                    label: 'Kas Harian',
+                    color: Colors.teal,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateAndReload(const KasHarianPage());
                     },
                   ),
                 _LainnyaGridItem(
@@ -840,36 +869,39 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                               style: TextStyle(fontSize: 12, color: AppTheme.neutralGrey),
                             ),
                           ),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.zero,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemCount: _customQuickActions.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == _customQuickActions.length) {
+                        Builder(builder: (context) {
+                          final visibleActions = _customQuickActions.where((a) => !a.isAdmin || isAdmin).toList();
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.8,
+                            ),
+                            itemCount: visibleActions.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == visibleActions.length) {
+                                return _QuickActionCard(
+                                  icon: Icons.add,
+                                  label: t.quick_actions.add,
+                                  color: AppTheme.neutralGrey,
+                                  onTap: () => _showAddQuickActionDialog(isAdmin),
+                                );
+                              }
+                              final a = visibleActions[index];
                               return _QuickActionCard(
-                                icon: Icons.add,
-                                label: t.quick_actions.add,
-                                color: AppTheme.neutralGrey,
-                                onTap: _showAddQuickActionDialog,
+                                icon: a.icon,
+                                label: a.label,
+                                color: a.color,
+                                onTap: () => _navigateAndReload(_buildQuickActionPage(a.label)),
+                                onLongPress: () => _confirmRemoveQuickAction(a),
                               );
-                            }
-                            final a = _customQuickActions[index];
-                            return _QuickActionCard(
-                              icon: a.icon,
-                              label: a.label,
-                              color: a.color,
-                              onTap: () => _navigateAndReload(_buildQuickActionPage(a.label)),
-                              onLongPress: () => _confirmRemoveQuickAction(a),
-                            );
-                          },
-                        ),
+                            },
+                          );
+                        }),
                         const SizedBox(height: 24),
                         
                         // Stok Menipis & Transaksi Terakhir (from DashboardBloc)
@@ -1171,7 +1203,8 @@ class _QuickActionDef {
   final String label;
   final IconData icon;
   final Color color;
-  const _QuickActionDef(this.label, this.icon, this.color);
+  final bool isAdmin;
+  const _QuickActionDef(this.label, this.icon, this.color, {this.isAdmin = false});
 }
 
 class _QuickActionCard extends StatelessWidget {

@@ -56,7 +56,11 @@ class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
             ),
           )
           .toList();
-      await buatPembelian(namaSupplier: event.namaSupplier, items: items);
+      await buatPembelian(
+        namaSupplier: event.namaSupplier,
+        items: items,
+        priceChanges: event.priceChanges,
+      );
       emit(const PembelianSuccess('Pembelian berhasil'));
       add(LoadPembelian());
     } catch (e) {

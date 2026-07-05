@@ -11,13 +11,17 @@ class LoadLaporan extends LaporanEvent {
   final int tabIndex; // 0=ringkasan, 1=laba-rugi, 2=terlaris, 3=hutang, 4=arus-kas, 5=stok
   final DateTime? startDate;
   final DateTime? endDate;
+  final String? sortBy;
+  final String? searchQuery;
 
-  const LoadLaporan({
-    this.tabIndex = 0,
+  LoadLaporan({
+    required this.tabIndex,
     this.startDate,
     this.endDate,
+    this.sortBy,
+    this.searchQuery,
   });
 
   @override
-  List<Object?> get props => [tabIndex, startDate, endDate];
+  List<Object?> get props => [tabIndex, startDate, endDate, sortBy, searchQuery];
 }

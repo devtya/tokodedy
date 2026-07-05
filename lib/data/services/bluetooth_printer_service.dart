@@ -69,11 +69,11 @@ class BluetoothPrinterService implements PrinterService {
       if (_isManuallyDisconnected) return false;
 
       final settings = sl<PrinterSettings>();
-      if (settings.type != 'bluetooth' || !settings.enabled) {
+      if (!settings.enabled) {
         return false;
       }
-      final address = settings.url;
-      if (address.isEmpty || address.startsWith('http')) {
+      final address = settings.deviceAddress;
+      if (address.isEmpty) {
         return false;
       }
 
@@ -102,14 +102,11 @@ class BluetoothPrinterService implements PrinterService {
               characteristic.properties.writeWithoutResponse) {
             _characteristic = characteristic;
 
-            // Auto save to settings
+            // Auto save device address
             try {
               final settings = sl<PrinterSettings>();
-              if (settings.url != device.remoteId.toString()) {
-                settings.url = device.remoteId.toString();
-              }
-              if (settings.type != 'bluetooth') {
-                settings.type = 'bluetooth';
+              if (settings.deviceAddress != device.remoteId.toString()) {
+                settings.deviceAddress = device.remoteId.toString();
               }
             } catch (_) {}
 
@@ -145,7 +142,7 @@ class BluetoothPrinterService implements PrinterService {
   Future<bool> isConnected() async {
     if (_device == null) {
       final settings = sl<PrinterSettings>();
-      if (settings.type == 'bluetooth' && settings.enabled && settings.url.isNotEmpty && !settings.url.startsWith('http')) {
+      if (settings.enabled && settings.deviceAddress.isNotEmpty) {
         return await autoConnect();
       }
       return false;

@@ -30,6 +30,8 @@ import 'tables/local_auth_table.dart';
 import 'tables/online_customer_table.dart';
 import 'tables/online_order_table.dart';
 import 'tables/online_order_item_table.dart';
+import 'tables/kas_harian_table.dart';
+import 'tables/pengeluaran_operasional_table.dart';
 
 part 'app_database.g.dart';
 
@@ -60,13 +62,15 @@ part 'app_database.g.dart';
     OnlineCustomerTable,
     OnlineOrderTable,
     OnlineOrderItemTable,
+    KasHarianTable,
+    PengeluaranOperasionalTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,6 +106,10 @@ class AppDatabase extends _$AppDatabase {
         } catch (_) {
           // Kolom pin_salt sudah ada.
         }
+      }
+      if (from < 7) {
+        await m.createTable(kasHarianTable);
+        await m.createTable(pengeluaranOperasionalTable);
       }
     },
     beforeOpen: (details) async {

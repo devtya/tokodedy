@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../domain/usecases/stok/buat_pembelian.dart';
 
 abstract class PembelianEvent extends Equatable {
   const PembelianEvent();
@@ -12,15 +13,17 @@ class AddPembelianEvent extends PembelianEvent {
   final String namaSupplier;
   final String? supplierId;
   final List<ItemPembelianData> items;
+  final List<PriceChange>? priceChanges;
 
   const AddPembelianEvent({
     required this.namaSupplier,
     this.supplierId,
     required this.items,
+    this.priceChanges,
   });
 
   @override
-  List<Object?> get props => [namaSupplier, supplierId, items];
+  List<Object?> get props => [namaSupplier, supplierId, items, priceChanges];
 }
 
 class UpdatePembelianEvent extends PembelianEvent {

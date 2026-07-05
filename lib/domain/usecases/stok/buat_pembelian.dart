@@ -2,10 +2,37 @@ import 'package:injectable/injectable.dart';
 import '../../../data/database/app_database.dart';
 import '../../entities/item_pembelian.dart';
 import '../../entities/pembelian.dart';
+import '../../entities/riwayat_stok.dart';
 
 import '../../repositories/pembelian_repository.dart';
 import '../../repositories/produk_repository.dart';
 import '../../repositories/riwayat_stok_repository.dart';
+
+class PriceChange {
+  final String produkId;
+  final double hargaBeliBaru;
+  final double hargaJualBaru;
+  final List<SatuanPriceChange> satuanChanges;
+
+  const PriceChange({
+    required this.produkId,
+    required this.hargaBeliBaru,
+    required this.hargaJualBaru,
+    required this.satuanChanges,
+  });
+}
+
+class SatuanPriceChange {
+  final String satuanId;
+  final double hargaBeli;
+  final double hargaJual;
+
+  const SatuanPriceChange({
+    required this.satuanId,
+    required this.hargaBeli,
+    required this.hargaJual,
+  });
+}
 
 @lazySingleton
 class BuatPembelian {
@@ -24,6 +51,7 @@ class BuatPembelian {
   Future<String> call({
     required String namaSupplier,
     required List<ItemPembelian> items,
+    List<PriceChange>? priceChanges,
   }) async {
     return db.transaction(() async {
       final totalHarga = items.fold(0.0, (sum, item) => sum + item.subtotal);
@@ -49,6 +77,15 @@ class BuatPembelian {
           await produkRepository.updateStok(
             item.produkId,
             produk.stok + tambahStok,
+          );
+
+          await riwayatStokRepository.addRiwayat(
+            RiwayatStok(
+              produkId: produk.id!,
+              tipe: 'masuk',
+              jumlah: tambahStok,
+              keterangan: 'Pembelian #$pembelianId',
+            ),
           );
 
           // Update harga beli:
@@ -81,6 +118,34 @@ class BuatPembelian {
           }
         }
       }
+
+      if (priceChanges != null) {
+        for (final change in priceChanges) {
+          final produk = await produkRepository.getProdukById(change.produkId);
+          if (produk != null) {
+            await produkRepository.updateProduk(
+              produk.copyWith(
+                hargaBeli: change.hargaBeliBaru,
+                hargaJual: change.hargaJualBaru,
+              ),
+            );
+            
+            final satuanList = await produkRepository.getSatuanByProdukId(change.produkId);
+            for (final satuanChange in change.satuanChanges) {
+              final satuan = satuanList.where((s) => s.id == satuanChange.satuanId).firstOrNull;
+              if (satuan != null) {
+                await produkRepository.updateSatuan(
+                  satuan.copyWith(
+                    hargaBeli: satuanChange.hargaBeli,
+                    hargaJual: satuanChange.hargaJual,
+                  ),
+                );
+              }
+            }
+          }
+        }
+      }
+
       return pembelianId;
     });
   }

@@ -137,6 +137,7 @@ Carried-over fixes from the old log have been pruned once verified fixed. Remain
 - **i18n**: no hardcoded UI strings — register text in `lib/i18n/strings.i18n.json` and run `dart run slang`.
 - **Purchase Orders**: multiple active POs from the same supplier can coexist — always identify by `poId`, never by `supplierId` alone.
 - **Phase 2 (Windows) awareness**: when adding features, prefer cross-platform plugins over Android-only ones where a viable alternative exists (e.g. printing, file access), to ease the desktop port.
+- **Theme-aware colors**: never hardcode `Colors.white`, `Colors.black`, `Colors.grey.shade*`, `Colors.green.shade*`, `Colors.red.shade*`, etc. Use `Theme.of(context).colorScheme.*` (e.g. `surface`, `onSurface`, `primary`, `error`, `outline`, `surfaceContainerHighest`) or `AppTheme.*` constants (e.g. `AppTheme.primary`, `AppTheme.warning`). For box shadows, `Colors.black.withValues(alpha: ...)` is acceptable. Prefer `.withValues(alpha:)` over `.withOpacity()`.
 
 ## Roadmap
 

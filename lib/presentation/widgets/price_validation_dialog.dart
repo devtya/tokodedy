@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/di/injection.dart';
 import '../../../domain/entities/produk.dart';
-import '../../../domain/usecases/produk/update_produk.dart';
-import '../../../domain/repositories/produk_repository.dart';
+import '../../../domain/usecases/stok/buat_pembelian.dart';
 
 class PriceValidationItem {
   final String produkId;
@@ -151,11 +149,10 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
     super.dispose();
   }
 
-  Future<void> _saveChanges() async {
+  Future<void> _saveChanges(bool updateHargaJual) async {
     setState(() => _isSaving = true);
     try {
-      final updateProduk = sl<UpdateProduk>();
-      final repo = sl<ProdukRepository>();
+      final List<PriceChange> priceChanges = [];
       
       for (var pData in _valData.values) {
         final produk = pData.produk;
@@ -163,37 +160,32 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
         // Update Base Product
         final baseUnit = pData.units.where((u) => u.satuanId == null).firstOrNull;
         if (baseUnit == null) continue;
-        final newBaseJual = double.tryParse(baseUnit.jualController.text) ?? baseUnit.hargaJualLama;
-        
-        final updatedProduk = produk.copyWith(
-          hargaBeli: pData.baseCostBaru,
-          hargaJual: newBaseJual,
-        );
-        await updateProduk(updatedProduk);
+        final newBaseJual = updateHargaJual 
+            ? (double.tryParse(baseUnit.jualController.text) ?? baseUnit.hargaJualLama)
+            : baseUnit.hargaJualLama;
         
         // Update Satuan Konversi
-        // PENTING: iterasi dari pData.units (sumber yang sudah divalidasi &
-        // di-dedup berdasarkan id), bukan dari produk.satuanList lagi.
-        // Sebelumnya kode ini me-re-lookup uData dari satuanList per s.id,
-        // yang gagal diam-diam kalau ada row id yang sama tapi tidak masuk
-        // ke units saat initState (misal karena collide dengan base unit) --
-        // hasilnya update baru ke base unit, tapi row satuan_produk terkait
-        // tetap menyimpan harga lama dan jadi tidak sinkron.
+        final satuanChanges = <SatuanPriceChange>[];
         for (var uData in pData.units) {
           if (uData.satuanId == null) continue; // base unit sudah diupdate di atas
-          final newJual = double.tryParse(uData.jualController.text) ?? uData.hargaJualLama;
-          final existing = produk.satuanList?.where((s) => s.id == uData.satuanId).firstOrNull;
-          if (existing == null) continue;
-          
-          await repo.updateSatuan(
-            existing.copyWith(
-              hargaBeli: uData.hargaBeliBaru,
-              hargaJual: newJual,
-            ),
-          );
+          final newJual = updateHargaJual
+              ? (double.tryParse(uData.jualController.text) ?? uData.hargaJualLama)
+              : uData.hargaJualLama;
+          satuanChanges.add(SatuanPriceChange(
+            satuanId: uData.satuanId!,
+            hargaBeli: uData.hargaBeliBaru,
+            hargaJual: newJual,
+          ));
         }
+
+        priceChanges.add(PriceChange(
+          produkId: produk.id!,
+          hargaBeliBaru: pData.baseCostBaru,
+          hargaJualBaru: newBaseJual,
+          satuanChanges: satuanChanges,
+        ));
       }
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop(context, priceChanges);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -324,19 +316,34 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.pop(context, false),
-          child: Text('Batal', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.lightText)),
-        ),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _saveChanges,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Simpan & Lanjutkan'),
+        SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: _isSaving ? null : () => _saveChanges(true),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Simpan & Update Harga Jual'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: _isSaving ? null : () => _saveChanges(false),
+                child: const Text('Simpan, Harga Jual Tetap'),
+              ),
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: _isSaving ? null : () => Navigator.pop(context, null),
+                child: Text('Batal', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.lightText)),
+              ),
+            ],
+          ),
         ),
       ],
     );

@@ -31,6 +31,7 @@ import '../../../domain/entities/pending_pembelian.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../widgets/cari_produk_dialog.dart';
+import '../../../domain/usecases/stok/buat_pembelian.dart';
 import '../../widgets/supplier_konfirmasi_dialog.dart';
 import '../../widgets/price_validation_dialog.dart';
 import 'pending_pembelian_page.dart';
@@ -916,89 +917,101 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     }).toList();
 
     if (_pembelianId == null) {
-      final allProduk = await sl<GetAllProduk>().call();
-      if (!mounted) return;
-      final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
-      
-      // Validation for Harga Jual == 0
-      final List<ItemPembelianForm> zeroPriceItems = [];
-      final List<ItemPembelianForm> changedItems = [];
-
-      for (int i = 0; i < _items.length; i++) {
-        final item = _items[i];
-        final itemData = itemsData[i];
+      try {
+        final allProduk = await sl<GetAllProduk>().call();
+        if (!mounted) return;
+        final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
         
-        // Check zero price
-        final p = produkMap[item.produkId];
-        if (p != null) {
-          final s = p.satuanList?.where((sl) => sl.id == item.satuanId).firstOrNull;
-          final hJual = s != null ? s.hargaJual : (p.hargaJual * item.konversi);
-          if (hJual <= 0) {
-            zeroPriceItems.add(item);
+        // Validation for Harga Jual == 0
+        final List<ItemPembelianForm> zeroPriceItems = [];
+        final List<ItemPembelianForm> changedItems = [];
+
+        for (int i = 0; i < _items.length; i++) {
+          final item = _items[i];
+          final itemData = itemsData[i];
+          
+          // Check zero price
+          final p = produkMap[item.produkId];
+          if (p != null) {
+            final s = p.satuanList?.where((sl) => sl.id == item.satuanId).firstOrNull;
+            final hJual = s != null ? s.hargaJual : (p.hargaJual * item.konversi);
+            if (hJual <= 0) {
+              zeroPriceItems.add(item);
+            }
+          }
+
+          if (itemData.hargaBeliSatuan > item.hargaBeliLama) {
+            changedItems.add(item.copyWith(hargaBeliSatuan: itemData.hargaBeliSatuan));
           }
         }
 
-        if (itemData.hargaBeliSatuan > item.hargaBeliLama) {
-          changedItems.add(item.copyWith(hargaBeliSatuan: itemData.hargaBeliSatuan));
-        }
-      }
-
-      if (zeroPriceItems.isNotEmpty) {
-        final errList = zeroPriceItems.map((e) => '- ${e.namaProduk} (${e.satuanName})').join('\n');
-        final proceed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Harga Jual 0'),
-            content: Text(
-              'Ada item dengan satuan yang belum memiliki harga jual (Rp 0):\n\n$errList\n\nPastikan untuk mengatur harga jual di menu Produk nanti. Tetap lanjutkan pembelian ini?',
+        if (zeroPriceItems.isNotEmpty) {
+          final errList = zeroPriceItems.map((e) => '- ${e.namaProduk} (${e.satuanName})').join('\n');
+          final proceed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Harga Jual 0'),
+              content: Text(
+                'Ada item dengan satuan yang belum memiliki harga jual (Rp 0):\n\n$errList\n\nPastikan untuk mengatur harga jual di menu Produk nanti. Tetap lanjutkan pembelian ini?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.warningRed),
+                  child: const Text('Tetap Lanjutkan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.warningRed),
-                child: const Text('Tetap Lanjutkan', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        );
-        if (proceed != true) return;
-      }
+          );
+          if (proceed != true) return;
+        }
 
-      if (changedItems.isNotEmpty) {
+        List<PriceChange>? priceChanges;
+        if (changedItems.isNotEmpty) {
+          if (!mounted) return;
+          final valItems = changedItems.map((i) => PriceValidationItem(
+            produkId: i.produkId,
+            konversi: i.konversi,
+            hargaBeliSatuan: i.hargaBeliSatuan,
+          )).toList();
+          
+          priceChanges = await showDialog<List<PriceChange>?>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => PriceValidationDialog(
+              changedItems: valItems,
+              produkMap: produkMap,
+            ),
+          );
+          if (priceChanges == null) return;
+        }
+
         if (!mounted) return;
-        final valItems = changedItems.map((i) => PriceValidationItem(
-          produkId: i.produkId,
-          konversi: i.konversi,
-          hargaBeliSatuan: i.hargaBeliSatuan,
-        )).toList();
-        
-        final proceed = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => PriceValidationDialog(
-            changedItems: valItems,
-            produkMap: produkMap,
+
+        _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
+        _pendingSaveSupplierId = _selectedSupplier!.id!;
+        setState(() => _isSaving = true);
+        bloc.add(
+          AddPembelianEvent(
+            namaSupplier: _selectedSupplier!.nama,
+            supplierId: _pendingSaveSupplierId,
+            items: itemsData,
+            priceChanges: priceChanges,
           ),
         );
-        if (proceed != true) return;
+      } catch (e, stack) {
+        if (kDebugMode) debugPrint('[Pembelian] GetAllProduk error: $e\n$stack');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal memuat data produk')),
+          );
+        }
+        return;
       }
-
-      if (!mounted) return;
-
-      _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
-      _pendingSaveSupplierId = _selectedSupplier!.id!;
-      setState(() => _isSaving = true);
-      bloc.add(
-        AddPembelianEvent(
-          namaSupplier: _selectedSupplier!.nama,
-          supplierId: _pendingSaveSupplierId,
-          items: itemsData,
-        ),
-      );
     } else {
       final confirm = await showDialog<bool>(
         context: context,
@@ -1185,7 +1198,15 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 );
               }
             } catch (e) {
-              if (kDebugMode) debugPrint('Gagal menyimpan PO Besok: $e');
+              if (kDebugMode) debugPrint('[Pembelian] movedToBesok error: $e');
+              if (context.mounted && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Peringatan: beberapa item besok gagal disimpan'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
             }
           }
 
@@ -1193,12 +1214,16 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
           final items = _pendingSaveItems ?? [];
           final supplierId = _pendingSaveSupplierId;
           if (supplierId != null) {
-            for (final item in items) {
-              await dao.upsertSupplierProduct(
-                                supplierId: supplierId,
-                produkId: item.produkId,
-                harga: item.hargaBeliSatuan,
-              );
+            try {
+              for (final item in items) {
+                await dao.upsertSupplierProduct(
+                  supplierId: supplierId,
+                  produkId: item.produkId,
+                  harga: item.hargaBeliSatuan,
+                );
+              }
+            } catch (e, stack) {
+              if (kDebugMode) debugPrint('[Pembelian] SupplierProducts upsert error: $e\n$stack');
             }
           }
           _pendingSaveItems = null;

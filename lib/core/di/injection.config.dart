@@ -20,6 +20,7 @@ import '../../data/database/supplier_products_dao.dart' as _i909;
 import '../../data/repositories/auth_repository_impl.dart' as _i895;
 import '../../data/repositories/dashboard_repository_impl.dart' as _i283;
 import '../../data/repositories/hutang_piutang_repository_impl.dart' as _i294;
+import '../../data/repositories/kas_harian_repository_impl.dart' as _i1030;
 import '../../data/repositories/laporan_repository_impl.dart' as _i880;
 import '../../data/repositories/local_auth_repository_impl.dart' as _i486;
 import '../../data/repositories/notifikasi_repository_impl.dart' as _i833;
@@ -41,6 +42,7 @@ import '../../data/services/supabase_sync_service.dart' as _i345;
 import '../../domain/repositories/auth_repository.dart' as _i1073;
 import '../../domain/repositories/dashboard_repository.dart' as _i272;
 import '../../domain/repositories/hutang_piutang_repository.dart' as _i36;
+import '../../domain/repositories/kas_harian_repository.dart' as _i273;
 import '../../domain/repositories/laporan_repository.dart' as _i620;
 import '../../domain/repositories/local_auth_repository.dart' as _i517;
 import '../../domain/repositories/notifikasi_repository.dart' as _i895;
@@ -53,6 +55,11 @@ import '../../domain/repositories/purchase_order_repository.dart' as _i38;
 import '../../domain/repositories/riwayat_stok_repository.dart' as _i747;
 import '../../domain/repositories/supplier_repository.dart' as _i88;
 import '../../domain/repositories/transaksi_repository.dart' as _i673;
+import '../../domain/usecases/kas/add_pengeluaran.dart' as _i106;
+import '../../domain/usecases/kas/delete_pengeluaran.dart' as _i917;
+import '../../domain/usecases/kas/get_kas_daily_summary.dart' as _i35;
+import '../../domain/usecases/kas/get_kas_harian.dart' as _i787;
+import '../../domain/usecases/kas/set_modal_awal.dart' as _i444;
 import '../../domain/usecases/notifikasi/add_notifikasi.dart' as _i413;
 import '../../domain/usecases/notifikasi/get_all_notifikasi.dart' as _i991;
 import '../../domain/usecases/notifikasi/get_unread_notifikasi.dart' as _i39;
@@ -79,7 +86,9 @@ import '../../domain/usecases/stok/batalkan_purchase_order.dart' as _i367;
 import '../../domain/usecases/stok/buat_pembelian.dart' as _i408;
 import '../../domain/usecases/stok/buat_purchase_order.dart' as _i790;
 import '../../domain/usecases/stok/edit_purchase_order.dart' as _i380;
+import '../../domain/usecases/stok/generate_po_dari_stok_minimum.dart' as _i267;
 import '../../domain/usecases/stok/get_riwayat_stok.dart' as _i609;
+import '../../domain/usecases/stok/stok_opname.dart' as _i24;
 import '../../domain/usecases/stok/tambah_stok.dart' as _i995;
 import '../../domain/usecases/stok/terima_purchase_order.dart' as _i85;
 import '../../domain/usecases/stok/update_pembelian.dart' as _i479;
@@ -96,6 +105,7 @@ import '../../presentation/blocs/auth/auth_bloc.dart' as _i141;
 import '../../presentation/blocs/cashier/cashier_bloc.dart' as _i207;
 import '../../presentation/blocs/dashboard/dashboard_bloc.dart' as _i286;
 import '../../presentation/blocs/hutang/hutang_bloc.dart' as _i318;
+import '../../presentation/blocs/kas_harian/kas_harian_bloc.dart' as _i957;
 import '../../presentation/blocs/laporan/laporan_bloc.dart' as _i17;
 import '../../presentation/blocs/local_auth/local_auth_bloc.dart' as _i546;
 import '../../presentation/blocs/notifikasi/notifikasi_bloc.dart' as _i166;
@@ -107,6 +117,7 @@ import '../../presentation/blocs/purchase_order/purchase_order_bloc.dart'
 import '../../presentation/blocs/riwayat_harga/riwayat_harga_bloc.dart'
     as _i293;
 import '../../presentation/blocs/stok/stok_bloc.dart' as _i360;
+import '../../presentation/blocs/stok_opname/stok_opname_bloc.dart' as _i17;
 import '../../presentation/blocs/supplier/supplier_bloc.dart' as _i482;
 import '../../presentation/blocs/sync/sync_bloc.dart' as _i701;
 import '../../presentation/blocs/theme/theme_cubit.dart' as _i473;
@@ -155,6 +166,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i345.SupabaseSyncService>(),
       ),
     );
+    gh.lazySingleton<_i273.KasHarianRepository>(
+      () => _i1030.KasHarianRepositoryImpl(
+        gh<_i160.AppDatabase>(),
+        gh<_i345.SupabaseSyncService>(),
+      ),
+    );
     gh.lazySingleton<_i620.LaporanRepository>(
       () => _i880.LaporanRepositoryImpl(gh<_i160.AppDatabase>()),
     );
@@ -163,6 +180,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i160.AppDatabase>(),
         gh<_i345.SupabaseSyncService>(),
       ),
+    );
+    gh.lazySingleton<_i106.AddPengeluaran>(
+      () => _i106.AddPengeluaran(gh<_i273.KasHarianRepository>()),
+    );
+    gh.lazySingleton<_i917.DeletePengeluaran>(
+      () => _i917.DeletePengeluaran(gh<_i273.KasHarianRepository>()),
+    );
+    gh.lazySingleton<_i35.GetKasDailySummary>(
+      () => _i35.GetKasDailySummary(gh<_i273.KasHarianRepository>()),
+    );
+    gh.lazySingleton<_i787.GetKasHarian>(
+      () => _i787.GetKasHarian(gh<_i273.KasHarianRepository>()),
+    );
+    gh.lazySingleton<_i444.SetModalAwal>(
+      () => _i444.SetModalAwal(gh<_i273.KasHarianRepository>()),
     );
     gh.lazySingleton<_i228.PembelianRepository>(
       () => _i810.PembelianRepositoryImpl(
@@ -221,6 +253,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i609.GetRiwayatStok>(
       () => _i609.GetRiwayatStok(gh<_i747.RiwayatStokRepository>()),
+    );
+    gh.factory<_i957.KasHarianBloc>(
+      () => _i957.KasHarianBloc(
+        gh<_i35.GetKasDailySummary>(),
+        gh<_i444.SetModalAwal>(),
+        gh<_i106.AddPengeluaran>(),
+        gh<_i917.DeletePengeluaran>(),
+      ),
     );
     gh.factory<_i1016.ReceiptGenerator>(
       () => _i1016.ReceiptGenerator(
@@ -301,6 +341,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i473.ThemeCubit>(
       () => _i473.ThemeCubit(gh<_i460.SharedPreferences>()),
     );
+    gh.lazySingleton<_i267.GeneratePODariStokMinimum>(
+      () => _i267.GeneratePODariStokMinimum(gh<_i1053.GetAllProduk>()),
+    );
     gh.lazySingleton<_i517.LocalAuthRepository>(
       () => _i486.LocalAuthRepositoryImpl(
         gh<_i160.AppDatabase>(),
@@ -374,6 +417,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i994.SupplierRepositoryImpl(
         gh<_i160.AppDatabase>(),
         gh<_i345.SupabaseSyncService>(),
+      ),
+    );
+    gh.lazySingleton<_i24.StokOpname>(
+      () => _i24.StokOpname(
+        produkRepository: gh<_i680.ProdukRepository>(),
+        riwayatStokRepository: gh<_i747.RiwayatStokRepository>(),
       ),
     );
     gh.lazySingleton<_i895.NotifikasiRepository>(
@@ -465,6 +514,10 @@ extension GetItInjectableX on _i174.GetIt {
         getAllTransaksi: gh<_i287.GetAllTransaksi>(),
         getTransaksiById: gh<_i20.GetTransaksiById>(),
       ),
+    );
+    gh.factory<_i17.StokOpnameBloc>(
+      () =>
+          _i17.StokOpnameBloc(gh<_i1053.GetAllProduk>(), gh<_i24.StokOpname>()),
     );
     gh.factory<_i482.SupplierBloc>(
       () => _i482.SupplierBloc(

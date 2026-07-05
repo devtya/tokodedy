@@ -241,7 +241,7 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
   void _tryAutoConnectBluetooth() {
     try {
       final settings = sl<PrinterSettings>();
-      if (settings.type == 'bluetooth' && settings.enabled) {
+      if (settings.enabled) {
         sl<BluetoothPrinterService>().autoConnect();
       }
     } catch (_) {}

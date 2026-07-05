@@ -40,6 +40,9 @@ class LaporanBloc extends Bloc<LaporanEvent, LaporanState> {
         case 5:
           await _loadStokMenipis(emit);
           break;
+        case 6:
+          await _loadMargin(event, emit);
+          break;
       }
     } catch (e) {
       emit(LaporanError(e.toString()));
@@ -123,5 +126,23 @@ class LaporanBloc extends Bloc<LaporanEvent, LaporanState> {
   Future<void> _loadStokMenipis(Emitter<LaporanState> emit) async {
     final produkList = await laporanRepository.getStokMenipis();
     emit(LaporanStokLoaded(produkList: produkList));
+  }
+
+  Future<void> _loadMargin(LoadLaporan event, Emitter<LaporanState> emit) async {
+    final start = event.startDate ?? DateTime.now().subtract(const Duration(days: 30));
+    final end = event.endDate ?? DateTime.now();
+    final items = await laporanRepository.getLaporanMargin(
+      startDate: start,
+      endDate: end,
+      sortBy: event.sortBy ?? 'margin_desc',
+      searchQuery: event.searchQuery ?? '',
+    );
+
+    final totalProfit = items.fold(0.0, (s, i) => s + i.totalProfit);
+
+    emit(LaporanMarginLoaded(
+      items: items,
+      totalProfitKeseluruhan: totalProfit,
+    ));
   }
 }

@@ -117,3 +117,17 @@ class LaporanStokLoaded extends LaporanState {
   @override
   List<Object?> get props => [produkList];
 }
+
+class LaporanMarginLoaded extends LaporanState {
+  final List<MarginItem> items;
+  final double totalProfitKeseluruhan;
+
+  LaporanMarginLoaded({
+    required this.items,
+    required this.totalProfitKeseluruhan,
+  });
+
+  @override
+  List<Object?> get props => [items, totalProfitKeseluruhan];
+}
+

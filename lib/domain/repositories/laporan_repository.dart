@@ -47,10 +47,41 @@ class ArusKasItem {
   });
 }
 
+class MarginItem {
+  final String produkId;
+  final String namaProduk;
+  final String satuan;
+  final double hargaBeli;
+  final double hargaJual;
+  final double marginNominal;
+  final double marginPersen;
+  final int totalTerjual;
+  final double totalProfit;
+
+  MarginItem({
+    required this.produkId,
+    required this.namaProduk,
+    required this.satuan,
+    required this.hargaBeli,
+    required this.hargaJual,
+    required this.marginNominal,
+    required this.marginPersen,
+    required this.totalTerjual,
+    required this.totalProfit,
+  });
+}
+
 abstract class LaporanRepository {
   Future<List<LabaRugiItem>> getLabaRugi({
     required DateTime startDate,
     required DateTime endDate,
+  });
+
+  Future<List<MarginItem>> getLaporanMargin({
+    required DateTime startDate,
+    required DateTime endDate,
+    String sortBy = 'margin_desc', // 'margin_desc', 'profit_desc', 'nama_asc'
+    String searchQuery = '',
   });
 
   Future<List<ProdukTerlarisItem>> getProdukTerlaris({

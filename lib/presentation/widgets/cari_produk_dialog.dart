@@ -270,17 +270,40 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
                               ],
                             ],
                           ),
-                          subtitle: Text(
-                            '${_currency.format(widget.isPembelian ? produk.hargaBeli : produk.hargaJual)} / ${produk.satuan}',
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${_currency.format(widget.isPembelian ? produk.hargaBeli : produk.hargaJual)} / ${produk.satuan}',
+                              ),
+                              if (!stokOk)
+                                const Text(
+                                  'Stok Habis',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                            ],
                           ),
                           trailing: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle,
-                              color: AppTheme.accentGreen,
+                              color: stokOk ? AppTheme.accentGreen : Colors.grey,
                             ),
-                            onPressed: () => _pilihProduk(produk),
+                            onPressed: stokOk ? () => _pilihProduk(produk) : null,
                           ),
-                          onTap: () => _pilihProduk(produk),
+                          onTap: stokOk 
+                              ? () => _pilihProduk(produk)
+                              : () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Stok ${produk.nama} sudah habis'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                },
                         );
                       },
                     ),

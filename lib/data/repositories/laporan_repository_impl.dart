@@ -66,6 +66,78 @@ class LaporanRepositoryImpl implements LaporanRepository {
   }
 
   @override
+  Future<List<MarginItem>> getLaporanMargin({
+    required DateTime startDate,
+    required DateTime endDate,
+    String sortBy = 'margin_desc',
+    String searchQuery = '',
+  }) async {
+    final endOfDay = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+    final likePattern = '%$searchQuery%';
+
+    // Get all transaksis in range
+    final transaksi = await (_db.select(_db.transaksiTable)
+      ..where((t) =>
+          t.status.equals('lunas') &
+          t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
+
+    final Map<String, int> qtyMap = {}; // produkId -> qty
+
+    for (final trx in transaksi) {
+      final items = await (_db.select(_db.itemTransaksiTable)
+        ..where((i) => i.transaksiId.equals(trx.id))).get();
+
+      for (final item in items) {
+        qtyMap.putIfAbsent(item.produkId, () => 0);
+        qtyMap[item.produkId] = qtyMap[item.produkId]! + item.jumlah;
+      }
+    }
+
+    // Get produk filtering by name and archived
+    final query = _db.select(_db.produkTable)..where((p) => p.isArchived.not());
+    if (searchQuery.isNotEmpty) {
+      query.where((p) => p.nama.like(likePattern));
+    }
+    
+    final produkList = await query.get();
+
+    final result = <MarginItem>[];
+
+    for (final p in produkList) {
+      final marginNominal = p.hargaJual - p.hargaBeli;
+      final marginPersen = p.hargaBeli > 0 ? (marginNominal / p.hargaBeli) * 100 : 0.0;
+      final totalTerjual = qtyMap[p.id] ?? 0;
+      final totalProfit = marginNominal * totalTerjual;
+
+      result.add(MarginItem(
+        produkId: p.id,
+        namaProduk: p.nama,
+        satuan: p.satuan,
+        hargaBeli: p.hargaBeli,
+        hargaJual: p.hargaJual,
+        marginNominal: marginNominal,
+        marginPersen: marginPersen,
+        totalTerjual: totalTerjual,
+        totalProfit: totalProfit,
+      ));
+    }
+
+    // Sorting
+    result.sort((a, b) {
+      if (sortBy == 'profit_desc') {
+        return b.totalProfit.compareTo(a.totalProfit);
+      } else if (sortBy == 'nama_asc') {
+        return a.namaProduk.toLowerCase().compareTo(b.namaProduk.toLowerCase());
+      } else {
+        // margin_desc
+        return b.marginPersen.compareTo(a.marginPersen);
+      }
+    });
+
+    return result;
+  }
+
+  @override
   Future<List<ProdukTerlarisItem>> getProdukTerlaris({
     required DateTime startDate,
     required DateTime endDate,
@@ -156,6 +228,17 @@ class LaporanRepositoryImpl implements LaporanRepository {
       final key = _dateKey(p.createdAt.toLocal());
       dailyMap.putIfAbsent(key, () => _ArusKasAccum());
       dailyMap[key]!.pengeluaran += p.totalHarga;
+    }
+
+    // Pengeluaran: operasional
+    final operasional = await (_db.select(_db.pengeluaranOperasionalTable)
+      ..where((p) =>
+          p.tanggal.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
+
+    for (final op in operasional) {
+      final key = _dateKey(op.tanggal.toLocal());
+      dailyMap.putIfAbsent(key, () => _ArusKasAccum());
+      dailyMap[key]!.pengeluaran += op.jumlah;
     }
 
     return dailyMap.entries.map((e) {

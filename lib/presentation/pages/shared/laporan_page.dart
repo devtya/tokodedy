@@ -32,17 +32,21 @@ class _LaporanPageState extends State<LaporanPage>
   late TabController _tabController;
   DateTime _filterStart = DateTime.now().subtract(const Duration(days: 30));
   DateTime _filterEnd = DateTime.now();
+  String _marginSortBy = 'margin_desc';
+  final _marginSearchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         context.read<LaporanBloc>().add(LoadLaporan(
               tabIndex: _tabController.index,
               startDate: _filterStart,
               endDate: _filterEnd,
+              sortBy: _marginSortBy,
+              searchQuery: _marginSearchController.text,
             ));
       }
     });
@@ -51,6 +55,7 @@ class _LaporanPageState extends State<LaporanPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _marginSearchController.dispose();
     super.dispose();
   }
 
@@ -71,6 +76,8 @@ class _LaporanPageState extends State<LaporanPage>
             tabIndex: _tabController.index,
             startDate: _filterStart,
             endDate: _filterEnd,
+            sortBy: _marginSortBy,
+            searchQuery: _marginSearchController.text,
           ));
     }
   }
@@ -92,6 +99,7 @@ class _LaporanPageState extends State<LaporanPage>
             Tab(text: 'Hutang'),
             Tab(text: 'Arus Kas'),
             Tab(text: 'Stok'),
+            Tab(text: 'Margin'),
           ],
         ),
         actions: [
@@ -136,6 +144,8 @@ class _LaporanPageState extends State<LaporanPage>
                     tabIndex: _tabController.index,
                     startDate: _filterStart,
                     endDate: _filterEnd,
+                    sortBy: _marginSortBy,
+                    searchQuery: _marginSearchController.text,
                   ),
                 ),
             child: TabBarView(
@@ -147,6 +157,7 @@ class _LaporanPageState extends State<LaporanPage>
                 _buildHutang(state),
                 _buildArusKas(state),
                 _buildStok(state),
+                _buildMargin(state),
               ],
             ),
           );
@@ -709,6 +720,164 @@ class _LaporanPageState extends State<LaporanPage>
     } catch (_) {
       return 5;
     }
+  }
+
+  // ─── TAB 6: MARGIN PER PRODUK ───
+
+  Widget _buildMargin(LaporanState state) {
+    if (state is! LaporanMarginLoaded) return _emptyState();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: _marginSearchController,
+                  decoration: InputDecoration(
+                    hintText: 'Cari produk...',
+                    prefixIcon: const Icon(Icons.search),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  onSubmitted: (_) {
+                    context.read<LaporanBloc>().add(LoadLaporan(
+                          tabIndex: 6,
+                          startDate: _filterStart,
+                          endDate: _filterEnd,
+                          sortBy: _marginSortBy,
+                          searchQuery: _marginSearchController.text,
+                        ));
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _marginSortBy,
+                      isDense: true,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: 'margin_desc', child: Text('Margin %', style: TextStyle(fontSize: 13))),
+                        DropdownMenuItem(value: 'profit_desc', child: Text('Total Profit', style: TextStyle(fontSize: 13))),
+                        DropdownMenuItem(value: 'nama_asc', child: Text('Nama A-Z', style: TextStyle(fontSize: 13))),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _marginSortBy = val);
+                          context.read<LaporanBloc>().add(LoadLaporan(
+                                tabIndex: 6,
+                                startDate: _filterStart,
+                                endDate: _filterEnd,
+                                sortBy: _marginSortBy,
+                                searchQuery: _marginSearchController.text,
+                              ));
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: state.items.isEmpty
+              ? _centerText('Tidak ada data margin untuk rentang ini')
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: state.items.length,
+                  itemBuilder: (context, index) {
+                    final item = state.items[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.namaProduk,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Modal: ${_currency.format(item.hargaBeli)}', style: const TextStyle(fontSize: 12)),
+                                    Text('Jual: ${_currency.format(item.hargaJual)}', style: const TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Margin: ${item.marginPersen.toStringAsFixed(1)}%',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: item.marginPersen > 0 ? AppTheme.primaryGreen : AppTheme.warningRed,
+                                      ),
+                                    ),
+                                    Text('Profit: ${_currency.format(item.marginNominal)}/item', style: const TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Terjual: ${item.totalTerjual} ${item.satuan}', style: const TextStyle(fontSize: 12)),
+                                Text(
+                                  'Total Profit: ${_currency.format(item.totalProfit)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: item.totalProfit >= 0 ? AppTheme.primaryGreen : AppTheme.warningRed,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total Profit Keseluruhan:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                _currency.format(state.totalProfitKeseluruhan),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: state.totalProfitKeseluruhan >= 0 ? AppTheme.primaryGreen : AppTheme.warningRed,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _emptyState() {

@@ -13,7 +13,6 @@ import '../../../domain/repositories/pending_order_repository.dart';
 import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
 import '../../../domain/usecases/transaksi/buat_transaksi.dart';
 import '../../../data/services/bluetooth_printer_service.dart';
-import '../../../data/services/printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import '../../../data/services/receipt_generator.dart';
 import '../../blocs/auth/auth_bloc.dart';
@@ -234,12 +233,9 @@ class _CashierPageState extends State<CashierPage> {
   Future<void> _checkPrinterConnection() async {
     try {
       final settings = sl<PrinterSettings>();
-      if (settings.type == 'bluetooth' && settings.enabled) {
+      if (settings.enabled) {
         final bt = sl<BluetoothPrinterService>();
         _printerConnected = await bt.isConnected();
-      } else if (settings.enabled) {
-        final printer = sl<PrinterService>();
-        _printerConnected = await printer.isConnected();
       } else {
         _printerConnected = false;
       }
@@ -523,6 +519,20 @@ class _CashierPageState extends State<CashierPage> {
       }
       return;
     }
+    
+    if (produk.stok <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Stok ${produk.nama} sudah habis'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
     final pokok = _isKasir ? 0.0 : produk.hargaBeli;
     if (mounted) {
       DialogUtils.showPilihSatuanDialog(
