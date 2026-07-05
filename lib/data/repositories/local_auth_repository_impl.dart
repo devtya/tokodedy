@@ -5,7 +5,10 @@ import 'package:local_auth/local_auth.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter/foundation.dart';
+
 import '../../domain/repositories/local_auth_repository.dart';
+import '../../core/utils/pin_hash_util.dart';
 import '../database/app_database.dart';
 
 @LazySingleton(as: LocalAuthRepository)
@@ -25,11 +28,16 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
 
   @override
   Future<void> setPin(String userId, String pin) async {
-    final hash = _hashPin(pin);
+    final salt = PinHashUtil.generateSalt();
+    final hash = await compute(
+      (Map<String, String> args) => PinHashUtil.hashPin(args['pin']!, args['salt']!),
+      {'pin': pin, 'salt': salt},
+    );
     await _db.into(_db.localAuthTable).insertOnConflictUpdate(
           LocalAuthTableCompanion(
             userId: Value(userId),
             pinHash: Value(hash),
+            pinSalt: Value(salt),
             pinLength: Value(pin.length),
             failedAttempts: const Value(0),
             lockoutUntil: const Value(null),
@@ -56,8 +64,37 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
 
     if (isLockedOut(row.lockoutUntil)) return false;
 
-    final hash = _hashPin(pin);
-    if (hash == row.pinHash) {
+    final stored = row.pinHash;
+    final salt = row.pinSalt;
+    bool isValid = false;
+
+    if (salt == null || PinHashUtil.isLegacyHash(stored)) {
+      // Legacy SHA-256 path
+      isValid = _legacyHashPin(pin) == stored;
+      if (isValid) {
+        // Migrate to PBKDF2 on successful login
+        final newSalt = PinHashUtil.generateSalt();
+        final newHash = await compute(
+          (Map<String, String> args) => PinHashUtil.hashPin(args['pin']!, args['salt']!),
+          {'pin': pin, 'salt': newSalt},
+        );
+        await (_db.update(_db.localAuthTable)
+              ..where((t) => t.userId.equals(userId)))
+            .write(LocalAuthTableCompanion(
+          pinHash: Value(newHash),
+          pinSalt: Value(newSalt),
+        ));
+        if (kDebugMode) debugPrint('[Auth] PIN migrated from SHA-256 to PBKDF2');
+      }
+    } else {
+      // New PBKDF2 path
+      isValid = await compute(
+        (Map<String, String> args) => PinHashUtil.verifyPin(args['pin']!, args['stored']!),
+        {'pin': pin, 'stored': stored},
+      );
+    }
+
+    if (isValid) {
       await resetAttempts(userId);
       return true;
     }
@@ -184,7 +221,7 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
     return row?.biometricEnabled ?? false;
   }
 
-  String _hashPin(String pin) {
+  String _legacyHashPin(String pin) {
     final bytes = utf8.encode(pin);
     return sha256.convert(bytes).toString();
   }

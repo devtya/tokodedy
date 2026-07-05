@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 class LocalAuthTable extends Table {
   TextColumn get userId => text()();
   TextColumn get pinHash => text()();
+  TextColumn get pinSalt => text().nullable()();
   IntColumn get pinLength => integer().withDefault(const Constant(6))();
   BoolColumn get biometricEnabled =>
       boolean().withDefault(const Constant(false))();

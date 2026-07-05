@@ -66,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -94,6 +94,13 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(localAuthTable, localAuthTable.pinLength);
         } catch (_) {
           // Kolom pin_length sudah ada — aman diabaikan.
+        }
+      }
+      if (from < 6) {
+        try {
+          await m.addColumn(localAuthTable, localAuthTable.pinSalt);
+        } catch (_) {
+          // Kolom pin_salt sudah ada.
         }
       }
     },

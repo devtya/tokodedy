@@ -10197,6 +10197,17 @@ class $LocalAuthTableTable extends LocalAuthTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _pinSaltMeta = const VerificationMeta(
+    'pinSalt',
+  );
+  @override
+  late final GeneratedColumn<String> pinSalt = GeneratedColumn<String>(
+    'pin_salt',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _pinLengthMeta = const VerificationMeta(
     'pinLength',
   );
@@ -10251,6 +10262,7 @@ class $LocalAuthTableTable extends LocalAuthTable
   List<GeneratedColumn> get $columns => [
     userId,
     pinHash,
+    pinSalt,
     pinLength,
     biometricEnabled,
     failedAttempts,
@@ -10283,6 +10295,12 @@ class $LocalAuthTableTable extends LocalAuthTable
       );
     } else if (isInserting) {
       context.missing(_pinHashMeta);
+    }
+    if (data.containsKey('pin_salt')) {
+      context.handle(
+        _pinSaltMeta,
+        pinSalt.isAcceptableOrUnknown(data['pin_salt']!, _pinSaltMeta),
+      );
     }
     if (data.containsKey('pin_length')) {
       context.handle(
@@ -10334,6 +10352,10 @@ class $LocalAuthTableTable extends LocalAuthTable
         DriftSqlType.string,
         data['${effectivePrefix}pin_hash'],
       )!,
+      pinSalt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pin_salt'],
+      ),
       pinLength: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}pin_length'],
@@ -10363,6 +10385,7 @@ class LocalAuthTableData extends DataClass
     implements Insertable<LocalAuthTableData> {
   final String userId;
   final String pinHash;
+  final String? pinSalt;
   final int pinLength;
   final bool biometricEnabled;
   final int failedAttempts;
@@ -10370,6 +10393,7 @@ class LocalAuthTableData extends DataClass
   const LocalAuthTableData({
     required this.userId,
     required this.pinHash,
+    this.pinSalt,
     required this.pinLength,
     required this.biometricEnabled,
     required this.failedAttempts,
@@ -10380,6 +10404,9 @@ class LocalAuthTableData extends DataClass
     final map = <String, Expression>{};
     map['user_id'] = Variable<String>(userId);
     map['pin_hash'] = Variable<String>(pinHash);
+    if (!nullToAbsent || pinSalt != null) {
+      map['pin_salt'] = Variable<String>(pinSalt);
+    }
     map['pin_length'] = Variable<int>(pinLength);
     map['biometric_enabled'] = Variable<bool>(biometricEnabled);
     map['failed_attempts'] = Variable<int>(failedAttempts);
@@ -10393,6 +10420,9 @@ class LocalAuthTableData extends DataClass
     return LocalAuthTableCompanion(
       userId: Value(userId),
       pinHash: Value(pinHash),
+      pinSalt: pinSalt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pinSalt),
       pinLength: Value(pinLength),
       biometricEnabled: Value(biometricEnabled),
       failedAttempts: Value(failedAttempts),
@@ -10410,6 +10440,7 @@ class LocalAuthTableData extends DataClass
     return LocalAuthTableData(
       userId: serializer.fromJson<String>(json['userId']),
       pinHash: serializer.fromJson<String>(json['pinHash']),
+      pinSalt: serializer.fromJson<String?>(json['pinSalt']),
       pinLength: serializer.fromJson<int>(json['pinLength']),
       biometricEnabled: serializer.fromJson<bool>(json['biometricEnabled']),
       failedAttempts: serializer.fromJson<int>(json['failedAttempts']),
@@ -10422,6 +10453,7 @@ class LocalAuthTableData extends DataClass
     return <String, dynamic>{
       'userId': serializer.toJson<String>(userId),
       'pinHash': serializer.toJson<String>(pinHash),
+      'pinSalt': serializer.toJson<String?>(pinSalt),
       'pinLength': serializer.toJson<int>(pinLength),
       'biometricEnabled': serializer.toJson<bool>(biometricEnabled),
       'failedAttempts': serializer.toJson<int>(failedAttempts),
@@ -10432,6 +10464,7 @@ class LocalAuthTableData extends DataClass
   LocalAuthTableData copyWith({
     String? userId,
     String? pinHash,
+    Value<String?> pinSalt = const Value.absent(),
     int? pinLength,
     bool? biometricEnabled,
     int? failedAttempts,
@@ -10439,6 +10472,7 @@ class LocalAuthTableData extends DataClass
   }) => LocalAuthTableData(
     userId: userId ?? this.userId,
     pinHash: pinHash ?? this.pinHash,
+    pinSalt: pinSalt.present ? pinSalt.value : this.pinSalt,
     pinLength: pinLength ?? this.pinLength,
     biometricEnabled: biometricEnabled ?? this.biometricEnabled,
     failedAttempts: failedAttempts ?? this.failedAttempts,
@@ -10448,6 +10482,7 @@ class LocalAuthTableData extends DataClass
     return LocalAuthTableData(
       userId: data.userId.present ? data.userId.value : this.userId,
       pinHash: data.pinHash.present ? data.pinHash.value : this.pinHash,
+      pinSalt: data.pinSalt.present ? data.pinSalt.value : this.pinSalt,
       pinLength: data.pinLength.present ? data.pinLength.value : this.pinLength,
       biometricEnabled: data.biometricEnabled.present
           ? data.biometricEnabled.value
@@ -10466,6 +10501,7 @@ class LocalAuthTableData extends DataClass
     return (StringBuffer('LocalAuthTableData(')
           ..write('userId: $userId, ')
           ..write('pinHash: $pinHash, ')
+          ..write('pinSalt: $pinSalt, ')
           ..write('pinLength: $pinLength, ')
           ..write('biometricEnabled: $biometricEnabled, ')
           ..write('failedAttempts: $failedAttempts, ')
@@ -10478,6 +10514,7 @@ class LocalAuthTableData extends DataClass
   int get hashCode => Object.hash(
     userId,
     pinHash,
+    pinSalt,
     pinLength,
     biometricEnabled,
     failedAttempts,
@@ -10489,6 +10526,7 @@ class LocalAuthTableData extends DataClass
       (other is LocalAuthTableData &&
           other.userId == this.userId &&
           other.pinHash == this.pinHash &&
+          other.pinSalt == this.pinSalt &&
           other.pinLength == this.pinLength &&
           other.biometricEnabled == this.biometricEnabled &&
           other.failedAttempts == this.failedAttempts &&
@@ -10498,6 +10536,7 @@ class LocalAuthTableData extends DataClass
 class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   final Value<String> userId;
   final Value<String> pinHash;
+  final Value<String?> pinSalt;
   final Value<int> pinLength;
   final Value<bool> biometricEnabled;
   final Value<int> failedAttempts;
@@ -10506,6 +10545,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   const LocalAuthTableCompanion({
     this.userId = const Value.absent(),
     this.pinHash = const Value.absent(),
+    this.pinSalt = const Value.absent(),
     this.pinLength = const Value.absent(),
     this.biometricEnabled = const Value.absent(),
     this.failedAttempts = const Value.absent(),
@@ -10515,6 +10555,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   LocalAuthTableCompanion.insert({
     required String userId,
     required String pinHash,
+    this.pinSalt = const Value.absent(),
     this.pinLength = const Value.absent(),
     this.biometricEnabled = const Value.absent(),
     this.failedAttempts = const Value.absent(),
@@ -10525,6 +10566,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   static Insertable<LocalAuthTableData> custom({
     Expression<String>? userId,
     Expression<String>? pinHash,
+    Expression<String>? pinSalt,
     Expression<int>? pinLength,
     Expression<bool>? biometricEnabled,
     Expression<int>? failedAttempts,
@@ -10534,6 +10576,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
     return RawValuesInsertable({
       if (userId != null) 'user_id': userId,
       if (pinHash != null) 'pin_hash': pinHash,
+      if (pinSalt != null) 'pin_salt': pinSalt,
       if (pinLength != null) 'pin_length': pinLength,
       if (biometricEnabled != null) 'biometric_enabled': biometricEnabled,
       if (failedAttempts != null) 'failed_attempts': failedAttempts,
@@ -10545,6 +10588,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
   LocalAuthTableCompanion copyWith({
     Value<String>? userId,
     Value<String>? pinHash,
+    Value<String?>? pinSalt,
     Value<int>? pinLength,
     Value<bool>? biometricEnabled,
     Value<int>? failedAttempts,
@@ -10554,6 +10598,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
     return LocalAuthTableCompanion(
       userId: userId ?? this.userId,
       pinHash: pinHash ?? this.pinHash,
+      pinSalt: pinSalt ?? this.pinSalt,
       pinLength: pinLength ?? this.pinLength,
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,
       failedAttempts: failedAttempts ?? this.failedAttempts,
@@ -10570,6 +10615,9 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
     }
     if (pinHash.present) {
       map['pin_hash'] = Variable<String>(pinHash.value);
+    }
+    if (pinSalt.present) {
+      map['pin_salt'] = Variable<String>(pinSalt.value);
     }
     if (pinLength.present) {
       map['pin_length'] = Variable<int>(pinLength.value);
@@ -10594,6 +10642,7 @@ class LocalAuthTableCompanion extends UpdateCompanion<LocalAuthTableData> {
     return (StringBuffer('LocalAuthTableCompanion(')
           ..write('userId: $userId, ')
           ..write('pinHash: $pinHash, ')
+          ..write('pinSalt: $pinSalt, ')
           ..write('pinLength: $pinLength, ')
           ..write('biometricEnabled: $biometricEnabled, ')
           ..write('failedAttempts: $failedAttempts, ')
@@ -18011,6 +18060,7 @@ typedef $$LocalAuthTableTableCreateCompanionBuilder =
     LocalAuthTableCompanion Function({
       required String userId,
       required String pinHash,
+      Value<String?> pinSalt,
       Value<int> pinLength,
       Value<bool> biometricEnabled,
       Value<int> failedAttempts,
@@ -18021,6 +18071,7 @@ typedef $$LocalAuthTableTableUpdateCompanionBuilder =
     LocalAuthTableCompanion Function({
       Value<String> userId,
       Value<String> pinHash,
+      Value<String?> pinSalt,
       Value<int> pinLength,
       Value<bool> biometricEnabled,
       Value<int> failedAttempts,
@@ -18044,6 +18095,11 @@ class $$LocalAuthTableTableFilterComposer
 
   ColumnFilters<String> get pinHash => $composableBuilder(
     column: $table.pinHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pinSalt => $composableBuilder(
+    column: $table.pinSalt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18087,6 +18143,11 @@ class $$LocalAuthTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get pinSalt => $composableBuilder(
+    column: $table.pinSalt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get pinLength => $composableBuilder(
     column: $table.pinLength,
     builder: (column) => ColumnOrderings(column),
@@ -18122,6 +18183,9 @@ class $$LocalAuthTableTableAnnotationComposer
 
   GeneratedColumn<String> get pinHash =>
       $composableBuilder(column: $table.pinHash, builder: (column) => column);
+
+  GeneratedColumn<String> get pinSalt =>
+      $composableBuilder(column: $table.pinSalt, builder: (column) => column);
 
   GeneratedColumn<int> get pinLength =>
       $composableBuilder(column: $table.pinLength, builder: (column) => column);
@@ -18181,6 +18245,7 @@ class $$LocalAuthTableTableTableManager
               ({
                 Value<String> userId = const Value.absent(),
                 Value<String> pinHash = const Value.absent(),
+                Value<String?> pinSalt = const Value.absent(),
                 Value<int> pinLength = const Value.absent(),
                 Value<bool> biometricEnabled = const Value.absent(),
                 Value<int> failedAttempts = const Value.absent(),
@@ -18189,6 +18254,7 @@ class $$LocalAuthTableTableTableManager
               }) => LocalAuthTableCompanion(
                 userId: userId,
                 pinHash: pinHash,
+                pinSalt: pinSalt,
                 pinLength: pinLength,
                 biometricEnabled: biometricEnabled,
                 failedAttempts: failedAttempts,
@@ -18199,6 +18265,7 @@ class $$LocalAuthTableTableTableManager
               ({
                 required String userId,
                 required String pinHash,
+                Value<String?> pinSalt = const Value.absent(),
                 Value<int> pinLength = const Value.absent(),
                 Value<bool> biometricEnabled = const Value.absent(),
                 Value<int> failedAttempts = const Value.absent(),
@@ -18207,6 +18274,7 @@ class $$LocalAuthTableTableTableManager
               }) => LocalAuthTableCompanion.insert(
                 userId: userId,
                 pinHash: pinHash,
+                pinSalt: pinSalt,
                 pinLength: pinLength,
                 biometricEnabled: biometricEnabled,
                 failedAttempts: failedAttempts,
