@@ -433,6 +433,10 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
       ),
       builder: (ctx) {
         final satuans = produk.satuanList ?? [];
+        final hasBaseSatuanInList = satuans.any((s) =>
+            s.konversi == 1.0 &&
+            s.nama.toLowerCase() == (produk.satuan ?? 'pcs').toLowerCase());
+            
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -448,8 +452,9 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 ),
               ),
               const Divider(height: 1),
-              ListTile(
-                title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
+              if (!hasBaseSatuanInList)
+                ListTile(
+                  title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
                 subtitle: const Text('Satuan Dasar (Konversi: 1)'),
                 trailing: item.satuanId == null
                     ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)

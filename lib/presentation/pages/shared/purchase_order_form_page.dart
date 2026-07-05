@@ -22,6 +22,9 @@ import '../../widgets/cari_produk_dialog.dart';
 import '../../../domain/entities/purchase_order.dart';
 import '../../../domain/entities/purchase_order_item.dart';
 import '../../../domain/repositories/purchase_order_repository.dart';
+import '../../../domain/entities/satuan_produk.dart';
+import '../../../domain/entities/produk.dart';
+import '../../../domain/repositories/produk_repository.dart';
 
 class PurchaseOrderFormPage extends StatefulWidget {
   final PurchaseOrder? initialPo;
@@ -56,8 +59,8 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
         nama: widget.initialPo!.namaSupplier ?? '',
         telepon: '',
         alamat: '',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
+        updatedAt: DateTime.now().toUtc(),
       );
     }
     if (widget.initialItems != null) {
@@ -227,6 +230,263 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
         );
       },
     );
+  }
+
+  Future<void> _showUbahSatuanBottomSheet(int index, ItemPoForm item) async {
+    final produk = await sl<GetProdukById>().call(item.produkId);
+    if (produk == null || !mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        final satuans = produk.satuanList ?? [];
+        final hasBaseSatuanInList = satuans.any((s) =>
+            s.konversi == 1.0 &&
+            s.nama.toLowerCase() == (produk.satuan ?? 'pcs').toLowerCase());
+            
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Pilih Satuan - ${produk.nama}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              if (!hasBaseSatuanInList)
+                ListTile(
+                  title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
+                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
+                trailing: item.satuanId == null
+                    ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
+                    : null,
+                onTap: () {
+                  final newHarga = produk.hargaBeli;
+                  setState(() {
+                    _items[index] = item.copyWith(
+                      satuanName: produk.satuan ?? 'pcs',
+                      satuanId: null,
+                      konversi: 1.0,
+                      hargaSatuan: newHarga,
+                      totalHarga: item.qtyPesan * newHarga,
+                    );
+                  });
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...satuans.map((s) {
+                return ListTile(
+                  title: Text(s.nama),
+                  subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
+                  trailing: item.satuanId == s.id
+                      ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
+                      : null,
+                  onTap: () {
+                    final newHarga = (s.hargaBeli > 0) ? s.hargaBeli : (produk.hargaBeli * s.konversi);
+                    setState(() {
+                      _items[index] = item.copyWith(
+                        satuanName: s.nama,
+                        satuanId: s.id,
+                        konversi: s.konversi,
+                        hargaSatuan: newHarga,
+                        totalHarga: item.qtyPesan * newHarga,
+                      );
+                    });
+                    Navigator.pop(ctx);
+                  },
+                );
+              }),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primary),
+                title: const Text(
+                  'Tambah Satuan Baru',
+                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showTambahSatuanDialog(index, item, produk);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTambahSatuanDialog(int index, ItemPoForm item, Produk produk) {
+    final namaSatuanController = TextEditingController();
+    final konversiController = TextEditingController();
+    final hargaBeliController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Tambah Satuan - ${produk.nama}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: namaSatuanController,
+              decoration: const InputDecoration(
+                labelText: 'Nama Satuan (mis: PAK, DUS)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: konversiController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Isi per Satuan Baru',
+                suffixText: produk.satuan ?? 'pcs',
+                hintText: 'mis: 12',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: hargaBeliController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Harga Beli (Opsional)',
+                prefixText: 'Rp ',
+                hintText: 'Biarkan kosong jika mengikuti satuan dasar',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final nama = namaSatuanController.text.trim().toUpperCase();
+              final konversi = double.tryParse(konversiController.text) ?? 0;
+              final hargaBeli = double.tryParse(hargaBeliController.text) ?? 0;
+
+              if (nama.isEmpty || konversi <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Nama dan konversi harus diisi dengan benar')),
+                );
+                return;
+              }
+
+              Navigator.pop(ctx);
+              await _saveSatuanKeProduk(index, item, produk, nama, konversi, hargaBeli);
+            },
+            child: const Text('Simpan & Pilih'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveSatuanKeProduk(
+    int index,
+    ItemPoForm item,
+    Produk produk,
+    String namaSatuan,
+    double konversi,
+    double hargaBeli,
+  ) async {
+    try {
+      final repo = sl<ProdukRepository>();
+
+      // --- Cek duplikat dengan satuan dasar ---
+      if (namaSatuan.toUpperCase() == (produk.satuan ?? 'pcs').toUpperCase()) {
+        if (mounted) {
+          setState(() {
+            _items[index] = item.copyWith(
+              satuanName: produk.satuan ?? 'pcs',
+              satuanId: null,
+              konversi: 1.0,
+              hargaSatuan: hargaBeli > 0 ? hargaBeli : produk.hargaBeli,
+            );
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Menggunakan satuan dasar ${produk.satuan ?? 'pcs'}'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // --- Cek duplikat: jangan insert jika nama satuan sudah ada ---
+      final satuanExisting = await repo.getSatuanByProdukId(produk.id!);
+      final duplikat = satuanExisting
+          .where((s) => s.nama.toUpperCase() == namaSatuan.toUpperCase())
+          .firstOrNull;
+
+      if (duplikat != null) {
+        if (mounted) {
+          setState(() {
+            _items[index] = item.copyWith(
+              satuanName: duplikat.nama,
+              satuanId: duplikat.id,
+              konversi: duplikat.konversi,
+              hargaSatuan: hargaBeli > 0
+                  ? hargaBeli
+                  : (duplikat.hargaBeli > 0
+                      ? duplikat.hargaBeli
+                      : produk.hargaBeli * duplikat.konversi),
+            );
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Menggunakan satuan ${duplikat.nama} yang sudah ada',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Satuan belum ada — insert baru
+      final satuanProduk = SatuanProduk(
+        produkId: produk.id!,
+        nama: namaSatuan,
+        konversi: konversi,
+        hargaJual: 0,
+        hargaBeli: hargaBeli,
+      );
+
+      final newSatuanId = await repo.addSatuan(satuanProduk);
+
+      if (mounted) {
+        setState(() {
+          _items[index] = item.copyWith(
+            satuanName: namaSatuan,
+            satuanId: newSatuanId,
+            konversi: konversi,
+            hargaSatuan:
+                hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
+          );
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Satuan $namaSatuan berhasil ditambahkan')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menambahkan satuan: $e')),
+        );
+      }
+    }
   }
 
   void _showEditItemDialog(int index, ItemPoForm item) {
@@ -414,8 +674,8 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                 status: 'open',
                 totalHarga: _movedToBesokItems.fold(0.0, (s, i) => s + i.totalHarga),
                 notes: 'Draft PO Besok',
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
+                createdAt: DateTime.now().toUtc(),
+                updatedAt: DateTime.now().toUtc(),
               );
               final newPoId = await repo.addPurchaseOrder(po);
               for (final item in _movedToBesokItems) {
@@ -715,9 +975,32 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      item.satuanName,
-                      style: const TextStyle(fontSize: 12, color: AppTheme.neutralGrey),
+                    InkWell(
+                      onTap: () => _showUbahSatuanBottomSheet(index, item),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              item.satuanName,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
+                          ],
+                        ),
+                      ),
                     ),
                     Row(
                       children: [

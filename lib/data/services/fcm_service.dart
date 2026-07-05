@@ -87,7 +87,7 @@ class FcmService {
       await _supabase.from('fcm_tokens').upsert({
         'user_id': user.id,
         'token': token,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       }, onConflict: 'token');
     } catch (e) {
       if (kDebugMode) debugPrint('Gagal menyimpan token FCM ke Supabase: $e');

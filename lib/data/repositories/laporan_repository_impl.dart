@@ -22,7 +22,7 @@ class LaporanRepositoryImpl implements LaporanRepository {
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
           t.status.equals('lunas') &
-          t.createdAt.isBetweenValues(startDate, endOfDay))).get();
+          t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
 
     final Map<String, _LabaRugiAccum> acc = {};
 
@@ -76,7 +76,7 @@ class LaporanRepositoryImpl implements LaporanRepository {
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
           t.status.equals('lunas') &
-          t.createdAt.isBetweenValues(startDate, endOfDay))).get();
+          t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
 
     final Map<String, _QtyAccum> acc = {};
 
@@ -137,10 +137,10 @@ class LaporanRepositoryImpl implements LaporanRepository {
     // Pemasukan: transaksi lunas
     final transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
-          t.createdAt.isBetweenValues(startDate, endOfDay))).get();
+          t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
 
     for (final t in transaksi) {
-      final key = _dateKey(t.createdAt);
+      final key = _dateKey(t.createdAt.toLocal());
       dailyMap.putIfAbsent(key, () => _ArusKasAccum());
       if (t.status == 'lunas') {
         dailyMap[key]!.pemasukan += t.totalHarga;
@@ -150,10 +150,10 @@ class LaporanRepositoryImpl implements LaporanRepository {
     // Pengeluaran: pembelian (harga pokok pembelian)
     final pembelian = await (_db.select(_db.pembelianTable)
       ..where((p) =>
-          p.createdAt.isBetweenValues(startDate, endOfDay))).get();
+          p.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
 
     for (final p in pembelian) {
-      final key = _dateKey(p.createdAt);
+      final key = _dateKey(p.createdAt.toLocal());
       dailyMap.putIfAbsent(key, () => _ArusKasAccum());
       dailyMap[key]!.pengeluaran += p.totalHarga;
     }

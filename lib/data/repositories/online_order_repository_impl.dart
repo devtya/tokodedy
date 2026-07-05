@@ -93,7 +93,7 @@ class OnlineOrderRepositoryImpl implements OnlineOrderRepository {
     // Filter 14 hari terakhir di Dart — aman dari null
     final rows = allRows.where((row) {
       final order = row.readTable(_db.onlineOrderTable);
-      return order.createdAt.isAfter(since);
+      return order.createdAt.toLocal().isAfter(since);
     }).toList();
 
     final orderIds = rows.map((row) => row.readTable(_db.onlineOrderTable).id).toList();
@@ -166,7 +166,7 @@ class OnlineOrderRepositoryImpl implements OnlineOrderRepository {
   Future<void> updateOrderStatus(String id, String status, {double? newTotal}) async {
     final companion = OnlineOrderTableCompanion(
       status: Value(status),
-      updatedAt: Value(DateTime.now()),
+      updatedAt: Value(DateTime.now().toUtc()),
     );
     
     await (_db.update(_db.onlineOrderTable)..where((t) => t.id.equals(id))).write(

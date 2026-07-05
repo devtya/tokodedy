@@ -149,7 +149,7 @@ class SupabaseSyncService {
         pesan: 'Session Supabase telah berakhir. Buka Pengaturan → Sinkronisasi Cloud → '
             'login ulang dengan email & password untuk mengaktifkan sync kembali.',
         tipe: const Value('SYNC_ERROR'),
-        createdAt: Value(DateTime.now()),
+        createdAt: Value(DateTime.now().toUtc()),
       ));
     } catch (e) {
       if (kDebugMode) debugPrint('[SyncService] insertSessionExpiredNotification error: $e');
@@ -379,7 +379,7 @@ class SupabaseSyncService {
                   judul: judul,
                   pesan: pesan,
                   tipe: const Value('ORDER'),
-                  createdAt: Value(DateTime.now()),
+                  createdAt: Value(DateTime.now().toUtc()),
                 ));
 
                 _onlineOrderEventController.add(null);
@@ -659,6 +659,7 @@ const _appendOnlyTables = [
   'item_pembelian',
   'purchase_order_items',
   'riwayat_stok',
+  'riwayat_harga',
   'notifikasi',
   'pending_order_item',
   'pending_pembelian_item',
@@ -910,7 +911,7 @@ final Map<String, _Inserter> _inserters = {
 };
 
 DateTime _parseDate(dynamic v) {
-  if (v == null) return DateTime.now();
+  if (v == null) return DateTime.now().toUtc();
   if (v is DateTime) return v;
-  return DateTime.tryParse(v.toString()) ?? DateTime.now();
+  return DateTime.tryParse(v.toString()) ?? DateTime.now().toUtc();
 }

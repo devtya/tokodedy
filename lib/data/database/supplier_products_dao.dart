@@ -27,7 +27,7 @@ class SupplierProductsDao {
           .write(
         SupplierProductsTableCompanion(
           harga: Value(harga),
-          updatedAt: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now().toUtc()),
         ),
       );
     } else {
@@ -37,7 +37,7 @@ class SupplierProductsDao {
           supplierId: supplierId,
           produkId: produkId,
           harga: Value(harga),
-          updatedAt: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now().toUtc()),
         ),
       );
     }

@@ -45,6 +45,18 @@ class _SupplierKonfirmasiDialogState extends State<SupplierKonfirmasiDialog> {
     super.dispose();
   }
 
+  void _sortSuppliers(List<Supplier> list) {
+    if (_selectedSupplier != null) {
+      final id = _selectedSupplier!.id;
+      _suppliers = [
+        ...list.where((s) => s.id == id),
+        ...list.where((s) => s.id != id),
+      ];
+    } else {
+      _suppliers = list;
+    }
+  }
+
   Future<void> _loadSuppliers() async {
     setState(() {
       _loading = true;
@@ -53,7 +65,7 @@ class _SupplierKonfirmasiDialogState extends State<SupplierKonfirmasiDialog> {
     try {
       final suppliers = await widget.getAllSupplier();
       setState(() {
-        _suppliers = suppliers;
+        _sortSuppliers(suppliers);
         _loading = false;
       });
     } catch (e) {
@@ -73,13 +85,13 @@ class _SupplierKonfirmasiDialogState extends State<SupplierKonfirmasiDialog> {
       if (query.isEmpty) {
         final suppliers = await widget.getAllSupplier();
         setState(() {
-          _suppliers = suppliers;
+          _sortSuppliers(suppliers);
           _loading = false;
         });
       } else {
         final results = await widget.searchSupplier(query);
         setState(() {
-          _suppliers = results;
+          _sortSuppliers(results);
           _loading = false;
         });
       }

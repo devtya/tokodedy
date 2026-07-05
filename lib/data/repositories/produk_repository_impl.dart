@@ -178,6 +178,17 @@ class ProdukRepositoryImpl implements ProdukRepository {
           hargaJualBaru: produk.hargaJual,
         )
       );
+
+      // Sync riwayat_harga to Supabase
+      await _syncService.upsert('riwayat_harga', {
+        'id': riwayatId,
+        'produk_id': produk.id!,
+        'harga_beli_lama': existing.hargaBeli,
+        'harga_beli_baru': produk.hargaBeli,
+        'harga_jual_lama': existing.hargaJual,
+        'harga_jual_baru': produk.hargaJual,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
     }
 
     if (existing != null && existing.nama != produk.nama) {

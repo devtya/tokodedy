@@ -38,9 +38,9 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
   Future<List<domain.Transaksi>> getTransaksiByDate(DateTime date) async {
     final data = await _db.select(_db.transaksiTable).get();
     final filtered = data.where((t) {
-      return t.createdAt.year == date.year &&
-          t.createdAt.month == date.month &&
-          t.createdAt.day == date.day;
+      return t.createdAt.toLocal().year == date.year &&
+          t.createdAt.toLocal().month == date.month &&
+          t.createdAt.toLocal().day == date.day;
     }).toList();
     filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return filtered.map(_mapTransaksi).toList();
@@ -192,9 +192,9 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
     final data = await _db.select(_db.transaksiTable).get();
     final now = DateTime.now();
     final today = data.where((t) {
-      return t.createdAt.year == now.year &&
-          t.createdAt.month == now.month &&
-          t.createdAt.day == now.day &&
+      return t.createdAt.toLocal().year == now.year &&
+          t.createdAt.toLocal().month == now.month &&
+          t.createdAt.toLocal().day == now.day &&
           t.status == 'lunas';
     });
     double total = 0;

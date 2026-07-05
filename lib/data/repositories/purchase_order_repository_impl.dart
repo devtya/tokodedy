@@ -52,6 +52,7 @@ class PurchaseOrderRepositoryImpl implements PurchaseOrderRepository {
         status: Value(po.status),
         totalHarga: Value(po.totalHarga),
         notes: Value(po.notes),
+        updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
 
@@ -196,7 +197,7 @@ class PurchaseOrderRepositoryImpl implements PurchaseOrderRepository {
       ..where((t) => t.id.equals(id)))
       .write(PurchaseOrderTableCompanion(
         status: Value(status),
-        updatedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now().toUtc()),
       ));
     
     await _syncService.upsert('purchase_orders', {

@@ -20,7 +20,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
     final transaksiQuery = _db.select(_db.transaksiTable)..where((t) =>
       t.status.equals('lunas') &
-      t.createdAt.isBetweenValues(startOfDay, endOfDay)
+      t.createdAt.isBetweenValues(startOfDay.toUtc(), endOfDay.toUtc())
     );
     
     final transaksiList = await transaksiQuery.get();

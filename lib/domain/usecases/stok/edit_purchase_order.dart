@@ -30,7 +30,7 @@ class EditPurchaseOrder {
       status: 'open',
       totalHarga: totalHarga,
       notes: notes,
-      updatedAt: DateTime.now(),
+      updatedAt: DateTime.now().toUtc(),
     );
     await repository.updatePurchaseOrder(updatedPo);
 
