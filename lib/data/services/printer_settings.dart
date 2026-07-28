@@ -20,6 +20,11 @@ class PrinterSettings {
   String get deviceAddress => prefs.getString(_keyDeviceAddress) ?? '';
   set deviceAddress(String v) => prefs.setString(_keyDeviceAddress, v);
 
+  /// Alias for [deviceAddress]: on Windows this holds the Windows printer
+  /// name (as returned by `Printing.listPrinters()`).
+  String get windowsPrinterName => deviceAddress;
+  set windowsPrinterName(String v) => deviceAddress = v;
+
   bool get enabled {
     return prefs.getBool(_keyEnabled) ?? false;
   }
