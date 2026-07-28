@@ -8,7 +8,7 @@ void registerReceiptPrinter() {
   if (sl.isRegistered<ReceiptPrinter>()) return;
   sl.registerLazySingleton<ReceiptPrinter>(
     () => Platform.isWindows
-        ? sl<WindowsPrinterService>()
+        ? WindowsPrinterService()
         : sl<BluetoothPrinterService>(),
   );
 }

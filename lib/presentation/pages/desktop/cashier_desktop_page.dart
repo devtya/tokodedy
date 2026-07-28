@@ -193,7 +193,12 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
   }
 
   Future<void> _bukaLaci() async {
-    final ok = await sl<ReceiptPrinter>().openDrawer();
+    bool ok;
+    try {
+      ok = await sl<ReceiptPrinter>().openDrawer();
+    } catch (_) {
+      ok = false;
+    }
     if (!mounted) return;
     if (!ok) {
       _flash('Gagal buka laci — printer tidak siap');
