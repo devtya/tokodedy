@@ -2,15 +2,14 @@ import 'package:injectable/injectable.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/di/injection.dart';
 import '../models/receipt_data.dart';
-import 'printer_service.dart';
 import 'printer_settings.dart';
+import 'printing/esc_pos_builder.dart';
 
 @lazySingleton
-class BluetoothPrinterService implements PrinterService {
+class BluetoothPrinterService {
   static const _channel = MethodChannel('tokodedy/bluetooth');
 
   BluetoothDevice? _device;
@@ -29,7 +28,6 @@ class BluetoothPrinterService implements PrinterService {
     });
   }
 
-  @override
   String get printerType => 'bluetooth';
 
   static Future<List<Map<String, String>>> getBondedDevices() async {
@@ -138,7 +136,6 @@ class BluetoothPrinterService implements PrinterService {
     _characteristic = null;
   }
 
-  @override
   Future<bool> isConnected() async {
     if (_device == null) {
       final settings = sl<PrinterSettings>();
@@ -167,7 +164,6 @@ class BluetoothPrinterService implements PrinterService {
     }
   }
 
-  @override
   Future<bool> testPrint() async {
     try {
       if (!await isConnected()) return false;
@@ -180,12 +176,11 @@ class BluetoothPrinterService implements PrinterService {
     }
   }
 
-  @override
   Future<bool> printReceipt(ReceiptData data) async {
     if (!await isConnected()) {
       throw Exception('Printer tidak terhubung');
     }
-    final bytes = _buildEscPos(data);
+    final bytes = const EscPosBuilder().buildReceipt(data);
     for (int i = 0; i < bytes.length; i += 512) {
       final chunk = bytes.sublist(
         i,
@@ -196,161 +191,11 @@ class BluetoothPrinterService implements PrinterService {
     return true;
   }
 
-  List<int> _buildEscPos(ReceiptData data) {
-    final buffer = <int>[];
-
-    void add(List<int> bytes) => buffer.addAll(bytes);
-    void addText(String text) => buffer.addAll(utf8.encode(text));
-
-    String formatReceiptItemLine(ReceiptItem item, int lebar) {
-      final formatter = NumberFormat('#,##0.00', 'en_US');
-      final priceStr = item.harga.toStringAsFixed(0);
-      final qtyStr = 'x ${item.jumlah}';
-
-      final String unitName;
-      final parts = item.nama.split(' - ');
-      if (parts.length > 1) {
-        unitName = parts.sublist(1).join(' - ');
-      } else {
-        unitName = item.satuan ?? '';
-      }
-
-      final String unitPart;
-      if (item.konversi > 1 && unitName.isNotEmpty) {
-        unitPart = '${item.konversi.toInt()} $unitName';
-      } else {
-        unitPart = unitName;
-      }
-
-      final totalStr = formatter.format(item.harga * item.jumlah);
-
-      if (lebar == 48) {
-        // 80mm: widths: price=14 (L), qty=6 (L), unit=8 (R), sep=3 (" = "), total=17 (R)
-        final p = priceStr.padRight(14);
-        final q = qtyStr.padRight(6);
-        final u = unitPart.padLeft(8);
-        final t = totalStr.padLeft(17);
-        return '$p$q$u = $t';
-      } else {
-        // 58mm: widths: price=8 (L), qty=4 (L), unit=6 (R), sep=3 (" = "), total=11 (R)
-        final p = priceStr.padRight(8);
-        final q = qtyStr.padRight(4);
-        final u = unitPart.padLeft(6);
-        final t = totalStr.padLeft(11);
-        return '$p$q$u = $t';
-      }
-    }
-
-    final lebar = data.lebarKertas == 58 ? 32 : 48;
-
-    // Map fontSize ke ESC/POS mode byte (print mode 0x1B, 0x21)
-    int fontMode() {
-      switch (data.fontSize) {
-        case 'kecil':
-          return 0x01; // condensed on
-        case 'besar':
-          return 0x30; // double height + double width
-        default:
-          return 0x00; // normal
-      }
-    }
-
-    // Initialize
-    add([0x1B, 0x40]);
-
-    // Header - center, bold, double
-    add([0x1B, 0x61, 0x01]); // center
-    add([0x1B, 0x21, 0x38]); // bold + double height + double width (always large)
-    addText(data.namaToko);
-    add([0x0A]);
-    add([0x1B, 0x21, fontMode()]); // base font size
-    if (data.alamatToko.isNotEmpty) {
-      addText(data.alamatToko);
-      add([0x0A]);
-    }
-    add([0x0A]);
-
-    // Info
-    add([0x1B, 0x61, 0x00]); // left
-    addText('#${data.transaksiId}');
-    add([0x0A]);
-    addText('Tgl: ${data.tanggal}');
-    add([0x0A]);
-    if (data.kasir.isNotEmpty) {
-      addText('Kasir: ${data.kasir}');
-      add([0x0A]);
-    }
-    addText('Metode: ${data.metodePembayaran}');
-    add([0x0A]);
-    addText('-' * lebar);
-    add([0x0A]);
-
-    // Items
-    for (final item in data.items) {
-      final parts = item.nama.split(' - ');
-      final namaProduk = parts.isNotEmpty ? parts[0] : item.nama;
-      final nama = namaProduk.length > lebar
-          ? namaProduk.substring(0, lebar)
-          : namaProduk;
-      add([0x1B, 0x61, 0x00]); // left align
-      addText(nama);
-      add([0x0A]);
-      addText(formatReceiptItemLine(item, lebar));
-      add([0x0A]);
-      if (item.diskon > 0) {
-        add([0x1B, 0x61, 0x02]); // right align for diskon
-        addText('  Diskon: -${item.diskon.toStringAsFixed(0)}');
-        add([0x0A]);
-        add([0x1B, 0x61, 0x00]); // restore left
-      }
-    }
-
-    addText('-' * lebar);
-    add([0x0A]);
-
-    // Total
-    add([0x1B, 0x61, 0x02]); // right
-    add([0x1B, 0x21, 0x10 | fontMode()]); // bold + base font
-    addText('Subtotal: ${data.subtotal.toStringAsFixed(0)}');
-    add([0x0A]);
-    if (data.totalDiskon > 0) {
-      addText('Diskon: -${data.totalDiskon.toStringAsFixed(0)}');
-      add([0x0A]);
-    }
-    add([0x1B, 0x21, 0x38]); // bold + double (always large for total amount)
-    addText('TOTAL: ${data.totalBayar.toStringAsFixed(0)}');
-    add([0x0A]);
-    add([0x1B, 0x21, 0x00]); // normal
-
-    add([0x0A]);
-    addText('Dibayar: ${data.totalBayar.toStringAsFixed(0)}');
-    add([0x0A]);
-    if (data.kembalian > 0) {
-      addText('Kembali: ${data.kembalian.toStringAsFixed(0)}');
-      add([0x0A]);
-    }
-
-    // Footer
-    add([0x0A]);
-    addText('-' * lebar);
-    add([0x0A]);
-    add([0x1B, 0x61, 0x01]); // center
-    addText('Terima kasih atas kunjungan Anda!');
-    add([0x0A, 0x0A, 0x0A]);
-
-    // Cut paper
-    add([0x1B, 0x70, 0x00, 0x19, 0xFA]); // Open cash drawer
-    add([0x1D, 0x56, 0x41, 0x03]);
-
-    return buffer;
-  }
-
-  @override
   Future<bool> printPickingList(ReceiptData data) async {
     if (!await isConnected()) {
       throw Exception('Printer tidak terhubung');
     }
-    final bytes = _buildPickingListEscPos(data);
+    final bytes = const EscPosBuilder().buildPickingList(data);
     for (int i = 0; i < bytes.length; i += 512) {
       final chunk = bytes.sublist(
         i,
@@ -359,65 +204,5 @@ class BluetoothPrinterService implements PrinterService {
       await _writeBytes(chunk);
     }
     return true;
-  }
-
-  List<int> _buildPickingListEscPos(ReceiptData data) {
-    final buffer = <int>[];
-
-    void add(List<int> bytes) => buffer.addAll(bytes);
-    void addText(String text) => buffer.addAll(utf8.encode(text));
-
-    final lebar = data.lebarKertas == 58 ? 32 : 48;
-
-    // Initialize
-    add([0x1B, 0x40]);
-
-    // Header - center, bold, double
-    add([0x1B, 0x61, 0x01]); // center
-    add([0x1B, 0x21, 0x38]); // bold + double height + double width
-    addText('DAFTAR PENGAMBILAN');
-    add([0x0A]);
-    add([0x1B, 0x21, 0x00]); // normal
-    addText(data.namaToko);
-    add([0x0A, 0x0A]);
-
-    // Info
-    add([0x1B, 0x61, 0x00]); // left
-    addText('Pesanan: #${data.transaksiId}');
-    add([0x0A]);
-    addText('Tgl: ${data.tanggal}');
-    add([0x0A]);
-    addText('-' * lebar);
-    add([0x0A]);
-
-    // Items
-    for (final item in data.items) {
-      final parts = item.nama.split(' - ');
-      final namaProduk = parts.isNotEmpty ? parts[0] : item.nama;
-      final String unitName;
-      if (parts.length > 1) {
-        unitName = parts.sublist(1).join(' - ');
-      } else {
-        unitName = item.satuan ?? 'Pcs';
-      }
-
-      final String qtyPart = '${item.jumlah} $unitName';
-      
-      add([0x1B, 0x61, 0x00]); // left align
-      add([0x1B, 0x21, 0x10]); // bold
-      addText('[ ] $namaProduk');
-      add([0x0A]);
-      add([0x1B, 0x21, 0x00]); // normal
-      addText('    Qty: $qtyPart');
-      add([0x0A, 0x0A]);
-    }
-
-    addText('-' * lebar);
-    add([0x0A, 0x0A, 0x0A]);
-
-    // Cut paper
-    add([0x1D, 0x56, 0x41, 0x03]);
-
-    return buffer;
   }
 }
