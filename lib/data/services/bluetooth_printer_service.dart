@@ -7,9 +7,10 @@ import '../../core/di/injection.dart';
 import '../models/receipt_data.dart';
 import 'printer_settings.dart';
 import 'printing/esc_pos_builder.dart';
+import 'printing/receipt_printer.dart';
 
 @lazySingleton
-class BluetoothPrinterService {
+class BluetoothPrinterService implements ReceiptPrinter {
   static const _channel = MethodChannel('tokodedy/bluetooth');
 
   BluetoothDevice? _device;
@@ -176,6 +177,17 @@ class BluetoothPrinterService {
     }
   }
 
+  @override
+  Future<bool> isReady() => isConnected();
+
+  @override
+  Future<bool> openDrawer() async {
+    if (!await isConnected()) return false;
+    await _writeBytes(const EscPosBuilder().drawerKick());
+    return true;
+  }
+
+  @override
   Future<bool> printReceipt(ReceiptData data) async {
     if (!await isConnected()) {
       throw Exception('Printer tidak terhubung');
