@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +34,7 @@ import '../../blocs/dashboard/dashboard_state.dart';
 import '../../blocs/online_order/online_order_bloc.dart';
 import '../../blocs/riwayat_harga/riwayat_harga_bloc.dart';
 import 'cashier_page.dart';
+import '../desktop/cashier_desktop_page.dart';
 import 'riwayat_harga_page.dart';
 import 'hutang_page.dart';
 import 'laporan_page.dart';
@@ -145,12 +147,19 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     _QuickActionDef('Kas Harian', Icons.account_balance_outlined, isDark ? AppTheme.darkBlue : AppTheme.lightBlue, isAdmin: true),
   ];
 
+  Widget _cashierChild() {
+    final wide = MediaQuery.of(context).size.width >= 900;
+    return (Platform.isWindows && wide)
+        ? const CashierDesktopPage()
+        : const CashierPage();
+  }
+
   Widget _buildQuickActionPage(String label) {
     switch (label) {
       case 'Kasir':
         return BlocProvider.value(
           value: sl<CashierBloc>(),
-          child: const CashierPage(),
+          child: _cashierChild(),
         );
       case 'Laporan':
         return BlocProvider.value(
@@ -1256,7 +1265,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                             _navigateAndReload(
                               BlocProvider.value(
                                 value: sl<CashierBloc>(),
-                                child: const CashierPage(),
+                                child: _cashierChild(),
                               ),
                             );
                           },
