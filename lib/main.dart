@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState, User;
@@ -12,6 +13,7 @@ import 'data/services/local_notification_service.dart';
 import 'data/services/fcm_service.dart';
 
 import 'domain/entities/user.dart';
+import 'domain/repositories/auth_repository.dart';
 import 'core/config.dart';
 import 'core/di/injection.dart';
 import 'core/services/update_service.dart';
@@ -139,23 +141,7 @@ void main() async {
   await initializeDateFormatting('id', null);
   LocaleSettings.useDeviceLocale();
 
-  await Supabase.initialize(
-    url: AppConfig.supabaseUrl,
-    anonKey: AppConfig.supabaseAnonKey,
-  );
-
-  Workmanager().initialize(
-    callbackDispatcher,
-  );
-  Workmanager().registerPeriodicTask(
-    "sync_task_1",
-    "syncSupabaseTask",
-    frequency: const Duration(minutes: 15),
-    constraints: Constraints(
-      networkType: NetworkType.connected,
-    ),
-  );
-
+  // Phase 1 — local-only init (must be fast, no network dependency)
   await initDependencies();
 
   await sl<LocalNotificationService>().initialize(
@@ -171,12 +157,59 @@ void main() async {
     },
   );
 
-  // Register background & foreground FCM handlers
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await FcmService.init();
+  // Phase 2 — network-dependent init (fire-and-forget; timeout so it doesn't hang offline)
+  _initNetworkServices();
+
+  runApp(const TokodedyApp());
+}
+
+Future<void> _initNetworkServices() async {
+  try {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
+    ).timeout(const Duration(seconds: 5));
+
+    // Supabase ready — set up auth listener (password recovery deep link)
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        appNavigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
+        );
+      }
+    });
+  } catch (_) {
+    if (kDebugMode) debugPrint('[main] Supabase init timed out — offline mode');
+  }
+
+  Workmanager().initialize(callbackDispatcher);
+  Workmanager().registerPeriodicTask(
+    "sync_task_1",
+    "syncSupabaseTask",
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
+  );
+
+  try {
+    await Firebase.initializeApp();
+
+    // Register background FCM handler
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    // FCM foreground notification tap (app dari background → foreground)
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleFcmNotificationTap);
+
+    // FCM notification yang membuka app dari terminated (killed)
+    FirebaseMessaging.instance.getInitialMessage().then(_handleFcmNotificationTap);
+
+    await FcmService.init().timeout(const Duration(seconds: 10));
+  } catch (_) {
+    if (kDebugMode) debugPrint('[main] Firebase/FCM init timed out — offline mode');
+  }
 
   _checkUpdate();
-  runApp(const TokodedyApp());
 }
 
 class TokodedyApp extends StatefulWidget {
@@ -184,6 +217,20 @@ class TokodedyApp extends StatefulWidget {
 
   @override
   State<TokodedyApp> createState() => _TokodedyAppState();
+}
+
+/// Handle FCM notification tap (membuka halaman order saat notif diklik).
+void _handleFcmNotificationTap(RemoteMessage? message) {
+  if (message == null) return;
+  final orderId = message.data['orderId'];
+  if (orderId != null) {
+    appNavigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => BlocProvider.value(
+        value: sl<OnlineOrderBloc>(),
+        child: const OnlineOrderPage(),
+      )),
+    );
+  }
 }
 
 class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
@@ -194,35 +241,6 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
 
     // Auto-connect Bluetooth printer setelah widget tree siap
     Future.delayed(const Duration(seconds: 2), _tryAutoConnectBluetooth);
-
-    // Listen untuk Supabase auth events — handle password recovery deep link
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (data.event == AuthChangeEvent.passwordRecovery) {
-        // User klik link reset password dari email → buka halaman isi password baru
-        appNavigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
-        );
-      }
-    });
-
-    // Handle FCM notification tap (app di background → foreground)
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleFcmNotificationTap);
-
-    // Handle FCM notification yang membuka app dari keadaan terminated (killed)
-    FirebaseMessaging.instance.getInitialMessage().then(_handleFcmNotificationTap);
-  }
-
-  void _handleFcmNotificationTap(RemoteMessage? message) {
-    if (message == null) return;
-    final orderId = message.data['orderId'];
-    if (orderId != null) {
-      appNavigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (_) => BlocProvider.value(
-          value: sl<OnlineOrderBloc>(),
-          child: const OnlineOrderPage(),
-        )),
-      );
-    }
   }
 
   @override
@@ -285,13 +303,8 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
                             'isLoading=${state is AuthLoading} '
                             'isAuthd=${state is Authenticated} '
                             'isUnauthd=${state is Unauthenticated}');
-                        // Hanya splash untuk initial startup (AuthInitial).
-                        // JANGAN splash untuk AuthLoading — itu akan meng-unmount
-                        // LoginPage dan menghancurkan controllers + BlocListener.
-                        // LoginPage internal sudah handle loading state via
-                        // BlocBuilder di tombolnya sendiri.
-                        if (state is AuthInitial) {
-                          if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing SPLASH (initial startup)');
+                        if (state is AuthInitial || state is AuthLoading) {
+                          if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing SPLASH (AuthInitial/AuthLoading)');
                           return const Scaffold(
                             body: Center(child: CircularProgressIndicator()),
                           );
@@ -300,9 +313,14 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
                           if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing _PinGate');
                           return _PinGate(user: state.user);
                         }
-                        // AuthLoading, AuthError, Unauthenticated semua return
-                        // LoginPage — biarkan LoginPage internal yang handle
-                        // loading/error state masing-masing.
+                        if (state is AuthError) {
+                          final localUser = sl<AuthRepository>().getCurrentUser();
+                          if (localUser != null) {
+                            if (kDebugMode) debugPrint('[Main-BlocBuilder] AuthError → fallback to _PinGate');
+                            return _PinGate(user: localUser);
+                          }
+                          return const LoginPage();
+                        }
                         if (kDebugMode) debugPrint('[Main-BlocBuilder] → showing LoginPage');
                         return const LoginPage();
                       },

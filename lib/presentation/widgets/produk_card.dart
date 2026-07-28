@@ -122,7 +122,7 @@ class ProdukCard extends StatelessWidget {
                                     style: TextStyle(
                                       color: isLowStock
                                           ? AppTheme.warningOrange
-                                          : AppTheme.primaryGreen,
+                                          : Colors.white,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 11,
                                     ),

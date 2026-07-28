@@ -24,6 +24,7 @@ class CariProdukDialog extends StatefulWidget {
   }) onAddToCart;
   final bool isPembelian;
   final Future<void> Function(String query)? onAddNewProduct;
+  final Future<void> Function(String query)? onAddManualItem;
   final String? supplierId;
 
   const CariProdukDialog({
@@ -33,6 +34,7 @@ class CariProdukDialog extends StatefulWidget {
     required this.onAddToCart,
     this.isPembelian = false,
     this.onAddNewProduct,
+    this.onAddManualItem,
     this.supplierId,
   });
 
@@ -167,6 +169,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
             child: TextField(
               controller: _searchController,
               autofocus: true,
+              textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
                 hintText: 'Cari produk...',
                 prefixIcon: const Icon(Icons.search),
@@ -218,6 +221,24 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
                               ),
                             ),
                           ],
+                          if (!widget.isPembelian &&
+                              widget.onAddManualItem != null) ...[
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                await widget.onAddManualItem!(
+                                  _searchController.text.trim(),
+                                );
+                                if (context.mounted) Navigator.pop(context);
+                              },
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Tambah Manual (Produk Baru)'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.warningOrange,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     )
@@ -239,7 +260,7 @@ class _CariProdukDialogState extends State<CariProdukDialog> {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: stokOk
-                                    ? AppTheme.primaryGreen
+                                    ? Colors.white
                                     : Colors.grey,
                               ),
                             ),

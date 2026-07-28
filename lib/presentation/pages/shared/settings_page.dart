@@ -7,6 +7,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/services/update_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../features/kasir/voice/gemini_key_storage.dart';
+import '../../../features/kasir/voice/gemini_voice_service.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/theme/theme_cubit.dart';
@@ -28,13 +30,21 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final _updateService = sl<UpdateService>();
+  final GeminiKeyStorage _geminiKeyStorage = GeminiKeyStorage();
   String _appVersion = '';
   bool _checkingUpdate = false;
+  bool _hasGeminiKey = false;
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _checkGeminiKey();
+  }
+
+  Future<void> _checkGeminiKey() async {
+    final key = await _geminiKeyStorage.getApiKey();
+    if (mounted) setState(() => _hasGeminiKey = key != null);
   }
 
   Future<void> _loadVersion() async {
@@ -169,6 +179,96 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _showApiKeyDialog() async {
+    final ctrl = TextEditingController();
+    final currentKey = await _geminiKeyStorage.getApiKey();
+    if (currentKey != null) ctrl.text = currentKey;
+    
+    bool isTesting = false;
+    String? testResult;
+
+    if (!mounted) return;
+    
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('API Key Gemini (Voice Kasir)'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Masukkan API Key dari Google AI Studio:', style: TextStyle(fontSize: 13)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: ctrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'API Key',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (testResult != null)
+                    Text(
+                      testResult!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: testResult!.contains('Berhasil') ? AppTheme.primaryGreen : AppTheme.warningRed,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              if (currentKey != null)
+                TextButton(
+                  onPressed: () async {
+                    await _geminiKeyStorage.deleteApiKey();
+                    _checkGeminiKey();
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  style: TextButton.styleFrom(foregroundColor: AppTheme.warningRed),
+                  child: const Text('Hapus Key'),
+                ),
+              TextButton(
+                onPressed: isTesting ? null : () async {
+                  if (ctrl.text.trim().isEmpty) return;
+                  setDialogState(() => isTesting = true);
+                  final service = GeminiVoiceService();
+                  final success = await service.testConnection(ctrl.text.trim());
+                  
+                  if (!ctx.mounted) return;
+                  setDialogState(() {
+                    isTesting = false;
+                    testResult = success ? 'Berhasil terhubung ke Gemini!' : 'Gagal. Cek API Key & Internet.';
+                  });
+                },
+                child: isTesting 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Test Koneksi'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (ctrl.text.trim().isNotEmpty) {
+                    await _geminiKeyStorage.saveApiKey(ctrl.text.trim());
+                    _checkGeminiKey();
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  } else {
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  }
+                },
+                child: const Text('Simpan'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -262,6 +362,25 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       );
                     },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // --- AI / Voice Input ---
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.mic, color: AppTheme.primaryGreen),
+                    title: const Text('Voice Input (AI)'),
+                    subtitle: Text(_hasGeminiKey ? 'API Key tersimpan' : 'API Key belum diatur'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _showApiKeyDialog,
                   ),
                 ],
               ),

@@ -14,16 +14,18 @@ class AddPembelianEvent extends PembelianEvent {
   final String? supplierId;
   final List<ItemPembelianData> items;
   final List<PriceChange>? priceChanges;
+  final List<SatuanPriceChange>? konversiAutoUpdates;
 
   const AddPembelianEvent({
     required this.namaSupplier,
     this.supplierId,
     required this.items,
     this.priceChanges,
+    this.konversiAutoUpdates,
   });
 
   @override
-  List<Object?> get props => [namaSupplier, supplierId, items, priceChanges];
+  List<Object?> get props => [namaSupplier, supplierId, items, priceChanges, konversiAutoUpdates];
 }
 
 class UpdatePembelianEvent extends PembelianEvent {

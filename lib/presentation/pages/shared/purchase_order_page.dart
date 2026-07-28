@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/di/injection.dart';
 import '../../../data/models/receipt_data.dart';
-import '../../../data/services/printer_service.dart';
+import '../../../data/services/bluetooth_printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import '../../../domain/entities/purchase_order.dart';
 import '../../../domain/entities/purchase_order_item.dart';
@@ -593,7 +593,7 @@ class _PurchaseOrderPageState extends State<PurchaseOrderPage> {
         lebarKertas: settings.lebarKertas,
         fontSize: settings.fontSize,
       );
-      final printer = sl<PrinterService>();
+      final printer = sl<BluetoothPrinterService>();
       final success = await printer.printReceipt(receipt);
       if (mounted) {
         messenger.showSnackBar(

@@ -7,7 +7,7 @@ import '../../../domain/entities/online_order.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../widgets/barcode_scanner_widget.dart';
 import '../../../data/models/receipt_data.dart';
-import '../../../data/services/printer_service.dart';
+import '../../../data/services/bluetooth_printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import '../../../core/di/injection.dart';
 
@@ -845,7 +845,7 @@ class _OrderCard extends StatelessWidget {
                     kasir: 'Admin Online',
                     metodePembayaran: 'Online Order',
                   );
-                  await sl<PrinterService>().printPickingList(receipt);
+                  await sl<BluetoothPrinterService>().printPickingList(receipt);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Mencetak daftar pengambilan...')),
@@ -936,7 +936,7 @@ class _OrderCard extends StatelessWidget {
                     kasir: 'Admin Online',
                     metodePembayaran: 'Online Order',
                   );
-                  await sl<PrinterService>().printReceipt(receipt);
+                  await sl<BluetoothPrinterService>().printReceipt(receipt);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Mencetak nota penjualan...')),

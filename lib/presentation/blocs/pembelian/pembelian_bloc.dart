@@ -60,6 +60,7 @@ class PembelianBloc extends Bloc<PembelianEvent, PembelianState> {
         namaSupplier: event.namaSupplier,
         items: items,
         priceChanges: event.priceChanges,
+        konversiAutoUpdates: event.konversiAutoUpdates,
       );
       emit(const PembelianSuccess('Pembelian berhasil'));
       add(LoadPembelian());

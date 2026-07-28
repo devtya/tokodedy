@@ -15,7 +15,7 @@ import 'pending_pembelian_page.dart';
 import 'purchase_order_page.dart';
 import '../../../domain/repositories/pending_pembelian_repository.dart';
 import '../../../data/models/receipt_data.dart';
-import '../../../data/services/printer_service.dart';
+import '../../../data/services/bluetooth_printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import 'share_receipt_page.dart';
 
@@ -321,7 +321,7 @@ class _PembelianPageState extends State<PembelianPage> {
         lebarKertas: settings.lebarKertas,
         fontSize: settings.fontSize,
       );
-      final printer = sl<PrinterService>();
+      final printer = sl<BluetoothPrinterService>();
       final success = await printer.printReceipt(receipt);
       if (mounted) {
         messenger.showSnackBar(
@@ -505,10 +505,15 @@ class _PembelianPageState extends State<PembelianPage> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: AppTheme.lightGreen,
-                        child: const Icon(
-                          Icons.shopping_bag,
-                          color: AppTheme.primaryGreen,
+                        backgroundColor: AppTheme.primaryGreen,
+                        child: Text(
+                          (p.namaSupplier != null && p.namaSupplier!.isNotEmpty)
+                              ? p.namaSupplier![0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       title: Text(p.namaSupplier ?? 'Supplier Tidak Diketahui'),

@@ -5,22 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/services/printer_service.dart';
-import '../../data/services/bluetooth_printer_service.dart';
 
 import 'injection.config.dart';
 
 final sl = GetIt.instance;
-
-void _initPrinterService() {
-  sl.registerLazySingleton<PrinterService>(() => sl<BluetoothPrinterService>());
-}
-
-void updatePrinterService() {
-  sl.allowReassignment = true;
-  sl.registerLazySingleton<PrinterService>(() => sl<BluetoothPrinterService>());
-  sl.allowReassignment = false;
-}
 
 @InjectableInit(
   initializerName: 'init',
@@ -29,7 +17,6 @@ void updatePrinterService() {
 )
 Future<void> initDependencies() async {
   await sl.init();
-  _initPrinterService();
 }
 
 @module

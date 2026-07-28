@@ -1,12 +1,15 @@
+import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 import '../../../data/database/app_database.dart';
 import '../../entities/item_pembelian.dart';
 import '../../entities/pembelian.dart';
 import '../../entities/riwayat_stok.dart';
+import '../../entities/notifikasi.dart';
 
 import '../../repositories/pembelian_repository.dart';
 import '../../repositories/produk_repository.dart';
 import '../../repositories/riwayat_stok_repository.dart';
+import '../../repositories/notifikasi_repository.dart';
 
 class PriceChange {
   final String produkId;
@@ -39,12 +42,14 @@ class BuatPembelian {
   final PembelianRepository pembelianRepository;
   final ProdukRepository produkRepository;
   final RiwayatStokRepository riwayatStokRepository;
+  final NotifikasiRepository notifikasiRepository;
   final AppDatabase db;
 
   BuatPembelian({
     required this.pembelianRepository,
     required this.produkRepository,
     required this.riwayatStokRepository,
+    required this.notifikasiRepository,
     required this.db,
   });
 
@@ -52,6 +57,7 @@ class BuatPembelian {
     required String namaSupplier,
     required List<ItemPembelian> items,
     List<PriceChange>? priceChanges,
+    List<SatuanPriceChange>? konversiAutoUpdates,
   }) async {
     return db.transaction(() async {
       final totalHarga = items.fold(0.0, (sum, item) => sum + item.subtotal);
@@ -141,6 +147,45 @@ class BuatPembelian {
                   ),
                 );
               }
+            }
+          }
+        }
+      }
+
+      if (konversiAutoUpdates != null) {
+        for (final update in konversiAutoUpdates) {
+          final satuanInfo = await db.customSelect(
+            'SELECT nama, produk_id FROM satuan_produk_table WHERE id = ?',
+            variables: [Variable.withString(update.satuanId)],
+          ).getSingleOrNull();
+          
+          if (satuanInfo != null) {
+            final satuanName = satuanInfo.read<String>('nama');
+            final pId = satuanInfo.read<String>('produk_id');
+            final pInfo = await db.customSelect(
+              'SELECT nama FROM produk_table WHERE id = ?',
+              variables: [Variable.withString(pId)],
+            ).getSingleOrNull();
+            final pName = pInfo?.read<String>('nama') ?? 'Produk';
+            
+            final satuanList = await produkRepository.getSatuanByProdukId(pId);
+            final satuan = satuanList.where((s) => s.id == update.satuanId).firstOrNull;
+            if (satuan != null) {
+              await produkRepository.updateSatuan(
+                satuan.copyWith(
+                  hargaBeli: update.hargaBeli,
+                  hargaJual: update.hargaJual,
+                ),
+              );
+              
+              await notifikasiRepository.addNotifikasi(
+                Notifikasi(
+                  judul: 'Harga Jual Satuan Disesuaikan',
+                  pesan: 'Harga jual $pName ($satuanName) otomatis disesuaikan karena HPP baru melebihi harga jual lama.',
+                  tipe: 'WARNING',
+                  createdAt: DateTime.now().toUtc(),
+                ),
+              );
             }
           }
         }

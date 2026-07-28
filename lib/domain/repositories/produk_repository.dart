@@ -8,6 +8,7 @@ abstract class ProdukRepository {
   Future<List<Produk>> searchProduk(String query);
   Future<Produk?> getProdukById(String id);
   Future<Produk?> getProdukByBarcode(String barcode);
+  Future<Produk?> getProdukByNama(String nama);
   Future<Set<String>> getAllBarcodes();
   Future<String> addProduk(Produk produk);
   Future<void> updateProduk(Produk produk);

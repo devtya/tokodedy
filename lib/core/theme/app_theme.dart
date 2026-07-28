@@ -1,337 +1,241 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // ═══════════════════════════════════════════════════════════════════ 
-  //  PALETTE — seluruh warna aplikasi didefinisikan di sini 
-  //  Guna: 1) konsistensi visual, 2) mudah diubah di satu tempat 
-  // ═══════════════════════════════════════════════════════════════════ 
+  // ── Custom color constants (both themes) ──
 
-  // ── Neutral ────────────────────────────────────────────────────── 
-  static const Color background = Color(0xFF0D0D0D); 
-  static const Color surface = Color(0xFF1E1E1E); 
-  static const Color border = Color(0xFF2A2A2A); 
-  static const Color divider = Color(0xFF333333); 
-  static const Color grey = Color(0xFF666666); 
-  static const Color white = Color(0xFFFFFFFF); 
-  static const Color white06 = Color(0x0FFFFFFF); // white 6% 
-  static const Color white03 = Color(0x08FFFFFF); // white 3% 
-  static const Color white02 = Color(0x05FFFFFF); // white 2% 
+  // Dark theme
+  static const Color darkBackground   = Color(0xFF0D1117);
+  static const Color darkSurface      = Color(0xFF161B1F);
+  static const Color darkSurfaceAlt   = Color(0xFF1C2227);
+  static const Color darkBorder       = Color(0xFF262C31);
+  static const Color darkText         = Color(0xFFE6E8EB);
+  static const Color darkTextSub      = Color(0xFF8B949E);
+  static const Color darkGreen        = Color(0xFF3FB37F);
+  static const Color darkAmber        = Color(0xFFD2984A);
+  static const Color darkBlue         = Color(0xFF5B8DD0);
+  static const Color darkPurple       = Color(0xFF9370B8);
+  static const Color darkRed          = Color(0xFFD9776E);
 
-  // ── Primary (Green) ────────────────────────────────────────────── 
-  static const Color primary = Color(0xFF2ECC71); 
-  static const Color onPrimary = Color(0xFF0A2E17); 
-  static const Color primaryContainer = Color(0xFF0F4C2A); 
-  static const Color primaryContainerLight = Color(0xFF1A6B3A); 
-  static const Color primarySoft = Color(0x1F2ECC71); // 12% opacity 
-  static const Color primaryBorder = Color(0x33FFFFFF); // green border variant 
+  // Light theme
+  static const Color lightBackground  = Color(0xFFF7F4EE);
+  static const Color lightSurface     = Color(0xFFFFFFFF);
+  static const Color lightSurfaceAlt  = Color(0xFFF0EBE1);
+  static const Color lightBorder      = Color(0xFFE5DDCF);
+  static const Color lightText        = Color(0xFF2B2925);
+  static const Color lightTextSub     = Color(0xFF8A8071);
+  static const Color lightGreen       = Color(0xFF357C56);
+  static const Color lightAmber       = Color(0xFFAD7E36);
+  static const Color lightBlue        = Color(0xFF456DA0);
+  static const Color lightPurple      = Color(0xFF7A5C97);
+  static const Color lightRed         = Color(0xFFB85950);
 
-  // ── Status ─────────────────────────────────────────────────────── 
-  static const Color error = Color(0xFFE74C3C); 
-  static const Color errorSoft = Color(0x14E74C3C); // 8% opacity 
-  static const Color errorBorder = Color(0x4DE74C3C); // 30% opacity 
-  static const Color warning = Color(0xFFFF9800); 
-  static const Color info = Color(0xFF3498DB); 
-  static const Color success = Color(0xFF2ECC71); 
+  // ── Backward-compatible aliases ──
+  static const Color primaryGreen     = lightGreen;
+  static const Color accentGreen      = lightGreen;
+  static const Color darkGreenAlias   = darkGreen;
+  static const Color warningOrange    = Color(0xFFD2984A);
+  static const Color warningRed       = lightRed;
+  static const Color error            = lightRed;
+  static const Color primary          = Color(0xFF3FB37F);
+  static const Color onPrimary        = Color(0xFF04140C);
+  static const Color white            = Color(0xFFFFFFFF);
+  static const Color surface          = Color(0xFF161B1F);
+  static const Color border           = Color(0xFF262C31);
+  static const Color neutralGrey      = Color(0xFF8A8071);
+  static const Color grey             = Color(0xFF8A8071);
+  static const Color lightGrey        = Color(0xFF999999);
+  static const Color lightTextSecondary = Color(0xFF8A8071);
+  static const Color surfaceContainerLow = Color(0xFF141414);
+  static const Color surfaceInput     = Color(0xFF161B1F);
+  static const Color background       = Color(0xFF0D1117);
+  static const Color info             = Color(0xFF3498DB);
+  static const Color warning          = Color(0xFFFF9800);
+  static const Color errorSoft        = Color(0x14B85950);
 
-  // ── Surface variants ───────────────────────────────────────────── 
-  static const Color surfaceContainerLow = Color(0xFF141414); 
-  static const Color surfaceInput = Color(0xFF1E1E1E); 
+  // ── Light Theme ──
+  static ThemeData get lightTheme {
+    final scheme = ColorScheme.light(
+      primary: lightGreen,
+      onPrimary: Colors.white,
+      secondary: lightBlue,
+      onSecondary: Colors.white,
+      surface: lightSurface,
+      onSurface: lightText,
+      surfaceContainerHighest: lightSurfaceAlt,
+      outline: lightBorder,
+      outlineVariant: lightBorder,
+      error: lightRed,
+      onError: Colors.white,
+    );
 
-  // ═══════════════════════════════════════════════════════════════════ 
-  //  LIGHT PALETTE — override untuk light theme 
-  // ═══════════════════════════════════════════════════════════════════ 
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: lightBackground,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        foregroundColor: lightText,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: lightGreen,
+          letterSpacing: 0,
+        ),
+        iconTheme: IconThemeData(color: lightTextSub),
+      ),
+      cardTheme: CardThemeData(
+        color: lightSurface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: lightBorder, width: 1.5),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: lightGreen,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: lightBorder,
+        thickness: 1.5,
+        space: 1,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: lightSurface,
+        selectedItemColor: lightGreen,
+        unselectedItemColor: lightTextSub,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: lightGreen,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+        const TextTheme(
+          headlineSmall: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.w800, color: lightText,
+            letterSpacing: -0.5,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 15, fontWeight: FontWeight.w700, color: lightText,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w500, color: lightText,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w400, color: lightTextSub,
+          ),
+        ),
+      ),
+    );
+  }
 
-  static const Color lightBackground = Color(0xFFF5F5F5); 
-  static const Color lightSurface = Color(0xFFFFFFFF); 
-  static const Color lightBorder = Color(0xFFE0E0E0); 
-  static const Color lightDivider = Color(0xFFEEEEEE); 
-  static const Color lightGrey = Color(0xFF999999); 
-  static const Color lightText = Color(0xFF1A1A1A); 
-  static const Color lightTextSecondary = Color(0xFF666666); 
+  // ── Dark Theme ──
+  static ThemeData get darkTheme {
+    final scheme = ColorScheme.dark(
+      primary: darkGreen,
+      onPrimary: const Color(0xFF04140C),
+      secondary: darkBlue,
+      onSecondary: Colors.white,
+      surface: darkSurface,
+      onSurface: darkText,
+      surfaceContainerHighest: darkSurfaceAlt,
+      outline: darkBorder,
+      outlineVariant: darkBorder,
+      error: darkRed,
+      onError: Colors.white,
+    );
 
-  // ═══════════════════════════════════════════════════════════════════ 
-  //  BACKWARD-COMPATIBLE ALIASES 
-  //  Masih dipakai oleh halaman/widget lama. Setara dengan palette di 
-  //  atas agar tetap konsisten. 
-  // ═══════════════════════════════════════════════════════════════════ 
-
-  static const Color primaryGreen = primary; 
-  static const Color accentGreen = primary; 
-  static const Color lightGreen = primaryContainer; 
-  static const Color darkGreen = onPrimary; 
-  static const Color warningRed = error; 
-  static const Color warningOrange = warning; 
-  static const Color neutralGrey = grey; 
-
-  // ═══════════════════════════════════════════════════════════════════ 
-  //  DARK THEME 
-  //  Semua komponen Material tema gelap dikonfigurasi di sini. 
-  //  Guna: konsistensi antar halaman & mudah di-maintain. 
-  // ═══════════════════════════════════════════════════════════════════ 
-
-  static ThemeData get darkTheme { 
-    return ThemeData( 
-      useMaterial3: true, 
-      brightness: Brightness.dark, 
-      scaffoldBackgroundColor: background, 
-      fontFamily: 'Roboto', 
-
-      colorScheme: const ColorScheme.dark( 
-        primary: primary, 
-        onPrimary: onPrimary, 
-        primaryContainer: primaryContainer, 
-        secondary: primary, 
-        onSecondary: onPrimary, 
-        error: error, 
-        surface: surface, 
-        onSurface: white, 
-        outline: border, 
-      ), 
-
-      appBarTheme: const AppBarTheme( 
-        backgroundColor: Colors.transparent, 
-        elevation: 0, 
-        centerTitle: false, 
-        scrolledUnderElevation: 0, 
-      ), 
-
-      cardTheme: CardThemeData( 
-        color: surface, 
-        elevation: 0, 
-        shape: RoundedRectangleBorder( 
-          borderRadius: BorderRadius.circular(14), 
-          side: const BorderSide(color: border, width: 1.5), 
-        ), 
-      ), 
-
-      inputDecorationTheme: InputDecorationTheme( 
-        filled: true, 
-        fillColor: surface, 
-        contentPadding: const EdgeInsets.symmetric( 
-          horizontal: 14, 
-          vertical: 10, 
-        ), 
-        labelStyle: const TextStyle( 
-          color: grey, 
-          fontSize: 9, 
-          letterSpacing: 1.5, 
-        ), 
-        hintStyle: const TextStyle(color: grey, fontSize: 13), 
-        border: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: border, width: 1.5), 
-        ), 
-        enabledBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: border, width: 1.5), 
-        ), 
-        focusedBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: primary, width: 1.5), 
-        ), 
-        errorBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: error, width: 1.5), 
-        ), 
-        focusedErrorBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: error, width: 1.5), 
-        ), 
-      ), 
-
-      elevatedButtonTheme: ElevatedButtonThemeData( 
-        style: ElevatedButton.styleFrom( 
-          backgroundColor: primary, 
-          foregroundColor: onPrimary, 
-          elevation: 0, 
-          padding: const EdgeInsets.symmetric(vertical: 14), 
-          shape: RoundedRectangleBorder( 
-            borderRadius: BorderRadius.circular(12), 
-          ), 
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15), 
-        ), 
-      ), 
-
-      outlinedButtonTheme: OutlinedButtonThemeData( 
-        style: OutlinedButton.styleFrom( 
-          foregroundColor: white, 
-          side: const BorderSide(color: border, width: 1.5), 
-          padding: const EdgeInsets.symmetric(vertical: 14), 
-          shape: RoundedRectangleBorder( 
-            borderRadius: BorderRadius.circular(12), 
-          ), 
-          textStyle: const TextStyle(fontWeight: FontWeight.w700), 
-        ), 
-      ), 
-
-      floatingActionButtonTheme: const FloatingActionButtonThemeData( 
-        backgroundColor: primary, 
-        foregroundColor: onPrimary, 
-      ), 
-
-      switchTheme: SwitchThemeData( 
-        thumbColor: WidgetStateProperty.resolveWith((states) { 
-          if (states.contains(WidgetState.selected)) return primary; 
-          return Colors.grey; 
-        }), 
-        trackColor: WidgetStateProperty.resolveWith((states) { 
-          if (states.contains(WidgetState.selected)) { 
-            return primary.withValues(alpha: 0.3); 
-          } 
-          return const Color(0xFF333333); 
-        }), 
-      ), 
-
-      snackBarTheme: SnackBarThemeData( 
-        backgroundColor: surface, 
-        contentTextStyle: const TextStyle(color: white), 
-        shape: RoundedRectangleBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          side: const BorderSide(color: border), 
-        ), 
-        behavior: SnackBarBehavior.floating, 
-      ), 
-
-      dividerTheme: const DividerThemeData( 
-        color: border, 
-        thickness: 1, 
-        space: 1, 
-      ), 
-    ); 
-  } 
-
-  // ═══════════════════════════════════════════════════════════════════ 
-  //  LIGHT THEME 
-  // ═══════════════════════════════════════════════════════════════════ 
-
-  static ThemeData get lightTheme { 
-    return ThemeData( 
-      useMaterial3: true, 
-      brightness: Brightness.light, 
-      scaffoldBackgroundColor: lightBackground, 
-      fontFamily: 'Roboto', 
-
-      colorScheme: const ColorScheme.light( 
-        primary: primary, 
-        onPrimary: Colors.white, 
-        primaryContainer: Color(0xFFD5F5E3), 
-        secondary: primary, 
-        onSecondary: Colors.white, 
-        error: error, 
-        surface: lightSurface, 
-        onSurface: lightText, 
-        outline: lightBorder, 
-      ), 
-
-      appBarTheme: const AppBarTheme( 
-        backgroundColor: Colors.transparent, 
-        elevation: 0, 
-        centerTitle: false, 
-        scrolledUnderElevation: 0, 
-      ), 
-
-      cardTheme: CardThemeData( 
-        color: lightSurface, 
-        elevation: 0, 
-        shape: RoundedRectangleBorder( 
-          borderRadius: BorderRadius.circular(14), 
-          side: const BorderSide(color: lightBorder, width: 1.5), 
-        ), 
-      ), 
-
-      inputDecorationTheme: InputDecorationTheme( 
-        filled: true, 
-        fillColor: lightBackground, 
-        contentPadding: const EdgeInsets.symmetric( 
-          horizontal: 14, 
-          vertical: 10, 
-        ), 
-        labelStyle: const TextStyle( 
-          color: lightGrey, 
-          fontSize: 9, 
-          letterSpacing: 1.5, 
-        ), 
-        hintStyle: const TextStyle(color: lightGrey, fontSize: 13), 
-        border: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: lightBorder, width: 1.5), 
-        ), 
-        enabledBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: lightBorder, width: 1.5), 
-        ), 
-        focusedBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: primary, width: 1.5), 
-        ), 
-        errorBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: error, width: 1.5), 
-        ), 
-        focusedErrorBorder: OutlineInputBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          borderSide: const BorderSide(color: error, width: 1.5), 
-        ), 
-      ), 
-
-      elevatedButtonTheme: ElevatedButtonThemeData( 
-        style: ElevatedButton.styleFrom( 
-          backgroundColor: primary, 
-          foregroundColor: Colors.white, 
-          elevation: 0, 
-          padding: const EdgeInsets.symmetric(vertical: 14), 
-          shape: RoundedRectangleBorder( 
-            borderRadius: BorderRadius.circular(12), 
-          ), 
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15), 
-        ), 
-      ), 
-
-      outlinedButtonTheme: OutlinedButtonThemeData( 
-        style: OutlinedButton.styleFrom( 
-          foregroundColor: lightText, 
-          side: const BorderSide(color: lightBorder, width: 1.5), 
-          padding: const EdgeInsets.symmetric(vertical: 14), 
-          shape: RoundedRectangleBorder( 
-            borderRadius: BorderRadius.circular(12), 
-          ), 
-          textStyle: const TextStyle(fontWeight: FontWeight.w700), 
-        ), 
-      ), 
-
-      floatingActionButtonTheme: const FloatingActionButtonThemeData( 
-        backgroundColor: primary, 
-        foregroundColor: Colors.white, 
-      ), 
-
-      switchTheme: SwitchThemeData( 
-        thumbColor: WidgetStateProperty.resolveWith((states) { 
-          if (states.contains(WidgetState.selected)) return primary; 
-          return Colors.grey; 
-        }), 
-        trackColor: WidgetStateProperty.resolveWith((states) { 
-          if (states.contains(WidgetState.selected)) { 
-            return primary.withValues(alpha: 0.3); 
-          } 
-          return const Color(0xFFCCCCCC); 
-        }), 
-      ), 
-
-      snackBarTheme: SnackBarThemeData( 
-        backgroundColor: lightSurface, 
-        contentTextStyle: const TextStyle(color: lightText), 
-        shape: RoundedRectangleBorder( 
-          borderRadius: BorderRadius.circular(10), 
-          side: const BorderSide(color: lightBorder), 
-        ), 
-        behavior: SnackBarBehavior.floating, 
-      ), 
-
-      dividerTheme: const DividerThemeData( 
-        color: lightDivider, 
-        thickness: 1, 
-        space: 1, 
-      ), 
-    ); 
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: darkBackground,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        foregroundColor: darkText,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: darkGreen,
+          letterSpacing: 0,
+        ),
+        iconTheme: IconThemeData(color: darkTextSub),
+      ),
+      cardTheme: CardThemeData(
+        color: darkSurface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: darkBorder, width: 1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: darkGreen,
+          foregroundColor: const Color(0xFF04140C),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: darkBorder,
+        thickness: 1,
+        space: 1,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        selectedItemColor: darkGreen,
+        unselectedItemColor: darkTextSub,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: darkGreen,
+        foregroundColor: Color(0xFF04140C),
+        elevation: 4,
+      ),
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+        const TextTheme(
+          headlineSmall: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.w800, color: darkText,
+            letterSpacing: -0.5,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 15, fontWeight: FontWeight.w700, color: darkText,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w500, color: darkText,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w400, color: darkTextSub,
+          ),
+        ),
+      ),
+    );
   }
 }

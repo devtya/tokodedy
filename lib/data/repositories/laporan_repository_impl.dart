@@ -3,13 +3,15 @@ import 'package:drift/drift.dart';
 import '../../domain/entities/hutang_piutang.dart' as domain;
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/repositories/laporan_repository.dart';
+import '../../domain/repositories/item_transaksi_sementara_repository.dart';
 import '../database/app_database.dart';
 
 @LazySingleton(as: LaporanRepository)
 class LaporanRepositoryImpl implements LaporanRepository {
   final AppDatabase _db;
+  final ItemTransaksiSementaraRepository _sementaraRepo;
 
-  LaporanRepositoryImpl(this._db);
+  LaporanRepositoryImpl(this._db, this._sementaraRepo);
 
   @override
   Future<List<LabaRugiItem>> getLabaRugi({
@@ -19,10 +21,16 @@ class LaporanRepositoryImpl implements LaporanRepository {
     final endOfDay = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
 
     // Get all transaksi in date range
-    final transaksi = await (_db.select(_db.transaksiTable)
+    var transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
           t.status.equals('lunas') &
           t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
+
+    // Exclude transaksi yang masih punya item sementara pending
+    final allTransaksiIds = transaksi.map((t) => t.id).toList();
+    final pendingItems = await _sementaraRepo.getPendingByTransaksiIds(allTransaksiIds);
+    final excludeIds = pendingItems.map((i) => i.transaksiId).toSet();
+    transaksi = transaksi.where((t) => !excludeIds.contains(t.id)).toList();
 
     final Map<String, _LabaRugiAccum> acc = {};
 
@@ -76,10 +84,16 @@ class LaporanRepositoryImpl implements LaporanRepository {
     final likePattern = '%$searchQuery%';
 
     // Get all transaksis in range
-    final transaksi = await (_db.select(_db.transaksiTable)
+    var transaksi = await (_db.select(_db.transaksiTable)
       ..where((t) =>
           t.status.equals('lunas') &
           t.createdAt.isBetweenValues(startDate.toUtc(), endOfDay.toUtc()))).get();
+
+    // Exclude transaksi yang masih punya item sementara pending
+    final allTransaksiIds = transaksi.map((t) => t.id).toList();
+    final pendingItems = await _sementaraRepo.getPendingByTransaksiIds(allTransaksiIds);
+    final excludeIds = pendingItems.map((i) => i.transaksiId).toSet();
+    transaksi = transaksi.where((t) => !excludeIds.contains(t.id)).toList();
 
     final Map<String, int> qtyMap = {}; // produkId -> qty
 

@@ -47,6 +47,7 @@ import 'user_management_page.dart';
 import 'online_order_page.dart';
 import 'stok_opname_page.dart';
 import 'kas_harian_page.dart';
+import 'item_transaksi_sementara_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -87,7 +88,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
   void initState() {
     super.initState();
     _loadCustomQuickActions();
-    
+
     _onlineOrderSub = sl<SupabaseSyncService>().onOnlineOrderReceived.listen((_) {
       if (mounted) {
         _reloadDashboardAndNotif();
@@ -110,10 +111,12 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
   Future<void> _loadCustomQuickActions() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getStringList(_prefsKey) ?? [];
+    if (!mounted) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     setState(() {
       _customQuickActions.clear();
       for (final label in saved) {
-        final match = _availableQuickActions.where((a) => a.label == label);
+        final match = _availableQuickActions(isDark).where((a) => a.label == label);
         if (match.isNotEmpty) {
           _customQuickActions.add(match.first);
         }
@@ -129,17 +132,17 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
     );
   }
 
-  static final List<_QuickActionDef> _availableQuickActions = [
-    _QuickActionDef('Kasir', Icons.point_of_sale, AppTheme.primaryGreen),
-    _QuickActionDef('Laporan', Icons.bar_chart, Colors.purple),
-    _QuickActionDef('Produk', Icons.inventory_2, Colors.blue),
-    _QuickActionDef('Pembelian', Icons.shopping_bag, Colors.teal),
-    _QuickActionDef('PO', Icons.receipt_long, Colors.orange),
-    _QuickActionDef('Supplier', Icons.business, Colors.brown),
-    _QuickActionDef('Hutang', Icons.account_balance_wallet, AppTheme.warningOrange),
-    _QuickActionDef('Online Order', Icons.shopping_cart_checkout, Colors.indigo),
-    _QuickActionDef('Stok Opname', Icons.fact_check_outlined, Colors.deepPurple, isAdmin: true),
-    _QuickActionDef('Kas Harian', Icons.account_balance_outlined, Colors.teal, isAdmin: true),
+  static List<_QuickActionDef> _availableQuickActions(bool isDark) => [
+    _QuickActionDef('Kasir', Icons.point_of_sale, isDark ? AppTheme.darkGreen : AppTheme.lightGreen),
+    _QuickActionDef('Laporan', Icons.bar_chart, isDark ? AppTheme.darkAmber : AppTheme.lightAmber),
+    _QuickActionDef('Produk', Icons.inventory_2, isDark ? AppTheme.darkBlue : AppTheme.lightBlue),
+    _QuickActionDef('Pembelian', Icons.shopping_bag, isDark ? AppTheme.darkPurple : AppTheme.lightPurple),
+    _QuickActionDef('PO', Icons.receipt_long, isDark ? AppTheme.darkAmber : AppTheme.lightAmber),
+    _QuickActionDef('Supplier', Icons.business, isDark ? AppTheme.darkBlue : AppTheme.lightBlue),
+    _QuickActionDef('Hutang', Icons.account_balance_wallet, isDark ? AppTheme.darkRed : AppTheme.lightRed),
+    _QuickActionDef('Online Order', Icons.shopping_cart_checkout, isDark ? AppTheme.darkBlue : AppTheme.lightBlue),
+    _QuickActionDef('Stok Opname', Icons.fact_check_outlined, isDark ? AppTheme.darkGreen : AppTheme.lightGreen, isAdmin: true),
+    _QuickActionDef('Kas Harian', Icons.account_balance_outlined, isDark ? AppTheme.darkBlue : AppTheme.lightBlue, isAdmin: true),
   ];
 
   Widget _buildQuickActionPage(String label) {
@@ -218,7 +221,8 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
   }
 
   void _showAddQuickActionDialog(bool isAdmin) {
-    final available = _availableQuickActions.where(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final available = _availableQuickActions(isDark).where(
       (a) => (!a.isAdmin || isAdmin) && !_customQuickActions.any((c) => c.label == a.label),
     ).toList();
 
@@ -800,6 +804,93 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         ),
                         const SizedBox(height: 24),
 
+                        // Transaksi Sementara Card
+                        BlocBuilder<DashboardBloc, DashboardState>(
+                          builder: (context, state) {
+                            if (state is DashboardLoaded && state.metrics.pendingItemCount > 0) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: InkWell(
+                                  onTap: () {
+                                    _navigateAndReload(const ItemTransaksiSementaraPage());
+                                  },
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.warningOrange.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: AppTheme.warningOrange.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.warningOrange.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(
+                                            Icons.receipt_long,
+                                            color: AppTheme.warningOrange,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Transaksi Sementara',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '${state.metrics.pendingItemCount} item menunggu dilengkapi',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppTheme.neutralGrey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.warningOrange,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '${state.metrics.pendingItemCount}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.chevron_right,
+                                          color: AppTheme.warningOrange,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+
                         // Online Orders
                         BlocBuilder<OnlineOrderBloc, OnlineOrderState>(
                           builder: (context, state) {
@@ -1120,43 +1211,32 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                 ],
               ),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: Container(
-              height: 64,
-              width: 64,
-              margin: const EdgeInsets.only(top: 24),
-              child: FloatingActionButton(
-                onPressed: () {
-                  _navigateAndReload(
-                    BlocProvider.value(
-                      value: sl<CashierBloc>(),
-                      child: const CashierPage(),
-                    ),
-                  );
-                },
-                backgroundColor: AppTheme.primaryGreen,
-                elevation: 4,
-                shape: const CircleBorder(),
-                child: const Icon(Icons.shopping_cart, color: Colors.white, size: 32),
-              ),
-            ),
             bottomNavigationBar: BottomAppBar(
-              shape: const CircularNotchedRectangle(),
-              notchMargin: 8,
-              clipBehavior: Clip.antiAlias,
-              child: SizedBox(
-                height: kBottomNavigationBarHeight,
+              padding: EdgeInsets.zero,
+              height: 65,
+              color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: (isDark ? AppTheme.darkBorder : AppTheme.lightBorder).withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                  ),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _BottomNavItem(
-                      icon: Icons.home,
+                      icon: Icons.home_outlined,
                       label: 'Beranda',
                       isActive: true,
                       onTap: () {},
                     ),
                     _BottomNavItem(
-                      icon: Icons.inventory_2,
+                      icon: Icons.inventory_2_outlined,
                       label: 'Produk',
                       isActive: false,
                       onTap: () {
@@ -1168,9 +1248,52 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
                         );
                       },
                     ),
-                    const SizedBox(width: 48),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _navigateAndReload(
+                              BlocProvider.value(
+                                value: sl<CashierBloc>(),
+                                child: const CashierPage(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryGreen,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.shopping_cart_outlined,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Kasir',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppTheme.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                     _BottomNavItem(
-                      icon: Icons.receipt_long,
+                      icon: Icons.receipt_outlined,
                       label: 'Riwayat',
                       isActive: false,
                       onTap: () {

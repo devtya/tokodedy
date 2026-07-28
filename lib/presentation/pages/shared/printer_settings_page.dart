@@ -128,7 +128,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
       final success = await _btService!.connect(device);
       if (success) {
         _settings.enabled = true;
-        updatePrinterService();
         _status = 'Terhubung ke ${device.platformName}';
         _printerConnected = true;
       } else {
@@ -165,7 +164,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
       final success = await _btService!.connect(device);
       if (success) {
         _settings.enabled = true;
-        updatePrinterService();
         _status = 'Terhubung ke $name';
         _printerConnected = true;
       } else {
@@ -186,7 +184,6 @@ class _PrinterSettingsPageState extends State<PrinterSettingsPage> {
   void _saveSettings() {
     _settings.namaToko = _namaTokoController.text;
     _settings.alamatToko = _alamatTokoController.text;
-    updatePrinterService();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pengaturan disimpan')),
     );

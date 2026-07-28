@@ -32,6 +32,7 @@ import 'tables/online_order_table.dart';
 import 'tables/online_order_item_table.dart';
 import 'tables/kas_harian_table.dart';
 import 'tables/pengeluaran_operasional_table.dart';
+import 'tables/item_transaksi_sementara_table.dart';
 
 part 'app_database.g.dart';
 
@@ -64,13 +65,14 @@ part 'app_database.g.dart';
     OnlineOrderItemTable,
     KasHarianTable,
     PengeluaranOperasionalTable,
+    ItemTransaksiSementaraTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,6 +112,13 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         await m.createTable(kasHarianTable);
         await m.createTable(pengeluaranOperasionalTable);
+      }
+      if (from < 8) {
+        try {
+          await m.createTable(itemTransaksiSementaraTable);
+        } catch (_) {
+          // Tabel sudah ada — aman diabaikan.
+        }
       }
     },
     beforeOpen: (details) async {

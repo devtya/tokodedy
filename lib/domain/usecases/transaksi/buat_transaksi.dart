@@ -2,6 +2,7 @@ import 'package:injectable/injectable.dart';
 import '../../../data/database/app_database.dart';
 import '../../entities/hutang_piutang.dart';
 import '../../entities/item_transaksi.dart';
+import '../../entities/item_transaksi_sementara.dart';
 import '../../entities/riwayat_stok.dart';
 import '../../entities/transaksi.dart';
 import '../../repositories/hutang_piutang_repository.dart';
@@ -9,6 +10,7 @@ import '../../repositories/produk_repository.dart';
 import '../../repositories/riwayat_stok_repository.dart';
 import '../../repositories/transaksi_repository.dart';
 import '../../repositories/notifikasi_repository.dart';
+import '../../repositories/item_transaksi_sementara_repository.dart';
 import '../../entities/notifikasi.dart';
 
 class CartItem {
@@ -21,6 +23,8 @@ class CartItem {
   final double diskonValue;
   final String? satuan;
   final double konversi;
+  final bool isManual;
+  final String? catatanManual;
 
   const CartItem({
     required this.produkId,
@@ -32,6 +36,8 @@ class CartItem {
     this.diskonValue = 0,
     this.satuan,
     this.konversi = 1.0,
+    this.isManual = false,
+    this.catatanManual,
   });
 
   double get subtotal => (hargaJual * jumlah).roundToDouble();
@@ -59,6 +65,8 @@ class CartItem {
       diskonValue: diskonValue ?? this.diskonValue,
       satuan: satuan ?? this.satuan,
       konversi: konversi ?? this.konversi,
+      isManual: isManual,
+      catatanManual: catatanManual,
     );
   }
 }
@@ -70,6 +78,7 @@ class BuatTransaksi {
   final RiwayatStokRepository riwayatStokRepository;
   final HutangPiutangRepository hutangPiutangRepository;
   final NotifikasiRepository notifikasiRepository;
+  final ItemTransaksiSementaraRepository itemTransaksiSementaraRepository;
   final AppDatabase db;
 
   BuatTransaksi({
@@ -78,6 +87,7 @@ class BuatTransaksi {
     required this.riwayatStokRepository,
     required this.hutangPiutangRepository,
     required this.notifikasiRepository,
+    required this.itemTransaksiSementaraRepository,
     required this.db,
   });
 
@@ -87,7 +97,7 @@ class BuatTransaksi {
     String? namaPelanggan,
   }) async {
     return db.transaction(() async {
-            final totalHarga = cartItems.fold(
+      final totalHarga = cartItems.fold(
         0.0,
         (sum, item) => sum + item.totalSetelahDiskon,
       );
@@ -96,7 +106,7 @@ class BuatTransaksi {
 
       final transaksiId = await transaksiRepository.addTransaksi(
         Transaksi(
-              totalHarga: totalHarga,
+          totalHarga: totalHarga,
           jumlahBayar: jumlahBayar,
           kembalian: jumlahBayar - totalHarga,
           status: status,
@@ -104,65 +114,80 @@ class BuatTransaksi {
       );
 
       for (final item in cartItems) {
-        await transaksiRepository.addItemTransaksi(
-          ItemTransaksi(
-                  transaksiId: transaksiId,
-            produkId: item.produkId,
-            namaProduk: item.namaProduk,
-            jumlah: item.jumlah,
-            hargaSatuan: item.hargaJual,
-            subtotal: item.totalSetelahDiskon,
-          ),
-        );
+        if (item.isManual) {
+          await itemTransaksiSementaraRepository.add(
+            ItemTransaksiSementara(
+              transaksiId: transaksiId,
+              namaManual: item.namaProduk,
+              hargaJualManual: item.hargaJual,
+              jumlah: item.jumlah,
+              satuanManual: item.satuan ?? 'pcs',
+              catatan: item.catatanManual,
+              status: 'pending',
+              createdAt: DateTime.now().toUtc(),
+            ),
+          );
+        } else {
+          await transaksiRepository.addItemTransaksi(
+            ItemTransaksi(
+              transaksiId: transaksiId,
+              produkId: item.produkId,
+              namaProduk: item.namaProduk,
+              jumlah: item.jumlah,
+              hargaSatuan: item.hargaJual,
+              subtotal: item.totalSetelahDiskon,
+            ),
+          );
 
-        final produk = await produkRepository.getProdukById(item.produkId);
-        if (produk != null) {
-          final jumlahDikurangi = (item.jumlah * item.konversi).round();
-          final newStok = produk.stok - jumlahDikurangi;
-          await produkRepository.updateStok(item.produkId, newStok);
+          final produk = await produkRepository.getProdukById(item.produkId);
+          if (produk != null) {
+            final jumlahDikurangi = (item.jumlah * item.konversi).round();
+            final newStok = produk.stok - jumlahDikurangi;
+            await produkRepository.updateStok(item.produkId, newStok);
 
-          final updatedProduk = await produkRepository.getProdukById(item.produkId);
-          if (updatedProduk != null && !notifiedProdukIds.contains(updatedProduk.id)) {
-            final stok = updatedProduk.stok;
-            final minimum = updatedProduk.stokMinimum ?? 0;
-            
-            if (stok <= 0) {
-              await notifikasiRepository.addNotifikasi(
-                Notifikasi(
-                  judul: 'Stok Habis - ${updatedProduk.nama}',
-                  pesan: '${updatedProduk.nama} sudah habis. Segera lakukan pembelian.',
-                  tipe: 'WARNING',
-                ),
-              );
-              notifiedProdukIds.add(updatedProduk.id!);
-            } else if (updatedProduk.stokMinimum != null && stok <= minimum) {
-              await notifikasiRepository.addNotifikasi(
-                Notifikasi(
-                  judul: 'Stok Menipis - ${updatedProduk.nama}',
-                  pesan: 'Sisa stok ${updatedProduk.nama}: $stok ${updatedProduk.satuan}. Minimum: $minimum.',
-                  tipe: 'WARNING',
-                ),
-              );
-              notifiedProdukIds.add(updatedProduk.id!);
+            final updatedProduk = await produkRepository.getProdukById(item.produkId);
+            if (updatedProduk != null && !notifiedProdukIds.contains(updatedProduk.id)) {
+              final stok = updatedProduk.stok;
+              final minimum = updatedProduk.stokMinimum ?? 0;
+              
+              if (stok <= 0) {
+                await notifikasiRepository.addNotifikasi(
+                  Notifikasi(
+                    judul: 'Stok Habis - ${updatedProduk.nama}',
+                    pesan: '${updatedProduk.nama} sudah habis. Segera lakukan pembelian.',
+                    tipe: 'WARNING',
+                  ),
+                );
+                notifiedProdukIds.add(updatedProduk.id!);
+              } else if (updatedProduk.stokMinimum != null && stok <= minimum) {
+                await notifikasiRepository.addNotifikasi(
+                  Notifikasi(
+                    judul: 'Stok Menipis - ${updatedProduk.nama}',
+                    pesan: 'Sisa stok ${updatedProduk.nama}: $stok ${updatedProduk.satuan}. Minimum: $minimum.',
+                    tipe: 'WARNING',
+                  ),
+                );
+                notifiedProdukIds.add(updatedProduk.id!);
+              }
             }
           }
-        }
 
-        final jumlahDikurangi = (item.jumlah * item.konversi).round();
-        await riwayatStokRepository.addRiwayat(
-          RiwayatStok(
-                  produkId: item.produkId,
-            tipe: 'penjualan',
-            jumlah: -jumlahDikurangi,
-            keterangan: 'Transaksi #$transaksiId',
-          ),
-        );
+          final jumlahDikurangi = (item.jumlah * item.konversi).round();
+          await riwayatStokRepository.addRiwayat(
+            RiwayatStok(
+              produkId: item.produkId,
+              tipe: 'penjualan',
+              jumlah: -jumlahDikurangi,
+              keterangan: 'Transaksi #$transaksiId',
+            ),
+          );
+        }
       }
 
       if (namaPelanggan != null) {
         await hutangPiutangRepository.addHutang(
           HutangPiutang(
-                  transaksiId: transaksiId,
+            transaksiId: transaksiId,
             namaPelanggan: namaPelanggan,
             jumlah: totalHarga,
             status: 'belum_lunas',

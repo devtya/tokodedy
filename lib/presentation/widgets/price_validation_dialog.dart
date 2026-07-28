@@ -5,6 +5,20 @@ import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/produk.dart';
 import '../../../domain/usecases/stok/buat_pembelian.dart';
 
+sealed class PriceValidationResult {}
+
+class UpdateHargaJualResult extends PriceValidationResult {
+  final List<PriceChange> priceChanges;
+  UpdateHargaJualResult(this.priceChanges);
+}
+
+class KeepHargaJualResult extends PriceValidationResult {
+  final List<PriceChange> priceChanges;
+  KeepHargaJualResult(this.priceChanges);
+}
+
+class CancelPriceValidationResult extends PriceValidationResult {}
+
 class PriceValidationItem {
   final String produkId;
   final double konversi;
@@ -69,7 +83,7 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
   );
   
   final Map<String, _ProductValData> _valData = {};
-  bool _isSaving = false;
+  bool _hasPopped = false;
 
   @override
   void initState() {
@@ -149,8 +163,9 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
     super.dispose();
   }
 
-  Future<void> _saveChanges(bool updateHargaJual) async {
-    setState(() => _isSaving = true);
+  void _submit(bool updateHargaJual) {
+    if (_hasPopped) return;
+    _hasPopped = true;
     try {
       final List<PriceChange> priceChanges = [];
       
@@ -185,11 +200,16 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
           satuanChanges: satuanChanges,
         ));
       }
-      if (mounted) Navigator.pop(context, priceChanges);
+      
+      final result = updateHargaJual 
+          ? UpdateHargaJualResult(priceChanges)
+          : KeepHargaJualResult(priceChanges);
+          
+      Navigator.pop(context, result);
     } catch (e) {
+      _hasPopped = false;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-        setState(() => _isSaving = false);
       }
     }
   }
@@ -323,23 +343,20 @@ class _PriceValidationDialogState extends State<PriceValidationDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton(
-                onPressed: _isSaving ? null : () => _saveChanges(true),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Simpan & Update Harga Jual'),
+                onPressed: _hasPopped ? null : () => _submit(true),
+                child: const Text('Simpan & Update Harga Jual'),
               ),
               const SizedBox(height: 8),
               OutlinedButton(
-                onPressed: _isSaving ? null : () => _saveChanges(false),
+                onPressed: _hasPopped ? null : () => _submit(false),
                 child: const Text('Simpan, Harga Jual Tetap'),
               ),
               const SizedBox(height: 4),
               TextButton(
-                onPressed: _isSaving ? null : () => Navigator.pop(context, null),
+                onPressed: _hasPopped ? null : () {
+                  _hasPopped = true;
+                  Navigator.pop(context, CancelPriceValidationResult());
+                },
                 child: Text('Batal', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.lightText)),
               ),
             ],

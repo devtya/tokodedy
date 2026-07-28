@@ -2,6 +2,7 @@ import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 import '../../domain/entities/dashboard_metrics.dart';
 import '../../domain/repositories/dashboard_repository.dart';
+import '../../domain/repositories/item_transaksi_sementara_repository.dart';
 import '../database/app_database.dart';
 import '../../domain/entities/produk.dart' as domain;
 import '../../domain/entities/riwayat_harga.dart';
@@ -9,8 +10,9 @@ import '../../domain/entities/riwayat_harga.dart';
 @LazySingleton(as: DashboardRepository)
 class DashboardRepositoryImpl implements DashboardRepository {
   final AppDatabase _db;
+  final ItemTransaksiSementaraRepository _sementaraRepo;
 
-  DashboardRepositoryImpl(this._db);
+  DashboardRepositoryImpl(this._db, this._sementaraRepo);
 
   @override
   Future<DashboardMetrics> getTodayMetrics() async {
@@ -81,10 +83,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
       ));
     }
 
+    final pendingItemCount = await _sementaraRepo.countPending();
+
     return DashboardMetrics(
       omzet: omzet,
       transaksi: transaksiCount,
       terjual: terjualCount,
+      pendingItemCount: pendingItemCount,
       stokMenipis: stokMenipis,
       updateHargaTerakhir: updateHargaTerakhir,
     );

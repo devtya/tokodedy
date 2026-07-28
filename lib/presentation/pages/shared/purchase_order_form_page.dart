@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'purchase_order_cart_page.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/barcode_scanner_widget.dart';
@@ -9,8 +10,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/supplier.dart';
 import '../../../domain/usecases/produk/get_produk_by_id.dart';
 import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
+import '../../../domain/usecases/produk/get_all_produk.dart';
 import '../../blocs/purchase_order/purchase_order_bloc.dart';
-import '../../blocs/purchase_order/purchase_order_event.dart';
 import '../../blocs/purchase_order/purchase_order_state.dart';
 import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/supplier/supplier_bloc.dart';
@@ -21,10 +22,8 @@ import '../../widgets/cari_produk_dialog.dart';
 
 import '../../../domain/entities/purchase_order.dart';
 import '../../../domain/entities/purchase_order_item.dart';
-import '../../../domain/repositories/purchase_order_repository.dart';
 import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/entities/produk.dart';
-import '../../../domain/repositories/produk_repository.dart';
 
 class PurchaseOrderFormPage extends StatefulWidget {
   final PurchaseOrder? initialPo;
@@ -50,9 +49,18 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
   String _searchQuery = '';
   bool _isSaving = false;
 
+  List<Produk> _allProducts = [];
+  List<Produk> _filtered = [];
+  bool _loading = true;
+  Timer? _debounce;
+  final Map<String, int> _tempQty = {};
+  final Map<String, SatuanProduk?> _tempSatuan = {};
+
+
   @override
   void initState() {
     super.initState();
+    _loadProducts();
     if (widget.initialPo != null) {
       _selectedSupplier = Supplier(
         id: widget.initialPo!.supplierId ?? '',
@@ -232,347 +240,13 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
     );
   }
 
-  Future<void> _showUbahSatuanBottomSheet(int index, ItemPoForm item) async {
-    final produk = await sl<GetProdukById>().call(item.produkId);
-    if (produk == null || !mounted) return;
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        final satuans = produk.satuanList ?? [];
-        final hasBaseSatuanInList = satuans.any((s) =>
-            s.konversi == 1.0 &&
-            s.nama.toLowerCase() == (produk.satuan ?? 'pcs').toLowerCase());
-            
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Pilih Satuan - ${produk.nama}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const Divider(height: 1),
-              if (!hasBaseSatuanInList)
-                ListTile(
-                  title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
-                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
-                trailing: item.satuanId == null
-                    ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
-                    : null,
-                onTap: () {
-                  final newHarga = produk.hargaBeli;
-                  setState(() {
-                    _items[index] = item.copyWith(
-                      satuanName: produk.satuan ?? 'pcs',
-                      satuanId: null,
-                      konversi: 1.0,
-                      hargaSatuan: newHarga,
-                      totalHarga: item.qtyPesan * newHarga,
-                    );
-                  });
-                  Navigator.pop(ctx);
-                },
-              ),
-              ...satuans.map((s) {
-                return ListTile(
-                  title: Text(s.nama),
-                  subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
-                  trailing: item.satuanId == s.id
-                      ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
-                      : null,
-                  onTap: () {
-                    final newHarga = (s.hargaBeli > 0) ? s.hargaBeli : (produk.hargaBeli * s.konversi);
-                    setState(() {
-                      _items[index] = item.copyWith(
-                        satuanName: s.nama,
-                        satuanId: s.id,
-                        konversi: s.konversi,
-                        hargaSatuan: newHarga,
-                        totalHarga: item.qtyPesan * newHarga,
-                      );
-                    });
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primary),
-                title: const Text(
-                  'Tambah Satuan Baru',
-                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showTambahSatuanDialog(index, item, produk);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  void _showTambahSatuanDialog(int index, ItemPoForm item, Produk produk) {
-    final namaSatuanController = TextEditingController();
-    final konversiController = TextEditingController();
-    final hargaBeliController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Tambah Satuan - ${produk.nama}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: namaSatuanController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Satuan (mis: PAK, DUS)',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: konversiController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Isi per Satuan Baru',
-                suffixText: produk.satuan ?? 'pcs',
-                hintText: 'mis: 12',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: hargaBeliController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Harga Beli (Opsional)',
-                prefixText: 'Rp ',
-                hintText: 'Biarkan kosong jika mengikuti satuan dasar',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final nama = namaSatuanController.text.trim().toUpperCase();
-              final konversi = double.tryParse(konversiController.text) ?? 0;
-              final hargaBeli = double.tryParse(hargaBeliController.text) ?? 0;
 
-              if (nama.isEmpty || konversi <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nama dan konversi harus diisi dengan benar')),
-                );
-                return;
-              }
 
-              Navigator.pop(ctx);
-              await _saveSatuanKeProduk(index, item, produk, nama, konversi, hargaBeli);
-            },
-            child: const Text('Simpan & Pilih'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Future<void> _saveSatuanKeProduk(
-    int index,
-    ItemPoForm item,
-    Produk produk,
-    String namaSatuan,
-    double konversi,
-    double hargaBeli,
-  ) async {
-    try {
-      final repo = sl<ProdukRepository>();
 
-      // --- Cek duplikat dengan satuan dasar ---
-      if (namaSatuan.toUpperCase() == (produk.satuan ?? 'pcs').toUpperCase()) {
-        if (mounted) {
-          setState(() {
-            _items[index] = item.copyWith(
-              satuanName: produk.satuan ?? 'pcs',
-              satuanId: null,
-              konversi: 1.0,
-              hargaSatuan: hargaBeli > 0 ? hargaBeli : produk.hargaBeli,
-            );
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Menggunakan satuan dasar ${produk.satuan ?? 'pcs'}'),
-            ),
-          );
-        }
-        return;
-      }
-
-      // --- Cek duplikat: jangan insert jika nama satuan sudah ada ---
-      final satuanExisting = await repo.getSatuanByProdukId(produk.id!);
-      final duplikat = satuanExisting
-          .where((s) => s.nama.toUpperCase() == namaSatuan.toUpperCase())
-          .firstOrNull;
-
-      if (duplikat != null) {
-        if (mounted) {
-          setState(() {
-            _items[index] = item.copyWith(
-              satuanName: duplikat.nama,
-              satuanId: duplikat.id,
-              konversi: duplikat.konversi,
-              hargaSatuan: hargaBeli > 0
-                  ? hargaBeli
-                  : (duplikat.hargaBeli > 0
-                      ? duplikat.hargaBeli
-                      : produk.hargaBeli * duplikat.konversi),
-            );
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Menggunakan satuan ${duplikat.nama} yang sudah ada',
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      // Satuan belum ada — insert baru
-      final satuanProduk = SatuanProduk(
-        produkId: produk.id!,
-        nama: namaSatuan,
-        konversi: konversi,
-        hargaJual: 0,
-        hargaBeli: hargaBeli,
-      );
-
-      final newSatuanId = await repo.addSatuan(satuanProduk);
-
-      if (mounted) {
-        setState(() {
-          _items[index] = item.copyWith(
-            satuanName: namaSatuan,
-            satuanId: newSatuanId,
-            konversi: konversi,
-            hargaSatuan:
-                hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
-          );
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Satuan $namaSatuan berhasil ditambahkan')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan satuan: $e')),
-        );
-      }
-    }
-  }
-
-  void _showEditItemDialog(int index, ItemPoForm item) {
-    final qtyController = TextEditingController(text: item.qtyPesan.toString());
-    final hargaController = TextEditingController(
-      text: item.hargaSatuan.toStringAsFixed(2),
-    );
-    final totalController = TextEditingController(
-      text: item.totalHarga.toStringAsFixed(0),
-    );
-
-    qtyController.selection = TextSelection(
-      baseOffset: 0, extentOffset: qtyController.text.length,
-    );
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Edit - ${item.namaProduk}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: hargaController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'Harga Satuan', prefixText: 'Rp '),
-                onChanged: (val) {
-                  final harga = double.tryParse(val) ?? 0;
-                  final qty = int.tryParse(qtyController.text) ?? 1;
-                  totalController.text = (harga * qty).toStringAsFixed(0);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: qtyController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Jumlah Pesan'),
-                onChanged: (val) {
-                  final qty = int.tryParse(val) ?? 1;
-                  final harga = double.tryParse(hargaController.text) ?? 0;
-                  totalController.text = (harga * qty).toStringAsFixed(0);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: totalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Total Harga', prefixText: 'Rp '),
-                onChanged: (val) {
-                  final total = double.tryParse(val) ?? 0;
-                  final qty = int.tryParse(qtyController.text) ?? 1;
-                  if (qty > 0) {
-                    hargaController.text = (total / qty).toStringAsFixed(2);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newJumlah = int.tryParse(qtyController.text) ?? 1;
-              final newTotal = double.tryParse(totalController.text) ?? (item.qtyPesan * item.hargaSatuan);
-              if (newJumlah > 0 && newTotal >= 0) {
-                final newHarga = newTotal / newJumlah;
-                setState(() => _items[index] = item.copyWith(
-                  qtyPesan: newJumlah,
-                  hargaSatuan: newHarga,
-                  totalHarga: newTotal,
-                ));
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _pilihSupplier() {
     Navigator.push<Supplier>(
@@ -590,117 +264,21 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
     });
   }
 
-  Future<void> _submit() async {
-    if (_items.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tambahkan minimal 1 barang terlebih dahulu')),
-        );
-      }
-      return;
-    }
 
-    if (_selectedSupplier == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pilih supplier terlebih dahulu')),
-        );
-      }
-      return;
-    }
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Purchase Order'),
-        content: Text('Buat Purchase Order dari ${_selectedSupplier!.nama} dengan total ${_currency.format(_total)}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Buat PO'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-    if (!mounted) return;
-
-    final bloc = context.read<PurchaseOrderBloc>();
-    final itemsData = _items.map((i) => ItemPoData(
-      produkId: i.produkId,
-      namaProduk: i.namaProduk,
-      qtyPesan: i.qtyPesan,
-      hargaSatuan: i.hargaSatuan,
-      subtotal: i.subtotal,
-      satuanId: i.satuanId,
-      konversi: i.konversi,
-    )).toList();
-
-    setState(() => _isSaving = true);
-    if (widget.initialPo != null) {
-      bloc.add(EditPurchaseOrderEvent(
-        poId: widget.initialPo!.id!,
-        supplierId: _selectedSupplier!.id,
-        namaSupplier: _selectedSupplier!.nama,
-        items: itemsData,
-      ));
-    } else {
-      bloc.add(AddPurchaseOrderEvent(
-        supplierId: _selectedSupplier!.id,
-        namaSupplier: _selectedSupplier!.nama,
-        items: itemsData,
-      ));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.initialPo != null;
     return BlocListener<PurchaseOrderBloc, PurchaseOrderState>(
-      listener: (context, state) async {
+      listener: (context, state) {
+        if (!_isSaving) return;
         if (state is PurchaseOrderSuccess) {
           _isSaving = false;
-          if (_movedToBesokItems.isNotEmpty) {
-            try {
-              final repo = sl<PurchaseOrderRepository>();
-              final po = PurchaseOrder(
-                supplierId: _selectedSupplier?.id,
-                namaSupplier: _selectedSupplier?.nama,
-                status: 'open',
-                totalHarga: _movedToBesokItems.fold(0.0, (s, i) => s + i.totalHarga),
-                notes: 'Draft PO Besok',
-                createdAt: DateTime.now().toUtc(),
-                updatedAt: DateTime.now().toUtc(),
-              );
-              final newPoId = await repo.addPurchaseOrder(po);
-              for (final item in _movedToBesokItems) {
-                await repo.addPurchaseOrderItem(
-                  PurchaseOrderItem(
-                    poId: newPoId,
-                    produkId: item.produkId,
-                    namaProduk: item.namaProduk,
-                    qtyPesan: item.qtyPesan,
-                    hargaSatuan: item.hargaSatuan,
-                    subtotal: item.totalHarga,
-                    satuanId: item.satuanId,
-                    konversi: item.konversi,
-                  ),
-                );
-              }
-            } catch (e) {
-              if (kDebugMode) debugPrint('Gagal menyimpan PO Besok: $e');
-            }
-          }
-          if (context.mounted && mounted) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
-            Navigator.pop(context);
+            Navigator.pop(context); // pop cart sheet
+            Navigator.pop(context); // pop PO form -> back to PO list
           }
         } else if (state is PurchaseOrderError) {
           _isSaving = false;
@@ -711,18 +289,17 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
           }
         }
       },
-      child: PopScope(
-        canPop: true,
-        child: Scaffold(
-          appBar: AppBar(title: Text(isEdit ? 'Edit Purchase Order' : 'Buat Purchase Order')),
-          body: Column(
-            children: [
-              _buildSupplierSection(),
-              _buildSearchSection(),
-              Expanded(child: _buildCartList()),
-              _buildBottomPanel(),
-            ],
-          ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.initialPo != null ? 'Edit Purchase Order' : 'Buat Purchase Order'),
+        ),
+        body: Column(
+          children: [
+            _buildSupplierSection(),
+            _buildSearchBox(),
+            Expanded(child: _buildProductList()),
+            _buildBottomBar(),
+          ],
         ),
       ),
     );
@@ -818,305 +395,427 @@ class _PurchaseOrderFormPageState extends State<PurchaseOrderFormPage> {
     );
   }
 
-  Widget _buildSearchSection() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: TextField(
-            readOnly: true,
-            onTap: _openCariProduk,
-            decoration: InputDecoration(
-              hintText: 'Tambah Produk (Cari / Scan)...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.qr_code_scanner),
-                onPressed: _openScanner,
-              ),
-            ),
-          ),
+  Future<void> _loadProducts() async {
+    setState(() => _loading = true);
+    try {
+      final products = await sl<GetAllProduk>()();
+      final active = products.where((p) => !p.isArchived).toList()
+        ..sort((a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()));
+      if (!mounted) return;
+      setState(() {
+        _allProducts = active;
+        _filtered = active;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _filterProducts(String query) {
+    if (query.isEmpty) {
+      setState(() => _filtered = _allProducts);
+      return;
+    }
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = _allProducts.where((p) {
+        return p.nama.toLowerCase().contains(q) ||
+               (p.barcode?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    });
+  }
+
+  int _getQty(Produk p) => _tempQty[p.id!] ?? 1;
+  SatuanProduk? _getSatuan(Produk p) => _tempSatuan[p.id!];
+  
+  String _satuanName(Produk p) {
+    final s = _getSatuan(p);
+    return s != null ? s.nama : (p.satuan ?? 'pcs');
+  }
+  
+  double _hargaFor(Produk p) {
+    final s = _getSatuan(p);
+    return s != null && s.hargaBeli > 0 ? s.hargaBeli : (p.hargaBeli * (s?.konversi ?? 1.0));
+  }
+
+  void _incQty(Produk p) {
+    setState(() {
+      _tempQty[p.id!] = _getQty(p) + 1;
+    });
+  }
+
+  void _decQty(Produk p) {
+    setState(() {
+      final current = _getQty(p);
+      if (current > 1) {
+        _tempQty[p.id!] = current - 1;
+      }
+    });
+  }
+  
+  void _showQtyInputDialog(Produk produk) {
+    final qtyController = TextEditingController(text: _getQty(produk).toString());
+    qtyController.selection = TextSelection(baseOffset: 0, extentOffset: qtyController.text.length);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Jumlah ${produk.nama}'),
+        content: TextField(
+          controller: qtyController,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Jumlah'),
+          onSubmitted: (val) {
+            final q = int.tryParse(val) ?? 1;
+            if (q > 0) {
+              setState(() => _tempQty[produk.id!] = q);
+            }
+            Navigator.pop(ctx);
+          },
         ),
-        if (_items.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: TextField(
-              controller: _filterController,
-              decoration: InputDecoration(
-                hintText: 'Filter di keranjang...',
-                prefixIcon: const Icon(Icons.filter_list, size: 20),
-                isDense: true,
-                filled: true,
-                fillColor: AppTheme.surface,
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _filterController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (val) {
-                setState(() => _searchQuery = val);
-              },
-            ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+            onPressed: () {
+              final q = int.tryParse(qtyController.text) ?? 1;
+              if (q > 0) {
+                setState(() => _tempQty[produk.id!] = q);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Simpan'),
           ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildCartList() {
-    if (_items.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('Belum ada item', style: TextStyle(color: Colors.grey)),
-            SizedBox(height: 8),
-            Text('Cari produk untuk memulai', style: TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
-        ),
-      );
-    }
-    
-    final displayItems = _searchQuery.isEmpty 
-        ? _items 
-        : _items.where((i) => i.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: displayItems.length,
-      onReorder: (oldIndex, newIndex) {
-        if (_searchQuery.isNotEmpty) return; // Disable reorder while filtering
-        setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
-          final item = _items.removeAt(oldIndex);
-          _items.insert(newIndex, item);
-        });
-      },
-      itemBuilder: (context, index) {
-        final item = displayItems[index];
-        return Card(
-          key: ValueKey('${item.produkId}_${item.satuanId}'),
-          margin: const EdgeInsets.only(bottom: 4),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            item.namaProduk,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () => _showUbahSatuanBottomSheet(index, item),
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    item.satuanName,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppTheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 20),
-                      onSelected: (val) {
-                        if (val == 'pending') {
-                          setState(() {
-                            _movedToBesokItems.add(item);
-                            _items.removeAt(index);
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Produk dipindah ke antrean PO Besok')),
-                          );
-                        } else if (val == 'delete') {
-                          setState(() => _items.removeAt(index));
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'pending',
-                          child: Text('Pindah ke PO Besok'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Hapus Permanen', style: TextStyle(color: AppTheme.warningRed)),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _showEditItemDialog(index, item),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.edit, size: 12, color: AppTheme.neutralGrey),
-                              const SizedBox(width: 4),
-                              Text(
-                                _currency.format(item.hargaSatuan),
-                                style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              if (item.qtyPesan > 1) {
-                                final newQty = item.qtyPesan - 1;
-                                setState(() => _items[index] = item.copyWith(
-                                  qtyPesan: newQty,
-                                  totalHarga: newQty * item.hargaSatuan,
-                                ));
-                              } else {
-                                setState(() => _items.removeAt(index));
-                              }
-                            },
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: const Size(30, 30),
-                              side: const BorderSide(color: AppTheme.neutralGrey),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            ),
-                            child: const Icon(Icons.remove, size: 16),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            '${item.qtyPesan}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final newQty = item.qtyPesan + 1;
-                              setState(() => _items[index] = item.copyWith(
-                                qtyPesan: newQty,
-                                totalHarga: newQty * item.hargaSatuan,
-                              ));
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: const Size(30, 30),
-                              backgroundColor: AppTheme.primaryGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                              elevation: 0,
-                            ),
-                            child: const Icon(Icons.add, size: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _currency.format(item.subtotal),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+  void _showSatuanPicker(Produk produk) {
+    final satuanList = produk.satuanList ?? [];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Pilih Satuan - ${produk.nama}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
+                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
+                onTap: () {
+                  setState(() => _tempSatuan[produk.id!] = null);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...satuanList.map((s) => ListTile(
+                title: Text(s.nama),
+                subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
+                onTap: () {
+                  setState(() => _tempSatuan[produk.id!] = s);
+                  Navigator.pop(ctx);
+                },
+              )),
+            ],
           ),
         );
       },
     );
   }
+  
+  void _addToCart(Produk produk) {
+    final qty = _getQty(produk);
+    final satuan = _getSatuan(produk);
+    final harga = _hargaFor(produk);
+    
+    setState(() {
+      final existingIndex = _items.indexWhere(
+        (i) => i.produkId == produk.id && i.satuanId == satuan?.id,
+      );
+      if (existingIndex != -1) {
+        final ex = _items[existingIndex];
+        final newQty = ex.qtyPesan + qty;
+        _items[existingIndex] = ex.copyWith(
+          qtyPesan: newQty,
+          totalHarga: newQty * ex.hargaSatuan,
+        );
+      } else {
+        _items.add(
+          ItemPoForm(
+            produkId: produk.id!,
+            namaProduk: produk.nama,
+            satuanName: satuan?.nama ?? (produk.satuan ?? 'pcs'),
+            qtyPesan: qty,
+            hargaSatuan: harga,
+            totalHarga: qty * harga,
+            satuanId: satuan?.id,
+            konversi: satuan?.konversi ?? 1.0,
+          ),
+        );
+      }
+      _tempQty[produk.id!] = 1;
+    });
+    
+    _showTopToast(context, '$qty ${_satuanName(produk)} ${produk.nama} ditambahkan ke PO');
+  }
 
-  Widget _buildBottomPanel() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text(
-                _currency.format(_total),
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: (_isFormValid && !_isSaving) ? _submit : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _isFormValid ? AppTheme.primary : Colors.grey.shade600,
-                foregroundColor: _isFormValid ? AppTheme.onPrimary : Colors.white38,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: _isSaving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(widget.initialPo != null ? 'Simpan Perubahan' : 'Buat Purchase Order'),
+  void _showTopToast(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 60,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
+            child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 1), () => entry.remove());
+  }
+
+  Widget _buildSearchBox() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari produk...',
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _filterProducts('');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (query) {
+                setState(() {});
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 300), () {
+                  _filterProducts(query);
+                });
+              },
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: _openScanner,
           ),
         ],
       ),
     );
   }
+
+  Widget _buildProductList() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_filtered.isEmpty) return const Center(child: Text('Produk tidak ditemukan', style: TextStyle(color: AppTheme.grey)));
+    
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: _filtered.length,
+      itemBuilder: (context, index) => _buildProductCard(_filtered[index]),
+    );
+  }
+  
+  Widget _buildProductCard(Produk produk) {
+    final cardColor = Theme.of(context).cardColor;
+    return Card(
+      color: cardColor,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              produk.nama,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  _currency.format(_hargaFor(produk)),
+                  style: const TextStyle(
+                    color: AppTheme.lightGreen,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Stok: ${produk.stok}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                InkWell(
+                  onTap: () => _showSatuanPicker(produk),
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _satuanName(produk),
+                          style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.remove, size: 20),
+                  onPressed: () => _decQty(produk),
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+                ),
+                GestureDetector(
+                  onTap: () => _showQtyInputDialog(produk),
+                  child: SizedBox(
+                    width: 40,
+                    child: Text(
+                      '${_getQty(produk)}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, decoration: TextDecoration.underline),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 20),
+                  onPressed: () => _incQty(produk),
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+                ),
+                const SizedBox(width: 12),
+                IconButton.filled(
+                  onPressed: () => _addToCart(produk),
+                  icon: const Icon(Icons.add_shopping_cart, size: 20),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  
+  void _openCartPage() async {
+    final purchaseOrderBloc = context.read<PurchaseOrderBloc>();
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: purchaseOrderBloc,
+          child: PurchaseOrderCartPage(
+          items: _items,
+          selectedSupplier: _selectedSupplier,
+          initialPo: widget.initialPo,
+          catatNotes: '',
+        ),
+      ),
+      ),
+    );
+
+    if (result == 'success') {
+      setState(() {
+        _items.clear();
+        _selectedSupplier = null;
+      });
+      Navigator.pop(context, true);
+    } else if (result is Map<String, dynamic>) {
+      setState(() {
+        _items.clear();
+        _items.addAll(result['items'] as List<ItemPoForm>);
+      });
+    }
+  }
+
+  Widget _buildBottomBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${_items.length} item', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    _currency.format(_total),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.lightGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _items.isEmpty ? null : _openCartPage,
+              icon: const Icon(Icons.shopping_cart_outlined),
+              label: const Text('Buat PO'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
 }
 
 class ItemPoForm {

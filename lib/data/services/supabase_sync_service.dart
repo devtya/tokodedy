@@ -656,6 +656,7 @@ const _pullOrder = [
 
 const _appendOnlyTables = [
   'item_transaksi',
+  'item_transaksi_sementara',
   'item_pembelian',
   'purchase_order_items',
   'riwayat_stok',
@@ -729,6 +730,22 @@ final Map<String, _Inserter> _inserters = {
       status: Value(r['status'] as String? ?? 'lunas'),
       updatedAt: Value(_parseDate(r['updated_at'])),
       createdAt: Value(_parseDate(r['created_at'])),
+    ));
+  },
+  'item_transaksi_sementara': (db, r) async {
+    await db.into(db.itemTransaksiSementaraTable).insertOnConflictUpdate(ItemTransaksiSementaraTableCompanion(
+      id: Value(r['id'] as String),
+      transaksiId: Value(r['transaksi_id'] as String),
+      namaManual: Value(r['nama_manual'] as String?),
+      hargaJualManual: Value((r['harga_jual_manual'] as num).toDouble()),
+      jumlah: Value(r['jumlah'] as int),
+      satuanManual: Value(r['satuan_manual'] as String?),
+      catatan: Value(r['catatan'] as String?),
+      status: Value(r['status'] as String? ?? 'pending'),
+      produkId: Value(r['produk_id'] as String?),
+      createdAt: Value(_parseDate(r['created_at'])),
+      completedAt: Value(r['completed_at'] != null ? _parseDate(r['completed_at']) : null),
+      completedBy: Value(r['completed_by'] as String?),
     ));
   },
   'item_transaksi': (db, r) async {

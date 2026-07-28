@@ -59,6 +59,21 @@ build_log.txt
 # Script sementara di root
 import_json.dart
 
+# Test/debug scripts
+test_db.dart
+test_item.dart
+
+# ===== Cleanup additions =====
+# Build artifacts
+build_log.txt
+
+# Sensitive store data
+*_supabase.json
+*.data.json
+
+# Script sementara di root
+import_json.dart
+
 # Design mockups di root
 *.html
 
@@ -68,3 +83,9 @@ theme.md
 # Data dump CSV
 supabase/*.csv
 *.csv
+
+# Environment variables — never commit
+.env
+.env.local
+run.bat
+build_apk.bat

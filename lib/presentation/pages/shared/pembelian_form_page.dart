@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'pembelian_cart_page.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/barcode_scanner_widget.dart';
@@ -12,12 +14,8 @@ import '../../../domain/entities/supplier.dart';
 import '../../../domain/usecases/produk/get_all_produk.dart';
 import '../../../domain/usecases/produk/get_produk_by_id.dart';
 import '../../../domain/usecases/produk/get_produk_by_barcode.dart';
-import '../../../domain/entities/notifikasi.dart';
-import '../../../domain/usecases/notifikasi/add_notifikasi.dart';
-import '../../../domain/repositories/produk_repository.dart';
 import '../../utils/dialog_utils.dart';
 import '../../blocs/pembelian/pembelian_bloc.dart';
-import '../../blocs/pembelian/pembelian_event.dart';
 import '../../blocs/pembelian/pembelian_state.dart';
 import '../../blocs/produk/produk_bloc.dart';
 import '../../blocs/supplier/supplier_bloc.dart';
@@ -28,12 +26,7 @@ import '../../../domain/repositories/pembelian_repository.dart';
 import '../../../domain/entities/satuan_produk.dart';
 import '../../../domain/repositories/pending_pembelian_repository.dart';
 import '../../../domain/entities/pending_pembelian.dart';
-import '../../blocs/auth/auth_bloc.dart';
-import '../../blocs/auth/auth_state.dart';
 import '../../widgets/cari_produk_dialog.dart';
-import '../../../domain/usecases/stok/buat_pembelian.dart';
-import '../../widgets/supplier_konfirmasi_dialog.dart';
-import '../../widgets/price_validation_dialog.dart';
 import 'pending_pembelian_page.dart';
 
 class PembelianFormPage extends StatefulWidget {
@@ -61,8 +54,13 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   final _searchController = TextEditingController();
   final _filterController = TextEditingController();
   String _searchQuery = '';
-
-
+  
+  List<Produk> _allProducts = [];
+  List<Produk> _filtered = [];
+  bool _loading = true;
+  Timer? _debounce;
+  final Map<String, int> _tempQty = {};
+  final Map<String, SatuanProduk?> _tempSatuan = {};
   bool _isPpnEnabled = false;
   double _ppnPercent = 11.0;
   final TextEditingController _ppnController = TextEditingController(
@@ -87,6 +85,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
   @override
   void initState() {
     super.initState();
+    _loadProducts();
     if (widget.pendingId != null) {
       _loadPending(widget.pendingId!);
     } else if (widget.existingPembelianId != null) {
@@ -134,6 +133,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                   totalHarga: item.jumlah * item.hargaBeliSatuan,
                   diskonTipe: item.diskonTipe,
                   diskonValue: item.diskonValue,
+                  satuanId: item.satuanId,
+                  konversi: item.konversi,
                 ),
               );
             }
@@ -182,6 +183,8 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
               hargaBeliSatuan: item.hargaBeliSatuan,
               hargaBeliLama: item.hargaBeliSatuan,
               totalHarga: item.subtotal,
+              satuanId: item.satuanId,
+              konversi: item.konversi,
             ),
           );
         }
@@ -191,6 +194,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _ppnController.dispose();
     _diskonPersenController.dispose();
     _diskonNominalController.dispose();
@@ -367,415 +371,15 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     );
   }
 
-  void _showDiskonDialog(int index, ItemPembelianForm item) {
-    final valueController = TextEditingController();
-    int tipe = item.diskonTipe;
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text('Diskon - ${item.namaProduk}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('Tidak')),
-                  ButtonSegment(value: 1, label: Text('%')),
-                  ButtonSegment(value: 2, label: Text('Rp')),
-                ],
-                selected: {tipe},
-                onSelectionChanged: (v) => setDialogState(() => tipe = v.first),
-              ),
-              const SizedBox(height: 12),
-              if (tipe > 0)
-                TextField(
-                  controller: valueController,
-                  decoration: InputDecoration(
-                    labelText: tipe == 1 ? 'Persen (%)' : 'Nominal (Rp)',
-                    hintText: tipe == 1 ? '10' : '5000',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                final value = double.tryParse(valueController.text) ?? 0;
-                setState(() {
-                  _items[index] = item.copyWith(
-                    diskonTipe: tipe,
-                    diskonValue: value,
-                  );
-                });
-                Navigator.pop(ctx);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Future<void> _showUbahSatuanBottomSheet(int index, ItemPembelianForm item) async {
-    final produk = await sl<GetProdukById>().call(item.produkId);
-    if (produk == null || !mounted) return;
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        final satuans = produk.satuanList ?? [];
-        final hasBaseSatuanInList = satuans.any((s) =>
-            s.konversi == 1.0 &&
-            s.nama.toLowerCase() == (produk.satuan ?? 'pcs').toLowerCase());
-            
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Pilih Satuan - ${produk.nama}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const Divider(height: 1),
-              if (!hasBaseSatuanInList)
-                ListTile(
-                  title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
-                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
-                trailing: item.satuanId == null
-                    ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
-                    : null,
-                onTap: () {
-                  final newHarga = produk.hargaBeli;
-                  setState(() {
-                    _items[index] = item.copyWith(
-                      satuanName: produk.satuan ?? 'pcs',
-                      satuanId: null,
-                      konversi: 1.0,
-                      hargaBeliSatuan: newHarga,
-                      totalHarga: item.jumlah * newHarga,
-                    );
-                  });
-                  Navigator.pop(ctx);
-                },
-              ),
-              ...satuans.map((s) {
-                return ListTile(
-                  title: Text(s.nama),
-                  subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
-                  trailing: item.satuanId == s.id
-                      ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen)
-                      : null,
-                  onTap: () {
-                    final newHarga = (s.hargaBeli > 0) ? s.hargaBeli : (produk.hargaBeli * s.konversi);
-                    setState(() {
-                      _items[index] = item.copyWith(
-                        satuanName: s.nama,
-                        satuanId: s.id,
-                        konversi: s.konversi,
-                        hargaBeliSatuan: newHarga,
-                        totalHarga: item.jumlah * newHarga,
-                      );
-                    });
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.add_circle_outline, color: AppTheme.primary),
-                title: const Text(
-                  'Tambah Satuan Baru',
-                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showTambahSatuanDialog(index, item, produk);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  void _showTambahSatuanDialog(int index, ItemPembelianForm item, Produk produk) {
-    final namaSatuanController = TextEditingController();
-    final konversiController = TextEditingController();
-    final hargaBeliController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Tambah Satuan - ${produk.nama}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: namaSatuanController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Satuan (mis: PAK, DUS)',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: konversiController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Isi per Satuan Baru',
-                suffixText: produk.satuan ?? 'pcs',
-                hintText: 'mis: 12',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: hargaBeliController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Harga Beli (Opsional)',
-                prefixText: 'Rp ',
-                hintText: 'Biarkan kosong jika mengikuti satuan dasar',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final nama = namaSatuanController.text.trim().toUpperCase();
-              final konversi = double.tryParse(konversiController.text) ?? 0;
-              final hargaBeli = double.tryParse(hargaBeliController.text) ?? 0;
 
-              if (nama.isEmpty || konversi <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nama dan konversi harus diisi dengan benar')),
-                );
-                return;
-              }
 
-              Navigator.pop(ctx);
-              await _saveSatuanKeProduk(index, item, produk, nama, konversi, hargaBeli);
-            },
-            child: const Text('Simpan & Pilih'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Future<void> _saveSatuanKeProduk(
-    int index,
-    ItemPembelianForm item,
-    Produk produk,
-    String namaSatuan,
-    double konversi,
-    double hargaBeli,
-  ) async {
-    try {
-      final repo = sl<ProdukRepository>();
 
-      // --- Cek duplikat dengan satuan dasar ---
-      if (namaSatuan.toUpperCase() == (produk.satuan ?? 'pcs').toUpperCase()) {
-        if (mounted) {
-          setState(() {
-            _items[index] = item.copyWith(
-              satuanName: produk.satuan ?? 'pcs',
-              satuanId: null,
-              konversi: 1.0,
-              hargaBeliSatuan: hargaBeli > 0 ? hargaBeli : produk.hargaBeli,
-            );
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Menggunakan satuan dasar ${produk.satuan ?? 'pcs'}'),
-            ),
-          );
-        }
-        return;
-      }
 
-      // --- Cek duplikat: jangan insert jika nama satuan sudah ada ---
-      // Load satuan terbaru dari DB (bukan dari produk yang di-cache)
-      final satuanExisting = await repo.getSatuanByProdukId(produk.id!);
-      final duplikat = satuanExisting
-          .where((s) => s.nama.toUpperCase() == namaSatuan.toUpperCase())
-          .firstOrNull;
-
-      if (duplikat != null) {
-        // Gunakan satuan yang sudah ada, tidak perlu insert baru
-        if (mounted) {
-          setState(() {
-            _items[index] = item.copyWith(
-              satuanName: duplikat.nama,
-              satuanId: duplikat.id,
-              konversi: duplikat.konversi,
-              hargaBeliSatuan: hargaBeli > 0
-                  ? hargaBeli
-                  : (duplikat.hargaBeli > 0
-                      ? duplikat.hargaBeli
-                      : produk.hargaBeli * duplikat.konversi),
-            );
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Menggunakan satuan ${duplikat.nama} yang sudah ada',
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      // Satuan belum ada — insert baru
-      final satuanProduk = SatuanProduk(
-        produkId: produk.id!,
-        nama: namaSatuan,
-        konversi: konversi,
-        hargaJual: 0, // Akan di-update nanti jika diperlukan di form produk
-        hargaBeli: hargaBeli,
-      );
-
-      final newSatuanId = await repo.addSatuan(satuanProduk);
-
-      if (mounted) {
-        setState(() {
-          _items[index] = item.copyWith(
-            satuanName: namaSatuan,
-            satuanId: newSatuanId,
-            konversi: konversi,
-            hargaBeliSatuan:
-                hargaBeli > 0 ? hargaBeli : (produk.hargaBeli * konversi),
-          );
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Satuan $namaSatuan berhasil ditambahkan')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan satuan: $e')),
-        );
-      }
-    }
-  }
-
-  void _showEditItemDialog(int index, ItemPembelianForm item) {
-    final qtyController = TextEditingController(text: item.jumlah.toString());
-    final hargaController = TextEditingController(
-      text: item.hargaBeliSatuan.toStringAsFixed(2),
-    );
-    final totalController = TextEditingController(
-      text: item.totalHarga.toStringAsFixed(0),
-    );
-
-    qtyController.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: qtyController.text.length,
-    );
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Edit - ${item.namaProduk}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: hargaController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Harga Beli Satuan',
-                  prefixText: 'Rp ',
-                ),
-                onChanged: (val) {
-                  final harga = double.tryParse(val) ?? 0;
-                  final qty = int.tryParse(qtyController.text) ?? 1;
-                  totalController.text = (harga * qty).toStringAsFixed(0);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: qtyController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Jumlah Item'),
-                onChanged: (val) {
-                  final qty = int.tryParse(val) ?? 1;
-                  final harga = double.tryParse(hargaController.text) ?? 0;
-                  totalController.text = (harga * qty).toStringAsFixed(0);
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: totalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Total Harga',
-                  prefixText: 'Rp ',
-                ),
-                onChanged: (val) {
-                  final total = double.tryParse(val) ?? 0;
-                  final qty = int.tryParse(qtyController.text) ?? 1;
-                  if (qty > 0) {
-                    hargaController.text = (total / qty).toStringAsFixed(2);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newJumlah = int.tryParse(qtyController.text) ?? 1;
-              final newTotal = double.tryParse(totalController.text) ??
-                  (item.jumlah * item.hargaBeliSatuan);
-              if (newJumlah > 0 && newTotal >= 0) {
-                final newHarga = newTotal / newJumlah;
-                setState(
-                  () => _items[index] = item.copyWith(
-                    jumlah: newJumlah,
-                    hargaBeliSatuan: newHarga,
-                    totalHarga: newTotal,
-                  ),
-                );
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _pilihSupplier() {
     Navigator.push<Supplier>(
@@ -793,260 +397,7 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     });
   }
 
-  Future<void> _submit() async {
-    if (_items.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tambahkan minimal 1 barang terlebih dahulu'),
-          ),
-        );
-      }
-      return;
-    }
 
-    final supplier = await showDialog<Supplier>(
-      context: context,
-      builder: (ctx) => SupplierKonfirmasiDialog(
-        preSelectedSupplier: _selectedSupplier,
-        getAllSupplier: sl(),
-        searchSupplier: sl(),
-        supplierProductsDao: sl(),
-      ),
-    );
-
-    if (supplier == null) return;
-    if (!mounted) return;
-
-    setState(() => _selectedSupplier = supplier);
-
-    final authState = context.read<AuthBloc>().state;
-    final isKasir =
-        authState is Authenticated && authState.user.role == 'kasir';
-
-    if (isKasir) {
-      try {
-        final pendingRepo = sl<PendingPembelianRepository>();
-
-        if (_loadedPendingId != null) {
-          await pendingRepo.deletePending(_loadedPendingId!);
-        }
-
-        final pending = PendingPembelian(
-                    supplierId: _selectedSupplier?.id,
-          namaSupplier: _selectedSupplier?.nama,
-          isPpnEnabled: _isPpnEnabled,
-          ppnPercent: _ppnPercent,
-          diskonTipe: _diskonTipe,
-          diskonPersen: _diskonPersen,
-          diskonNominal: _diskonNominal,
-        );
-        final pendingId = await pendingRepo.addPending(pending);
-        for (final item in _items) {
-          await pendingRepo.addItem(
-            pendingId,
-            PendingPembelianItemData(
-              produkId: item.produkId,
-              namaProduk: item.namaProduk,
-              jumlah: item.jumlah,
-              hargaBeliSatuan: item.hargaBeliSatuan,
-              hargaBeliLama: item.hargaBeliLama,
-              diskonTipe: item.diskonTipe,
-              diskonValue: item.diskonValue,
-              satuanId: item.satuanId,
-              konversi: item.konversi,
-            ),
-          );
-        }
-
-        final addNotifikasi = sl<AddNotifikasi>();
-        await addNotifikasi(
-          Notifikasi(
-                        judul: 'Pembelian Pending Baru',
-            pesan:
-                'Kasir menambahkan draft pembelian baru dari ${_selectedSupplier?.nama ?? "Supplier tidak diketahui"}.',
-            tipe: 'INFO',
-          ),
-        );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Pembelian disimpan ke draft (Pending)'),
-            ),
-          );
-          setState(() => _forcePop = true);
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan ke pending: $e')),
-          );
-        }
-      }
-      return;
-    }
-
-    if (!mounted) return;
-
-    final bloc = context.read<PembelianBloc>();
-
-    final totalDiskonItem = _items.fold(0.0, (s, i) => s + i.diskonRp);
-    final totalSetelahDiskonItem = _total - totalDiskonItem;
-    final dppMultiplier = totalSetelahDiskonItem > 0 
-        ? ((totalSetelahDiskonItem - _totalDiskonGlobal) / totalSetelahDiskonItem) 
-        : 1.0;
-    final ppnMultiplier = _isPpnEnabled ? (1 + _ppnPercent / 100) : 1.0;
-
-    final List<ItemPembelianData> itemsData = _items.map((i) {
-      final dppItem = i.subtotal - i.diskonRp;
-      final dppItemFinal = dppItem * dppMultiplier;
-      final nettSubtotal = dppItemFinal * ppnMultiplier;
-      final nettHargaBeliSatuan = i.jumlah > 0 ? nettSubtotal / i.jumlah : 0.0;
-
-      return ItemPembelianData(
-        produkId: i.produkId,
-        namaProduk: i.namaProduk,
-        jumlah: i.jumlah,
-        hargaBeliSatuan: nettHargaBeliSatuan,
-        subtotal: nettSubtotal,
-        satuanId: i.satuanId,
-        konversi: i.konversi,
-      );
-    }).toList();
-
-    if (_pembelianId == null) {
-      try {
-        final allProduk = await sl<GetAllProduk>().call();
-        if (!mounted) return;
-        final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
-        
-        // Validation for Harga Jual == 0
-        final List<ItemPembelianForm> zeroPriceItems = [];
-        final List<ItemPembelianForm> changedItems = [];
-
-        for (int i = 0; i < _items.length; i++) {
-          final item = _items[i];
-          final itemData = itemsData[i];
-          
-          // Check zero price
-          final p = produkMap[item.produkId];
-          if (p != null) {
-            final s = p.satuanList?.where((sl) => sl.id == item.satuanId).firstOrNull;
-            final hJual = s != null ? s.hargaJual : (p.hargaJual * item.konversi);
-            if (hJual <= 0) {
-              zeroPriceItems.add(item);
-            }
-          }
-
-          if (itemData.hargaBeliSatuan > item.hargaBeliLama) {
-            changedItems.add(item.copyWith(hargaBeliSatuan: itemData.hargaBeliSatuan));
-          }
-        }
-
-        if (zeroPriceItems.isNotEmpty) {
-          final errList = zeroPriceItems.map((e) => '- ${e.namaProduk} (${e.satuanName})').join('\n');
-          final proceed = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Harga Jual 0'),
-              content: Text(
-                'Ada item dengan satuan yang belum memiliki harga jual (Rp 0):\n\n$errList\n\nPastikan untuk mengatur harga jual di menu Produk nanti. Tetap lanjutkan pembelian ini?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.warningRed),
-                  child: const Text('Tetap Lanjutkan', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-          );
-          if (proceed != true) return;
-        }
-
-        List<PriceChange>? priceChanges;
-        if (changedItems.isNotEmpty) {
-          if (!mounted) return;
-          final valItems = changedItems.map((i) => PriceValidationItem(
-            produkId: i.produkId,
-            konversi: i.konversi,
-            hargaBeliSatuan: i.hargaBeliSatuan,
-          )).toList();
-          
-          priceChanges = await showDialog<List<PriceChange>?>(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) => PriceValidationDialog(
-              changedItems: valItems,
-              produkMap: produkMap,
-            ),
-          );
-          if (priceChanges == null) return;
-        }
-
-        if (!mounted) return;
-
-        _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
-        _pendingSaveSupplierId = _selectedSupplier!.id!;
-        setState(() => _isSaving = true);
-        bloc.add(
-          AddPembelianEvent(
-            namaSupplier: _selectedSupplier!.nama,
-            supplierId: _pendingSaveSupplierId,
-            items: itemsData,
-            priceChanges: priceChanges,
-          ),
-        );
-      } catch (e, stack) {
-        if (kDebugMode) debugPrint('[Pembelian] GetAllProduk error: $e\n$stack');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gagal memuat data produk')),
-          );
-        }
-        return;
-      }
-    } else {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Update Pembelian'),
-          content: const Text(
-            'Perubahan ini akan mengupdate stok dan HPP produk terkait. Lanjutkan?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Lanjutkan'),
-            ),
-          ],
-        ),
-      );
-      if (confirm != true) return;
-      if (!mounted) return;
-
-      _pendingSaveItems = List.generate(_items.length, (i) => _items[i].copyWith(hargaBeliSatuan: itemsData[i].hargaBeliSatuan));
-      _pendingSaveSupplierId = _selectedSupplier!.id!;
-      setState(() => _isSaving = true);
-      bloc.add(
-        UpdatePembelianEvent(
-          pembelianId: _pembelianId!,
-          namaSupplier: _selectedSupplier!.nama,
-          items: itemsData,
-        ),
-      );
-    }
-  }
 
   Future<bool> _onWillPop() async {
     if (_items.isEmpty && _selectedSupplier == null) {
@@ -1223,13 +574,15 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 );
               }
             } catch (e, stack) {
-              if (kDebugMode) debugPrint('[Pembelian] SupplierProducts upsert error: $e\n$stack');
+              if (kDebugMode) debugPrint('[Pembelian] SupplierProducts upsert error: $e\\n$stack');
             }
           }
           _pendingSaveItems = null;
           _pendingSaveSupplierId = null;
           if (context.mounted && mounted) {
             setState(() => _forcePop = true);
+            // double pop to pop out of cart sheet and main page
+            Navigator.pop(context);
             Navigator.pop(context);
           }
         } else if (state is PembelianError) {
@@ -1281,9 +634,9 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
                 body: Column(
                   children: [
                     _buildSupplierSection(),
-                    _buildSearchSection(),
-                    Expanded(child: _buildCartList()),
-                    _buildBottomPanel(),
+                    _buildSearchBox(),
+                    Expanded(child: _buildProductList()),
+                    _buildBottomBar(),
                   ],
                 ),
               ),
@@ -1403,573 +756,445 @@ class _PembelianFormPageState extends State<PembelianFormPage> {
     );
   }
 
-  Widget _buildSearchSection() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: TextField(
-            readOnly: true,
-            onTap: _openCariProduk,
-            decoration: InputDecoration(
-              hintText: 'Tambah Produk (Cari / Scan)...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.qr_code_scanner),
-                onPressed: _openScanner,
-              ),
-            ),
-          ),
+  Future<void> _loadProducts() async {
+    setState(() => _loading = true);
+    try {
+      final products = await sl<GetAllProduk>()();
+      final active = products.where((p) => !p.isArchived).toList()
+        ..sort((a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()));
+      if (!mounted) return;
+      setState(() {
+        _allProducts = active;
+        _filtered = active;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _filterProducts(String query) {
+    if (query.isEmpty) {
+      setState(() => _filtered = _allProducts);
+      return;
+    }
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = _allProducts.where((p) {
+        return p.nama.toLowerCase().contains(q) ||
+               (p.barcode?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    });
+  }
+
+  int _getQty(Produk p) => _tempQty[p.id!] ?? 1;
+  SatuanProduk? _getSatuan(Produk p) => _tempSatuan[p.id!];
+  
+  String _satuanName(Produk p) {
+    final s = _getSatuan(p);
+    return s != null ? s.nama : (p.satuan ?? 'pcs');
+  }
+  
+  double _hargaFor(Produk p) {
+    final s = _getSatuan(p);
+    return s != null && s.hargaBeli > 0 ? s.hargaBeli : (p.hargaBeli * (s?.konversi ?? 1.0));
+  }
+
+  void _incQty(Produk p) {
+    setState(() {
+      _tempQty[p.id!] = _getQty(p) + 1;
+    });
+  }
+
+  void _decQty(Produk p) {
+    setState(() {
+      final current = _getQty(p);
+      if (current > 1) {
+        _tempQty[p.id!] = current - 1;
+      }
+    });
+  }
+  
+  void _showQtyInputDialog(Produk produk) {
+    final qtyController = TextEditingController(text: _getQty(produk).toString());
+    qtyController.selection = TextSelection(baseOffset: 0, extentOffset: qtyController.text.length);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Jumlah ${produk.nama}'),
+        content: TextField(
+          controller: qtyController,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Jumlah'),
+          onSubmitted: (val) {
+            final q = int.tryParse(val) ?? 1;
+            if (q > 0) {
+              setState(() => _tempQty[produk.id!] = q);
+            }
+            Navigator.pop(ctx);
+          },
         ),
-        if (_items.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: TextField(
-              controller: _filterController,
-              decoration: InputDecoration(
-                hintText: 'Filter di keranjang...',
-                prefixIcon: const Icon(Icons.filter_list, size: 20),
-                isDense: true,
-                filled: true,
-                fillColor: AppTheme.surface,
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _filterController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (val) {
-                setState(() => _searchQuery = val);
-              },
-            ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+            onPressed: () {
+              final q = int.tryParse(qtyController.text) ?? 1;
+              if (q > 0) {
+                setState(() => _tempQty[produk.id!] = q);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Simpan'),
           ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildCartList() {
-    if (_items.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('Belum ada item', style: TextStyle(color: Colors.grey)),
-            SizedBox(height: 8),
-            Text(
-              'Cari produk untuk memulai',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ],
-        ),
-      );
-    }
-    
-    final displayItems = _searchQuery.isEmpty 
-        ? _items 
-        : _items.where((i) => i.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: displayItems.length,
-      onReorder: (oldIndex, newIndex) {
-        if (_searchQuery.isNotEmpty) return; // Disable reorder while filtering
-        setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
-          final item = _items.removeAt(oldIndex);
-          _items.insert(newIndex, item);
-        });
-      },
-      itemBuilder: (context, index) {
-        final item = displayItems[index];
-        final hasDiskon = item.diskonTipe != 0;
-        return Card(
-          key: ValueKey('${item.produkId}_${item.satuanId}'),
-          margin: const EdgeInsets.only(bottom: 4),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            item.namaProduk,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () => _showUbahSatuanBottomSheet(index, item),
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    item.satuanName,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppTheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 20),
-                      onSelected: (val) {
-                        if (val == 'pending') {
-                          setState(() {
-                            _movedToBesokItems.add(item);
-                            _items.removeAt(index);
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Produk dipindah ke antrean PO Besok')),
-                          );
-                        } else if (val == 'delete') {
-                          setState(() => _items.removeAt(index));
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'pending',
-                          child: Text('Pindah ke PO Besok'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Hapus Permanen', style: TextStyle(color: AppTheme.warningRed)),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _showEditItemDialog(index, item),
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.edit,
-                                    size: 12,
-                                    color: AppTheme.neutralGrey,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      _currency.format(item.hargaBeliSatuan),
-                                      style: TextStyle(
-                                        color: _isPpnEnabled
-                                            ? AppTheme.neutralGrey
-                                            : AppTheme.primaryGreen,
-                                        fontSize: 13,
-                                        decoration: _isPpnEnabled
-                                            ? TextDecoration.lineThrough
-                                            : null,
-                                        decorationColor: AppTheme.neutralGrey,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (_isPpnEnabled)
-                                Text(
-                                  _currency.format(
-                                    item.hargaBeliSatuan *
-                                        (1 + _ppnPercent / 100),
-                                  ),
-                                  style: const TextStyle(
-                                    color: AppTheme.primaryGreen,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, size: 20),
-                      onPressed: () {
-                        if (item.jumlah > 1) {
-                          final newJumlah = item.jumlah - 1;
-                          setState(
-                            () => _items[index] = item.copyWith(
-                              jumlah: newJumlah,
-                              totalHarga: newJumlah * item.hargaBeliSatuan,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    InkWell(
-                      onTap: () => _showEditItemDialog(index, item),
-                      borderRadius: BorderRadius.circular(6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppTheme.border),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${item.jumlah}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline, size: 20),
-                      onPressed: () {
-                        final newJumlah = item.jumlah + 1;
-                        setState(
-                          () => _items[index] = item.copyWith(
-                            jumlah: newJumlah,
-                            totalHarga: newJumlah * item.hargaBeliSatuan,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          _currency.format(item.subtotal),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (hasDiskon)
-                          Text(
-                            'Diskon ${item.diskonTipe == 1 ? "${item.diskonValue}%" : "Rp${_currency.format(item.diskonValue)}"}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.warningRed,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _showDiskonDialog(index, item),
-                      icon: Icon(
-                        Icons.discount,
-                        size: 16,
-                        color: hasDiskon
-                            ? AppTheme.warningRed
-                            : AppTheme.neutralGrey,
-                      ),
-                      label: Text(
-                        hasDiskon ? 'Diskon diterapkan' : 'Diskon',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: hasDiskon
-                              ? AppTheme.warningRed
-                              : AppTheme.neutralGrey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+  void _showSatuanPicker(Produk produk) {
+    final satuanList = produk.satuanList ?? [];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Pilih Satuan - ${produk.nama}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text('${produk.nama} (${produk.satuan ?? 'pcs'})'),
+                subtitle: const Text('Satuan Dasar (Konversi: 1)'),
+                onTap: () {
+                  setState(() => _tempSatuan[produk.id!] = null);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...satuanList.map((s) => ListTile(
+                title: Text(s.nama),
+                subtitle: Text('Konversi: ${s.konversi.toInt()} ${produk.satuan ?? 'pcs'}'),
+                onTap: () {
+                  setState(() => _tempSatuan[produk.id!] = s);
+                  Navigator.pop(ctx);
+                },
+              )),
+            ],
           ),
         );
       },
     );
   }
+  
+  void _addToCart(Produk produk) {
+    final qty = _getQty(produk);
+    final satuan = _getSatuan(produk);
+    final harga = _hargaFor(produk);
+    
+    setState(() {
+      final existingIndex = _items.indexWhere(
+        (i) => i.produkId == produk.id && i.satuanId == satuan?.id,
+      );
+      if (existingIndex != -1) {
+        final ex = _items[existingIndex];
+        final newQty = ex.jumlah + qty;
+        _items[existingIndex] = ex.copyWith(
+          jumlah: newQty,
+          totalHarga: newQty * ex.hargaBeliSatuan,
+        );
+      } else {
+        _items.add(
+          ItemPembelianForm(
+            produkId: produk.id!,
+            namaProduk: produk.nama,
+            satuanName: satuan?.nama ?? (produk.satuan ?? 'pcs'),
+            jumlah: qty,
+            hargaBeliSatuan: harga,
+            hargaBeliLama: harga,
+            totalHarga: qty * harga,
+            satuanId: satuan?.id,
+            konversi: satuan?.konversi ?? 1.0,
+          ),
+        );
+      }
+      _tempQty[produk.id!] = 1;
+    });
+    
+    _showTopToast(context, '$qty ${_satuanName(produk)} ${produk.nama} ditambahkan ke Pembelian');
+  }
 
-  Widget _buildBottomPanel() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+  void _showTopToast(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 60,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
+            ),
+            child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
           ),
-        ],
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    );
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 1), () => entry.remove());
+  }
+
+  Widget _buildSearchBox() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
         children: [
-          if (_totalDiskon > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Subtotal:',
-                    style: TextStyle(color: AppTheme.neutralGrey),
-                  ),
-                  Text(
-                    _currency.format(_total),
-                    style: const TextStyle(color: AppTheme.neutralGrey),
-                  ),
-                ],
-              ),
-            ),
-          if (_totalDiskon > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Diskon Item:',
-                    style: TextStyle(color: AppTheme.warningRed),
-                  ),
-                  Text(
-                    '- ${_currency.format(_totalDiskon)}',
-                    style: const TextStyle(color: AppTheme.warningRed),
-                  ),
-                ],
-              ),
-            ),
-          // Global Diskon
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              children: [
-                const Text(
-                  'Diskon',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari produk...',
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 28,
-                  child: SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('Tdk', style: TextStyle(fontSize: 11))),
-                      ButtonSegment(value: 1, label: Text('%', style: TextStyle(fontSize: 11))),
-                      ButtonSegment(value: 2, label: Text('Rp', style: TextStyle(fontSize: 11))),
-                    ],
-                    selected: {_diskonTipe},
-                    onSelectionChanged: (v) {
-                      setState(() {
-                        _diskonTipe = v.first;
-                        if (_diskonTipe == 0) {
-                          _diskonPersen = 0;
-                          _diskonNominal = 0;
-                        }
-                      });
-                    },
-                    style: ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ),
-                if (_diskonTipe == 1)
-                  Container(
-                    width: 50,
-                    height: 28,
-                    margin: const EdgeInsets.only(left: 4),
-                    child: TextField(
-                      controller: _diskonPersenController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.zero,
-                        suffixText: '%',
-                      ),
-                      onChanged: (val) {
-                        setState(() {
-                          _diskonPersen = double.tryParse(val) ?? 0;
-                        });
-                      },
-                    ),
-                  ),
-                if (_diskonTipe == 2)
-                  Container(
-                    width: 70,
-                    height: 28,
-                    margin: const EdgeInsets.only(left: 4),
-                    child: TextField(
-                      controller: _diskonNominalController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.zero,
-                        prefixText: 'Rp ',
-                        prefixStyle: TextStyle(fontSize: 10),
-                      ),
-                      onChanged: (val) {
-                        setState(() {
-                          _diskonNominal = double.tryParse(val) ?? 0;
-                        });
-                      },
-                    ),
-                  ),
-                const Spacer(),
-                if (_diskonTipe > 0)
-                  Text(
-                    '- ${_currency.format(_totalDiskonGlobal)}',
-                    style: const TextStyle(
-                      color: AppTheme.warningRed,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // PPN
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'PPN',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Switch(
-                    value: _isPpnEnabled,
-                    onChanged: (val) => setState(() => _isPpnEnabled = val),
-                    activeThumbColor: AppTheme.primaryGreen,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  if (_isPpnEnabled)
-                    Container(
-                      width: 45,
-                      height: 30,
-                      margin: const EdgeInsets.only(left: 4),
-                      child: TextField(
-                        controller: _ppnController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.zero,
-                          suffixText: '%',
-                        ),
-                        onChanged: (val) {
-                          setState(() {
-                            _ppnPercent = double.tryParse(val) ?? 0.0;
-                          });
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _filterProducts('');
                         },
-                      ),
-                    ),
-                ],
+                      )
+                    : null,
               ),
-              if (_isPpnEnabled)
-                Text(
-                  '+ ${_currency.format(_totalPpn)}',
-                  style: const TextStyle(color: AppTheme.warningRed),
-                ),
-            ],
-          ),
-          const Divider(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total Final:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                _currency.format(_totalFinal),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryGreen,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, authState) {
-                final isKasir =
-                    authState is Authenticated &&
-                    authState.user.role == 'kasir';
-                return ElevatedButton(
-                  onPressed: (_isFormValid && !_isSaving) ? _submit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isFormValid
-                        ? AppTheme.primary
-                        : Colors.grey.shade600,
-                    foregroundColor: _isFormValid
-                        ? AppTheme.onPrimary
-                        : Colors.white38,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          isKasir
-                              ? 'Simpan ke Pending (Kasir)'
-                              : 'Simpan Pembelian',
-                        ),
-                );
+              onChanged: (query) {
+                setState(() {});
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 300), () {
+                  _filterProducts(query);
+                });
               },
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: _openScanner,
           ),
         ],
       ),
     );
   }
+
+  Widget _buildProductList() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_filtered.isEmpty) return const Center(child: Text('Produk tidak ditemukan', style: TextStyle(color: AppTheme.grey)));
+    
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: _filtered.length,
+      itemBuilder: (context, index) => _buildProductCard(_filtered[index]),
+    );
+  }
+  
+  Widget _buildProductCard(Produk produk) {
+    final cardColor = Theme.of(context).cardColor;
+    return Card(
+      color: cardColor,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              produk.nama,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  _currency.format(_hargaFor(produk)),
+                  style: const TextStyle(
+                    color: AppTheme.lightGreen,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Stok: ${produk.stok}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                InkWell(
+                  onTap: () => _showSatuanPicker(produk),
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _satuanName(produk),
+                          style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.arrow_drop_down, size: 16, color: AppTheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.remove, size: 20),
+                  onPressed: () => _decQty(produk),
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+                ),
+                GestureDetector(
+                  onTap: () => _showQtyInputDialog(produk),
+                  child: SizedBox(
+                    width: 40,
+                    child: Text(
+                      '${_getQty(produk)}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, decoration: TextDecoration.underline),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 20),
+                  onPressed: () => _incQty(produk),
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+                ),
+                const SizedBox(width: 12),
+                IconButton.filled(
+                  onPressed: () => _addToCart(produk),
+                  icon: const Icon(Icons.add_shopping_cart, size: 20),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  
+  void _openCartPage() async {
+    final pembelianBloc = context.read<PembelianBloc>();
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: pembelianBloc,
+          child: PembelianCartPage(
+          items: _items,
+          selectedSupplier: _selectedSupplier,
+          isPpnEnabled: _isPpnEnabled,
+          ppnPercent: _ppnPercent,
+          diskonTipe: _diskonTipe,
+          diskonPersen: _diskonPersen,
+          diskonNominal: _diskonNominal,
+          loadedPendingId: _loadedPendingId,
+          pembelianId: _pembelianId,
+        ),
+      ),
+      ),
+    );
+
+    if (result == 'success') {
+      // Pembelian saved, clear the form
+      setState(() {
+        _items.clear();
+        _selectedSupplier = null;
+        _isPpnEnabled = false;
+        _ppnPercent = 0.0;
+        _diskonTipe = 0;
+        _diskonPersen = 0.0;
+        _diskonNominal = 0.0;
+        _loadedPendingId = null;
+        _pembelianId = null;
+      });
+      Navigator.pop(context, true); // go back
+    } else if (result is Map<String, dynamic>) {
+      setState(() {
+        _items.clear();
+        _items.addAll(result['items'] as List<ItemPembelianForm>);
+        _isPpnEnabled = result['isPpnEnabled'] as bool;
+        _ppnPercent = result['ppnPercent'] as double;
+        _diskonTipe = result['diskonTipe'] as int;
+        _diskonPersen = result['diskonPersen'] as double;
+        _diskonNominal = result['diskonNominal'] as double;
+      });
+    }
+  }
+
+  Widget _buildBottomBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${_items.length} item', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    _currency.format(_totalFinal),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.lightGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _items.isEmpty ? null : _openCartPage,
+              icon: const Icon(Icons.shopping_cart_outlined),
+              label: const Text('Pembelian'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
 
 class ItemPembelianForm {

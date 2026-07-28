@@ -73,57 +73,86 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
   }
 
   Future<void> _onAddToCart(AddToCart event, Emitter<CashierState> emit) async {
-    if (state is! CashierReady) return;
-    final current = state as CashierReady;
+    // Skip stock validation for manual items
+    if (!event.isManual) {
+      final produk = await getProdukById(event.produkId);
 
-    // Fetch product to validate stock
-    final produk = await getProdukById(event.produkId);
-    if (produk != null) {
-      final cart = List<CartItem>.from(current.cart);
-      final existingIndex = cart.indexWhere(
-        (item) => item.produkId == event.produkId,
-      );
+      // Read the LATEST state after the await
+      if (state is! CashierReady) return;
+      final current = state as CashierReady;
 
-      int existingBaseQty = 0;
-      if (existingIndex >= 0) {
-        existingBaseQty = (cart[existingIndex].jumlah * cart[existingIndex].konversi).round();
-      }
+      if (produk != null) {
+        final cart = List<CartItem>.from(current.cart);
+        // Stock is shared at base-unit level across all satuan variants of this
+        // product, so sum every existing line with the same produkId.
+        int existingBaseQty = 0;
+        for (final item in cart) {
+          if (item.produkId == event.produkId) {
+            existingBaseQty += (item.jumlah * item.konversi).round();
+          }
+        }
 
-      final newBaseQty = (event.jumlah * event.konversi).round();
-      final totalNewBaseQty = existingBaseQty + newBaseQty;
+        final newBaseQty = (event.jumlah * event.konversi).round();
+        final totalNewBaseQty = existingBaseQty + newBaseQty;
 
-      if (totalNewBaseQty > produk.stok) {
-        emit(CashierError(
-          'Stok ${produk.nama} tidak mencukupi. Sisa stok: ${produk.stok} pcs.',
-          cart: current.cart,
-          jumlahBayar: current.jumlahBayar,
-        ));
-        emit(current);
-        return;
+        if (totalNewBaseQty > produk.stok) {
+          emit(CashierError(
+            'Stok ${produk.nama} tidak mencukupi. Sisa stok: ${produk.stok} pcs.',
+            cart: current.cart,
+            jumlahBayar: current.jumlahBayar,
+          ));
+          emit(current);
+          return;
+        }
       }
     }
 
+    if (state is! CashierReady) return;
+    final current = state as CashierReady;
+
     final cart = List<CartItem>.from(current.cart);
-    final existingIndex = cart.indexWhere(
-      (item) => item.produkId == event.produkId,
-    );
+    // Merge only when the SAME product AND the SAME satuan (unit) is added
+    // again. Different satuan variants of one product are distinct cart lines.
+    // Manual items are never merged (each is its own line).
     int highlightIdx;
-    if (existingIndex >= 0) {
-      final existing = cart[existingIndex];
-      cart[existingIndex] = existing.copyWith(
-        jumlah: existing.jumlah + event.jumlah,
+    if (!event.isManual) {
+      final existingIndex = cart.indexWhere(
+        (item) => item.produkId == event.produkId && item.satuan == event.satuan,
       );
-      highlightIdx = existingIndex;
+      if (existingIndex >= 0) {
+        final existing = cart[existingIndex];
+        cart[existingIndex] = existing.copyWith(
+          jumlah: existing.jumlah + event.jumlah,
+        );
+        highlightIdx = existingIndex;
+      } else {
+        cart.insert(0,
+          CartItem(
+            produkId: event.produkId,
+            namaProduk: event.namaProduk,
+            hargaJual: event.hargaJual,
+            hargaPokok: event.hargaPokok,
+            jumlah: event.jumlah,
+            satuan: event.satuan,
+            konversi: event.konversi,
+            isManual: event.isManual,
+            catatanManual: event.catatanManual,
+          ),
+        );
+        highlightIdx = 0;
+      }
     } else {
       cart.insert(0,
         CartItem(
           produkId: event.produkId,
           namaProduk: event.namaProduk,
           hargaJual: event.hargaJual,
-          hargaPokok: event.hargaPokok,
+          hargaPokok: 0,
           jumlah: event.jumlah,
           satuan: event.satuan,
-          konversi: event.konversi,
+          konversi: 1.0,
+          isManual: true,
+          catatanManual: event.catatanManual,
         ),
       );
       highlightIdx = 0;
@@ -140,9 +169,18 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
 
   Future<void> _onUpdateJumlah(UpdateJumlahCart event, Emitter<CashierState> emit) async {
     if (state is! CashierReady) return;
-    final current = state as CashierReady;
-    final cart = List<CartItem>.from(current.cart);
+    var current = state as CashierReady;
+    
+    if (event.index < 0 || event.index >= current.cart.length) return;
+    final item = current.cart[event.index];
 
+    final produk = await getProdukById(item.produkId);
+    
+    // Re-read state after await
+    if (state is! CashierReady) return;
+    current = state as CashierReady;
+    
+    final cart = List<CartItem>.from(current.cart);
     if (event.index < 0 || event.index >= cart.length) return;
 
     if (event.jumlah <= 0) {
@@ -151,9 +189,8 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
       return;
     }
 
-    final item = cart[event.index];
-    final produk = await getProdukById(item.produkId);
-    if (produk != null) {
+    // Skip stock validation for manual items
+    if (!item.isManual && produk != null) {
       final totalNewBaseQty = (event.jumlah * item.konversi).round();
       if (totalNewBaseQty > produk.stok) {
         emit(CashierError(

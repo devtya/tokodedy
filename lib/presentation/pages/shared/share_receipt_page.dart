@@ -9,7 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/receipt_data.dart';
-import '../../../data/services/printer_service.dart';
+import '../../../data/services/bluetooth_printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import '../../widgets/digital_receipt_widget.dart';
 
@@ -50,7 +50,7 @@ class _ShareReceiptPageState extends State<ShareReceiptPage> {
 
     setState(() => _isPrintingPhysical = true);
     try {
-      final printer = sl<PrinterService>();
+      final printer = sl<BluetoothPrinterService>();
       final success = await printer.printReceipt(widget.receipt);
       if (mounted) {
         if (success) {
@@ -133,13 +133,27 @@ class _ShareReceiptPageState extends State<ShareReceiptPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: colors.surfaceContainerHighest,
       appBar: AppBar(
         title: const Text('Preview Nota'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.onSurface,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: _isSharing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.share),
+            onPressed: _isSharing ? null : _shareReceipt,
+            tooltip: 'Bagikan',
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -180,7 +194,8 @@ class _ShareReceiptPageState extends State<ShareReceiptPage> {
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                flex: 2,
+                child: ElevatedButton.icon(
                   onPressed: _isPrintingPhysical ? null : _printPhysicalReceipt,
                   icon: _isPrintingPhysical
                       ? const SizedBox(
@@ -190,31 +205,22 @@ class _ShareReceiptPageState extends State<ShareReceiptPage> {
                         )
                       : const Icon(Icons.print),
                   label: const Text('Cetak Thermal'),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: colors.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isSharing ? null : _shareReceipt,
-                  icon: _isSharing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.share),
-                  label: const Text('Bagikan via WA'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    foregroundColor: Colors.white,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.check),
+                  label: const Text('Selesai'),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: colors.surface,
+                    foregroundColor: colors.onSurface,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),

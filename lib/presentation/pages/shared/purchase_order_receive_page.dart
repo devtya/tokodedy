@@ -7,6 +7,7 @@ import '../../../domain/entities/purchase_order.dart';
 import '../../../domain/entities/purchase_order_item.dart';
 import '../../../domain/repositories/purchase_order_repository.dart';
 import '../../../domain/usecases/stok/terima_purchase_order.dart';
+import '../../../domain/usecases/stok/buat_pembelian.dart';
 import '../../../domain/usecases/produk/get_all_produk.dart';
 import '../../../domain/entities/produk.dart';
 import '../../widgets/price_validation_dialog.dart';
@@ -107,7 +108,8 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
     final Map<String, Produk> produkMap = {for (var p in allProduk) p.id!: p};
     
     final List<PurchaseOrderItem> zeroPriceItems = [];
-    final List<PriceValidationItem> changedItems = [];
+    final baseUnitChanges = <PriceValidationItem>[];
+    final konversiAutoUpdates = <SatuanPriceChange>[];
 
     for (final terima in itemsTerima) {
       final p = produkMap[terima.produkId];
@@ -120,13 +122,26 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
           zeroPriceItems.add(poItem);
         }
         
-        final hargaBeliLama = s != null ? s.hargaBeli : (p.hargaBeli * terima.konversi);
-        if (terima.hargaBeliBaru != null && terima.hargaBeliBaru! > hargaBeliLama) {
-          changedItems.add(PriceValidationItem(
-            produkId: terima.produkId,
-            konversi: terima.konversi,
-            hargaBeliSatuan: terima.hargaBeliBaru!,
-          ));
+        if (terima.satuanId == null) {
+          // Base unit
+          if (terima.hargaBeliBaru != null && terima.hargaBeliBaru! > p.hargaBeli) {
+            baseUnitChanges.add(PriceValidationItem(
+              produkId: terima.produkId,
+              konversi: 1.0,
+              hargaBeliSatuan: terima.hargaBeliBaru!,
+            ));
+          }
+        } else {
+          // Konversi unit
+          if (s != null && terima.hargaBeliBaru != null && terima.hargaBeliBaru! > s.hargaBeli) {
+            if (terima.hargaBeliBaru! > s.hargaJual) {
+              konversiAutoUpdates.add(SatuanPriceChange(
+                satuanId: terima.satuanId!,
+                hargaBeli: terima.hargaBeliBaru!,
+                hargaJual: terima.hargaBeliBaru!,
+              ));
+            }
+          }
         }
       }
     }
@@ -156,17 +171,25 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
       if (proceed != true) return;
     }
 
-    if (changedItems.isNotEmpty) {
+    List<PriceChange>? priceChanges;
+    if (baseUnitChanges.isNotEmpty) {
       if (!mounted) return;
-      final proceed = await showDialog<bool>(
+      final valResult = await showDialog<PriceValidationResult>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => PriceValidationDialog(
-          changedItems: changedItems,
+          changedItems: baseUnitChanges,
           produkMap: produkMap,
         ),
       );
-      if (proceed != true) return;
+      
+      if (valResult == null || valResult is CancelPriceValidationResult) {
+        return;
+      } else if (valResult is UpdateHargaJualResult) {
+        priceChanges = valResult.priceChanges;
+      } else if (valResult is KeepHargaJualResult) {
+        priceChanges = valResult.priceChanges;
+      }
     }
 
     if (!mounted) return;
@@ -174,7 +197,9 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Konfirmasi Penerimaan'),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
         content: Text('Terima ${itemsTerima.length} item dari ${_po?.namaSupplier ?? "Supplier"}? Pembelian akan dibuat otomatis.'),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -182,7 +207,11 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(64, 40),
+            ),
             child: const Text('Terima Barang'),
           ),
         ],
@@ -195,7 +224,12 @@ class _PurchaseOrderReceivePageState extends State<PurchaseOrderReceivePage> {
     setState(() => _isSaving = true);
     try {
       final usecase = sl<TerimaPurchaseOrder>();
-      await usecase(poId: widget.poId, itemsTerima: itemsTerima);
+      await usecase(
+        poId: widget.poId,
+        itemsTerima: itemsTerima,
+        priceChanges: priceChanges,
+        konversiAutoUpdates: konversiAutoUpdates,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -107,6 +107,16 @@ class ProdukRepositoryImpl implements ProdukRepository {
   }
 
   @override
+  Future<domain.Produk?> getProdukByNama(String nama) async {
+    final data = await (_db.select(_db.produkTable)
+      ..where((tbl) => tbl.nama.equals(nama.toUpperCase())))
+        .getSingleOrNull();
+    if (data == null) return null;
+    final satuanList = await getSatuanByProdukId(data.id);
+    return _mapToDomain(data).copyWith(satuanList: satuanList);
+  }
+
+  @override
   Future<domain.Produk?> getProdukByBarcode(String barcode) async {
     final data = await (_db.select(_db.produkTable)
       ..where((tbl) => tbl.barcode.equals(barcode)))

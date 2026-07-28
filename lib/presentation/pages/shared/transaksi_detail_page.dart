@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/receipt_data.dart';
-import '../../../data/services/printer_service.dart';
+import '../../../data/services/bluetooth_printer_service.dart';
 import '../../../data/services/printer_settings.dart';
 import '../../blocs/transaksi/transaksi_bloc.dart';
 import '../../blocs/transaksi/transaksi_event.dart';
@@ -82,7 +82,7 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
         fontSize: settings.fontSize,
       );
 
-      final printer = sl<PrinterService>();
+      final printer = sl<BluetoothPrinterService>();
       final success = await printer.printReceipt(receipt);
 
       if (mounted) {
@@ -210,7 +210,7 @@ class _TransaksiDetailPageState extends State<TransaksiDetailPage> {
                                     style: TextStyle(
                                       color: isHutang
                                           ? AppTheme.warningOrange
-                                          : AppTheme.primaryGreen,
+                                          : Colors.white,
                                       fontSize: 12,
                                     ),
                                   ),

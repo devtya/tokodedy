@@ -13128,6 +13128,742 @@ class PengeluaranOperasionalTableCompanion
   }
 }
 
+class $ItemTransaksiSementaraTableTable extends ItemTransaksiSementaraTable
+    with
+        TableInfo<
+          $ItemTransaksiSementaraTableTable,
+          ItemTransaksiSementaraTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ItemTransaksiSementaraTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transaksiIdMeta = const VerificationMeta(
+    'transaksiId',
+  );
+  @override
+  late final GeneratedColumn<String> transaksiId = GeneratedColumn<String>(
+    'transaksi_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _namaManualMeta = const VerificationMeta(
+    'namaManual',
+  );
+  @override
+  late final GeneratedColumn<String> namaManual = GeneratedColumn<String>(
+    'nama_manual',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hargaJualManualMeta = const VerificationMeta(
+    'hargaJualManual',
+  );
+  @override
+  late final GeneratedColumn<double> hargaJualManual = GeneratedColumn<double>(
+    'harga_jual_manual',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _jumlahMeta = const VerificationMeta('jumlah');
+  @override
+  late final GeneratedColumn<int> jumlah = GeneratedColumn<int>(
+    'jumlah',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _satuanManualMeta = const VerificationMeta(
+    'satuanManual',
+  );
+  @override
+  late final GeneratedColumn<String> satuanManual = GeneratedColumn<String>(
+    'satuan_manual',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _catatanMeta = const VerificationMeta(
+    'catatan',
+  );
+  @override
+  late final GeneratedColumn<String> catatan = GeneratedColumn<String>(
+    'catatan',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _produkIdMeta = const VerificationMeta(
+    'produkId',
+  );
+  @override
+  late final GeneratedColumn<String> produkId = GeneratedColumn<String>(
+    'produk_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _completedByMeta = const VerificationMeta(
+    'completedBy',
+  );
+  @override
+  late final GeneratedColumn<String> completedBy = GeneratedColumn<String>(
+    'completed_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transaksiId,
+    namaManual,
+    hargaJualManual,
+    jumlah,
+    satuanManual,
+    catatan,
+    status,
+    produkId,
+    createdAt,
+    completedAt,
+    completedBy,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'item_transaksi_sementara_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ItemTransaksiSementaraTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('transaksi_id')) {
+      context.handle(
+        _transaksiIdMeta,
+        transaksiId.isAcceptableOrUnknown(
+          data['transaksi_id']!,
+          _transaksiIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transaksiIdMeta);
+    }
+    if (data.containsKey('nama_manual')) {
+      context.handle(
+        _namaManualMeta,
+        namaManual.isAcceptableOrUnknown(data['nama_manual']!, _namaManualMeta),
+      );
+    }
+    if (data.containsKey('harga_jual_manual')) {
+      context.handle(
+        _hargaJualManualMeta,
+        hargaJualManual.isAcceptableOrUnknown(
+          data['harga_jual_manual']!,
+          _hargaJualManualMeta,
+        ),
+      );
+    }
+    if (data.containsKey('jumlah')) {
+      context.handle(
+        _jumlahMeta,
+        jumlah.isAcceptableOrUnknown(data['jumlah']!, _jumlahMeta),
+      );
+    }
+    if (data.containsKey('satuan_manual')) {
+      context.handle(
+        _satuanManualMeta,
+        satuanManual.isAcceptableOrUnknown(
+          data['satuan_manual']!,
+          _satuanManualMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catatan')) {
+      context.handle(
+        _catatanMeta,
+        catatan.isAcceptableOrUnknown(data['catatan']!, _catatanMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('produk_id')) {
+      context.handle(
+        _produkIdMeta,
+        produkId.isAcceptableOrUnknown(data['produk_id']!, _produkIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('completed_by')) {
+      context.handle(
+        _completedByMeta,
+        completedBy.isAcceptableOrUnknown(
+          data['completed_by']!,
+          _completedByMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ItemTransaksiSementaraTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ItemTransaksiSementaraTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      transaksiId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaksi_id'],
+      )!,
+      namaManual: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nama_manual'],
+      ),
+      hargaJualManual: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}harga_jual_manual'],
+      )!,
+      jumlah: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}jumlah'],
+      )!,
+      satuanManual: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}satuan_manual'],
+      ),
+      catatan: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catatan'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      produkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}produk_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+      completedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}completed_by'],
+      ),
+    );
+  }
+
+  @override
+  $ItemTransaksiSementaraTableTable createAlias(String alias) {
+    return $ItemTransaksiSementaraTableTable(attachedDatabase, alias);
+  }
+}
+
+class ItemTransaksiSementaraTableData extends DataClass
+    implements Insertable<ItemTransaksiSementaraTableData> {
+  final String id;
+  final String transaksiId;
+  final String? namaManual;
+  final double hargaJualManual;
+  final int jumlah;
+  final String? satuanManual;
+  final String? catatan;
+  final String status;
+  final String? produkId;
+  final DateTime createdAt;
+  final DateTime? completedAt;
+  final String? completedBy;
+  const ItemTransaksiSementaraTableData({
+    required this.id,
+    required this.transaksiId,
+    this.namaManual,
+    required this.hargaJualManual,
+    required this.jumlah,
+    this.satuanManual,
+    this.catatan,
+    required this.status,
+    this.produkId,
+    required this.createdAt,
+    this.completedAt,
+    this.completedBy,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transaksi_id'] = Variable<String>(transaksiId);
+    if (!nullToAbsent || namaManual != null) {
+      map['nama_manual'] = Variable<String>(namaManual);
+    }
+    map['harga_jual_manual'] = Variable<double>(hargaJualManual);
+    map['jumlah'] = Variable<int>(jumlah);
+    if (!nullToAbsent || satuanManual != null) {
+      map['satuan_manual'] = Variable<String>(satuanManual);
+    }
+    if (!nullToAbsent || catatan != null) {
+      map['catatan'] = Variable<String>(catatan);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || produkId != null) {
+      map['produk_id'] = Variable<String>(produkId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || completedBy != null) {
+      map['completed_by'] = Variable<String>(completedBy);
+    }
+    return map;
+  }
+
+  ItemTransaksiSementaraTableCompanion toCompanion(bool nullToAbsent) {
+    return ItemTransaksiSementaraTableCompanion(
+      id: Value(id),
+      transaksiId: Value(transaksiId),
+      namaManual: namaManual == null && nullToAbsent
+          ? const Value.absent()
+          : Value(namaManual),
+      hargaJualManual: Value(hargaJualManual),
+      jumlah: Value(jumlah),
+      satuanManual: satuanManual == null && nullToAbsent
+          ? const Value.absent()
+          : Value(satuanManual),
+      catatan: catatan == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catatan),
+      status: Value(status),
+      produkId: produkId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(produkId),
+      createdAt: Value(createdAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      completedBy: completedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedBy),
+    );
+  }
+
+  factory ItemTransaksiSementaraTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ItemTransaksiSementaraTableData(
+      id: serializer.fromJson<String>(json['id']),
+      transaksiId: serializer.fromJson<String>(json['transaksiId']),
+      namaManual: serializer.fromJson<String?>(json['namaManual']),
+      hargaJualManual: serializer.fromJson<double>(json['hargaJualManual']),
+      jumlah: serializer.fromJson<int>(json['jumlah']),
+      satuanManual: serializer.fromJson<String?>(json['satuanManual']),
+      catatan: serializer.fromJson<String?>(json['catatan']),
+      status: serializer.fromJson<String>(json['status']),
+      produkId: serializer.fromJson<String?>(json['produkId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      completedBy: serializer.fromJson<String?>(json['completedBy']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transaksiId': serializer.toJson<String>(transaksiId),
+      'namaManual': serializer.toJson<String?>(namaManual),
+      'hargaJualManual': serializer.toJson<double>(hargaJualManual),
+      'jumlah': serializer.toJson<int>(jumlah),
+      'satuanManual': serializer.toJson<String?>(satuanManual),
+      'catatan': serializer.toJson<String?>(catatan),
+      'status': serializer.toJson<String>(status),
+      'produkId': serializer.toJson<String?>(produkId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'completedBy': serializer.toJson<String?>(completedBy),
+    };
+  }
+
+  ItemTransaksiSementaraTableData copyWith({
+    String? id,
+    String? transaksiId,
+    Value<String?> namaManual = const Value.absent(),
+    double? hargaJualManual,
+    int? jumlah,
+    Value<String?> satuanManual = const Value.absent(),
+    Value<String?> catatan = const Value.absent(),
+    String? status,
+    Value<String?> produkId = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> completedAt = const Value.absent(),
+    Value<String?> completedBy = const Value.absent(),
+  }) => ItemTransaksiSementaraTableData(
+    id: id ?? this.id,
+    transaksiId: transaksiId ?? this.transaksiId,
+    namaManual: namaManual.present ? namaManual.value : this.namaManual,
+    hargaJualManual: hargaJualManual ?? this.hargaJualManual,
+    jumlah: jumlah ?? this.jumlah,
+    satuanManual: satuanManual.present ? satuanManual.value : this.satuanManual,
+    catatan: catatan.present ? catatan.value : this.catatan,
+    status: status ?? this.status,
+    produkId: produkId.present ? produkId.value : this.produkId,
+    createdAt: createdAt ?? this.createdAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    completedBy: completedBy.present ? completedBy.value : this.completedBy,
+  );
+  ItemTransaksiSementaraTableData copyWithCompanion(
+    ItemTransaksiSementaraTableCompanion data,
+  ) {
+    return ItemTransaksiSementaraTableData(
+      id: data.id.present ? data.id.value : this.id,
+      transaksiId: data.transaksiId.present
+          ? data.transaksiId.value
+          : this.transaksiId,
+      namaManual: data.namaManual.present
+          ? data.namaManual.value
+          : this.namaManual,
+      hargaJualManual: data.hargaJualManual.present
+          ? data.hargaJualManual.value
+          : this.hargaJualManual,
+      jumlah: data.jumlah.present ? data.jumlah.value : this.jumlah,
+      satuanManual: data.satuanManual.present
+          ? data.satuanManual.value
+          : this.satuanManual,
+      catatan: data.catatan.present ? data.catatan.value : this.catatan,
+      status: data.status.present ? data.status.value : this.status,
+      produkId: data.produkId.present ? data.produkId.value : this.produkId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      completedBy: data.completedBy.present
+          ? data.completedBy.value
+          : this.completedBy,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ItemTransaksiSementaraTableData(')
+          ..write('id: $id, ')
+          ..write('transaksiId: $transaksiId, ')
+          ..write('namaManual: $namaManual, ')
+          ..write('hargaJualManual: $hargaJualManual, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('satuanManual: $satuanManual, ')
+          ..write('catatan: $catatan, ')
+          ..write('status: $status, ')
+          ..write('produkId: $produkId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('completedBy: $completedBy')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transaksiId,
+    namaManual,
+    hargaJualManual,
+    jumlah,
+    satuanManual,
+    catatan,
+    status,
+    produkId,
+    createdAt,
+    completedAt,
+    completedBy,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ItemTransaksiSementaraTableData &&
+          other.id == this.id &&
+          other.transaksiId == this.transaksiId &&
+          other.namaManual == this.namaManual &&
+          other.hargaJualManual == this.hargaJualManual &&
+          other.jumlah == this.jumlah &&
+          other.satuanManual == this.satuanManual &&
+          other.catatan == this.catatan &&
+          other.status == this.status &&
+          other.produkId == this.produkId &&
+          other.createdAt == this.createdAt &&
+          other.completedAt == this.completedAt &&
+          other.completedBy == this.completedBy);
+}
+
+class ItemTransaksiSementaraTableCompanion
+    extends UpdateCompanion<ItemTransaksiSementaraTableData> {
+  final Value<String> id;
+  final Value<String> transaksiId;
+  final Value<String?> namaManual;
+  final Value<double> hargaJualManual;
+  final Value<int> jumlah;
+  final Value<String?> satuanManual;
+  final Value<String?> catatan;
+  final Value<String> status;
+  final Value<String?> produkId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> completedAt;
+  final Value<String?> completedBy;
+  final Value<int> rowid;
+  const ItemTransaksiSementaraTableCompanion({
+    this.id = const Value.absent(),
+    this.transaksiId = const Value.absent(),
+    this.namaManual = const Value.absent(),
+    this.hargaJualManual = const Value.absent(),
+    this.jumlah = const Value.absent(),
+    this.satuanManual = const Value.absent(),
+    this.catatan = const Value.absent(),
+    this.status = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.completedBy = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ItemTransaksiSementaraTableCompanion.insert({
+    required String id,
+    required String transaksiId,
+    this.namaManual = const Value.absent(),
+    this.hargaJualManual = const Value.absent(),
+    this.jumlah = const Value.absent(),
+    this.satuanManual = const Value.absent(),
+    this.catatan = const Value.absent(),
+    this.status = const Value.absent(),
+    this.produkId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.completedBy = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       transaksiId = Value(transaksiId);
+  static Insertable<ItemTransaksiSementaraTableData> custom({
+    Expression<String>? id,
+    Expression<String>? transaksiId,
+    Expression<String>? namaManual,
+    Expression<double>? hargaJualManual,
+    Expression<int>? jumlah,
+    Expression<String>? satuanManual,
+    Expression<String>? catatan,
+    Expression<String>? status,
+    Expression<String>? produkId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? completedAt,
+    Expression<String>? completedBy,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transaksiId != null) 'transaksi_id': transaksiId,
+      if (namaManual != null) 'nama_manual': namaManual,
+      if (hargaJualManual != null) 'harga_jual_manual': hargaJualManual,
+      if (jumlah != null) 'jumlah': jumlah,
+      if (satuanManual != null) 'satuan_manual': satuanManual,
+      if (catatan != null) 'catatan': catatan,
+      if (status != null) 'status': status,
+      if (produkId != null) 'produk_id': produkId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (completedBy != null) 'completed_by': completedBy,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ItemTransaksiSementaraTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? transaksiId,
+    Value<String?>? namaManual,
+    Value<double>? hargaJualManual,
+    Value<int>? jumlah,
+    Value<String?>? satuanManual,
+    Value<String?>? catatan,
+    Value<String>? status,
+    Value<String?>? produkId,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? completedAt,
+    Value<String?>? completedBy,
+    Value<int>? rowid,
+  }) {
+    return ItemTransaksiSementaraTableCompanion(
+      id: id ?? this.id,
+      transaksiId: transaksiId ?? this.transaksiId,
+      namaManual: namaManual ?? this.namaManual,
+      hargaJualManual: hargaJualManual ?? this.hargaJualManual,
+      jumlah: jumlah ?? this.jumlah,
+      satuanManual: satuanManual ?? this.satuanManual,
+      catatan: catatan ?? this.catatan,
+      status: status ?? this.status,
+      produkId: produkId ?? this.produkId,
+      createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
+      completedBy: completedBy ?? this.completedBy,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transaksiId.present) {
+      map['transaksi_id'] = Variable<String>(transaksiId.value);
+    }
+    if (namaManual.present) {
+      map['nama_manual'] = Variable<String>(namaManual.value);
+    }
+    if (hargaJualManual.present) {
+      map['harga_jual_manual'] = Variable<double>(hargaJualManual.value);
+    }
+    if (jumlah.present) {
+      map['jumlah'] = Variable<int>(jumlah.value);
+    }
+    if (satuanManual.present) {
+      map['satuan_manual'] = Variable<String>(satuanManual.value);
+    }
+    if (catatan.present) {
+      map['catatan'] = Variable<String>(catatan.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (produkId.present) {
+      map['produk_id'] = Variable<String>(produkId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (completedBy.present) {
+      map['completed_by'] = Variable<String>(completedBy.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ItemTransaksiSementaraTableCompanion(')
+          ..write('id: $id, ')
+          ..write('transaksiId: $transaksiId, ')
+          ..write('namaManual: $namaManual, ')
+          ..write('hargaJualManual: $hargaJualManual, ')
+          ..write('jumlah: $jumlah, ')
+          ..write('satuanManual: $satuanManual, ')
+          ..write('catatan: $catatan, ')
+          ..write('status: $status, ')
+          ..write('produkId: $produkId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('completedBy: $completedBy, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -13181,6 +13917,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $KasHarianTableTable kasHarianTable = $KasHarianTableTable(this);
   late final $PengeluaranOperasionalTableTable pengeluaranOperasionalTable =
       $PengeluaranOperasionalTableTable(this);
+  late final $ItemTransaksiSementaraTableTable itemTransaksiSementaraTable =
+      $ItemTransaksiSementaraTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -13213,6 +13951,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     onlineOrderItemTable,
     kasHarianTable,
     pengeluaranOperasionalTable,
+    itemTransaksiSementaraTable,
   ];
 }
 
@@ -21169,6 +21908,370 @@ typedef $$PengeluaranOperasionalTableTableProcessedTableManager =
       PengeluaranOperasionalTableData,
       PrefetchHooks Function()
     >;
+typedef $$ItemTransaksiSementaraTableTableCreateCompanionBuilder =
+    ItemTransaksiSementaraTableCompanion Function({
+      required String id,
+      required String transaksiId,
+      Value<String?> namaManual,
+      Value<double> hargaJualManual,
+      Value<int> jumlah,
+      Value<String?> satuanManual,
+      Value<String?> catatan,
+      Value<String> status,
+      Value<String?> produkId,
+      Value<DateTime> createdAt,
+      Value<DateTime?> completedAt,
+      Value<String?> completedBy,
+      Value<int> rowid,
+    });
+typedef $$ItemTransaksiSementaraTableTableUpdateCompanionBuilder =
+    ItemTransaksiSementaraTableCompanion Function({
+      Value<String> id,
+      Value<String> transaksiId,
+      Value<String?> namaManual,
+      Value<double> hargaJualManual,
+      Value<int> jumlah,
+      Value<String?> satuanManual,
+      Value<String?> catatan,
+      Value<String> status,
+      Value<String?> produkId,
+      Value<DateTime> createdAt,
+      Value<DateTime?> completedAt,
+      Value<String?> completedBy,
+      Value<int> rowid,
+    });
+
+class $$ItemTransaksiSementaraTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ItemTransaksiSementaraTableTable> {
+  $$ItemTransaksiSementaraTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transaksiId => $composableBuilder(
+    column: $table.transaksiId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get namaManual => $composableBuilder(
+    column: $table.namaManual,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hargaJualManual => $composableBuilder(
+    column: $table.hargaJualManual,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get satuanManual => $composableBuilder(
+    column: $table.satuanManual,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catatan => $composableBuilder(
+    column: $table.catatan,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get completedBy => $composableBuilder(
+    column: $table.completedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ItemTransaksiSementaraTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ItemTransaksiSementaraTableTable> {
+  $$ItemTransaksiSementaraTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transaksiId => $composableBuilder(
+    column: $table.transaksiId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get namaManual => $composableBuilder(
+    column: $table.namaManual,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hargaJualManual => $composableBuilder(
+    column: $table.hargaJualManual,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get jumlah => $composableBuilder(
+    column: $table.jumlah,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get satuanManual => $composableBuilder(
+    column: $table.satuanManual,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catatan => $composableBuilder(
+    column: $table.catatan,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get produkId => $composableBuilder(
+    column: $table.produkId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get completedBy => $composableBuilder(
+    column: $table.completedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ItemTransaksiSementaraTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ItemTransaksiSementaraTableTable> {
+  $$ItemTransaksiSementaraTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get transaksiId => $composableBuilder(
+    column: $table.transaksiId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get namaManual => $composableBuilder(
+    column: $table.namaManual,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hargaJualManual => $composableBuilder(
+    column: $table.hargaJualManual,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get jumlah =>
+      $composableBuilder(column: $table.jumlah, builder: (column) => column);
+
+  GeneratedColumn<String> get satuanManual => $composableBuilder(
+    column: $table.satuanManual,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catatan =>
+      $composableBuilder(column: $table.catatan, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get produkId =>
+      $composableBuilder(column: $table.produkId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get completedBy => $composableBuilder(
+    column: $table.completedBy,
+    builder: (column) => column,
+  );
+}
+
+class $$ItemTransaksiSementaraTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ItemTransaksiSementaraTableTable,
+          ItemTransaksiSementaraTableData,
+          $$ItemTransaksiSementaraTableTableFilterComposer,
+          $$ItemTransaksiSementaraTableTableOrderingComposer,
+          $$ItemTransaksiSementaraTableTableAnnotationComposer,
+          $$ItemTransaksiSementaraTableTableCreateCompanionBuilder,
+          $$ItemTransaksiSementaraTableTableUpdateCompanionBuilder,
+          (
+            ItemTransaksiSementaraTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $ItemTransaksiSementaraTableTable,
+              ItemTransaksiSementaraTableData
+            >,
+          ),
+          ItemTransaksiSementaraTableData,
+          PrefetchHooks Function()
+        > {
+  $$ItemTransaksiSementaraTableTableTableManager(
+    _$AppDatabase db,
+    $ItemTransaksiSementaraTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ItemTransaksiSementaraTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ItemTransaksiSementaraTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ItemTransaksiSementaraTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> transaksiId = const Value.absent(),
+                Value<String?> namaManual = const Value.absent(),
+                Value<double> hargaJualManual = const Value.absent(),
+                Value<int> jumlah = const Value.absent(),
+                Value<String?> satuanManual = const Value.absent(),
+                Value<String?> catatan = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> produkId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> completedBy = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ItemTransaksiSementaraTableCompanion(
+                id: id,
+                transaksiId: transaksiId,
+                namaManual: namaManual,
+                hargaJualManual: hargaJualManual,
+                jumlah: jumlah,
+                satuanManual: satuanManual,
+                catatan: catatan,
+                status: status,
+                produkId: produkId,
+                createdAt: createdAt,
+                completedAt: completedAt,
+                completedBy: completedBy,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String transaksiId,
+                Value<String?> namaManual = const Value.absent(),
+                Value<double> hargaJualManual = const Value.absent(),
+                Value<int> jumlah = const Value.absent(),
+                Value<String?> satuanManual = const Value.absent(),
+                Value<String?> catatan = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> produkId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> completedBy = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ItemTransaksiSementaraTableCompanion.insert(
+                id: id,
+                transaksiId: transaksiId,
+                namaManual: namaManual,
+                hargaJualManual: hargaJualManual,
+                jumlah: jumlah,
+                satuanManual: satuanManual,
+                catatan: catatan,
+                status: status,
+                produkId: produkId,
+                createdAt: createdAt,
+                completedAt: completedAt,
+                completedBy: completedBy,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ItemTransaksiSementaraTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ItemTransaksiSementaraTableTable,
+      ItemTransaksiSementaraTableData,
+      $$ItemTransaksiSementaraTableTableFilterComposer,
+      $$ItemTransaksiSementaraTableTableOrderingComposer,
+      $$ItemTransaksiSementaraTableTableAnnotationComposer,
+      $$ItemTransaksiSementaraTableTableCreateCompanionBuilder,
+      $$ItemTransaksiSementaraTableTableUpdateCompanionBuilder,
+      (
+        ItemTransaksiSementaraTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $ItemTransaksiSementaraTableTable,
+          ItemTransaksiSementaraTableData
+        >,
+      ),
+      ItemTransaksiSementaraTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -21240,5 +22343,11 @@ class $AppDatabaseManager {
       $$PengeluaranOperasionalTableTableTableManager(
         _db,
         _db.pengeluaranOperasionalTable,
+      );
+  $$ItemTransaksiSementaraTableTableTableManager
+  get itemTransaksiSementaraTable =>
+      $$ItemTransaksiSementaraTableTableTableManager(
+        _db,
+        _db.itemTransaksiSementaraTable,
       );
 }

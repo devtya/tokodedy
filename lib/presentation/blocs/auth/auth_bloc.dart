@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../domain/entities/user.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -22,28 +23,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
+
+    // Phase 1 — local cache dulu (instant, tanpa network)
+    User? localUser;
     try {
-      // Validasi session Supabase dulu (cek apakah token masih valid)
-      final user = await authRepository.fetchCurrentUser();
-      if (user != null) {
-        emit(Authenticated(user));
+      localUser = authRepository.getCurrentUser();
+      if (localUser != null) {
+        emit(Authenticated(localUser));
+      }
+    } catch (_) {}
+
+    // Phase 2 — validasi/refresh dari Supabase (non-blocking, timeout pendek)
+    try {
+      final freshUser = await authRepository
+          .fetchCurrentUser()
+          .timeout(const Duration(seconds: 5));
+      if (freshUser != null) {
+        emit(Authenticated(freshUser));
         return;
       }
-    } catch (_) {
-      // Network error — fallback ke cache lokal
+    } on TimeoutException {
+      if (kDebugMode) debugPrint('[AuthBloc] fetchCurrentUser timed out — offline');
+    } catch (e, stack) {
+      if (kDebugMode) debugPrint('[AuthBloc] checkAuth error: $e\n$stack');
     }
 
-    // Fallback: cache lokal (offline mode)
-    try {
-      final user = authRepository.getCurrentUser();
-      if (user != null) {
-        emit(Authenticated(user));
-      } else {
-        emit(Unauthenticated());
-      }
-    } catch (e) {
-      emit(Unauthenticated());
-    }
+    // Jika sudah punya localUser, biarkan tetap Authenticated (offline mode)
+    if (localUser != null) return;
+
+    // Tidak ada data sama sekali → unauthenticated
+    emit(Unauthenticated());
   }
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {

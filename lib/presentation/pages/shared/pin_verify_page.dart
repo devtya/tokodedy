@@ -28,6 +28,7 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
   String _error = '';
   bool _hasAutoTriggered = false;
   int _pinLength = 6;
+  bool _showPinUI = true;
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
       final state = context.read<LocalAuthBloc>().state;
       if (state is PinReady && state.biometricEnabled && !_hasAutoTriggered) {
         _hasAutoTriggered = true;
+        setState(() => _showPinUI = false);
         _biometricLogin();
       }
       if (state is PinReady) {
@@ -90,16 +92,13 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
               setState(() {
                 _error = state.message;
                 _pin = '';
+                if (!_showPinUI) _showPinUI = true;
               });
             } else if (state is PinReady) {
               _pinLength = state.pinLength;
               if (state.isLockedOut) {
                 setState(() =>
                     _error = 'Terlalu banyak percobaan. Tunggu 30 detik.');
-              }
-              if (state.biometricEnabled && !_hasAutoTriggered) {
-                _hasAutoTriggered = true;
-                _biometricLogin();
               }
             } else if (state is PinNotSet) {
               widget.onSkip();
@@ -113,6 +112,30 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
             final isLocked = state is PinReady && state.isLockedOut;
             final bioAvail = state is PinReady && state.biometricAvailable;
             final curPinLength = state is PinReady ? state.pinLength : _pinLength;
+
+            if (!_showPinUI) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: 64,
+                      color: isDark ? AppTheme.primary : AppTheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Verifikasi sidik jari...',
+                      style: TextStyle(
+                        color: isDark ? AppTheme.white : AppTheme.lightText,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const CircularProgressIndicator(),
+                  ],
+                ),
+              );
+            }
 
             return Column(
               children: [
