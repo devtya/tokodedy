@@ -38,6 +38,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
   List<CartItem>? _lastCart;
   double _lastBayar = 0;
   double _lastKembali = 0;
+  Future<bool>? _printerReady;
 
   bool get _isKasir {
     final s = context.read<AuthBloc>().state;
@@ -49,9 +50,13 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     super.initState();
     context.read<CashierBloc>().add(InitCashier());
     _loadProducts();
+    _refreshPrinterStatus();
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _scanFocus.requestFocus());
   }
+
+  void _refreshPrinterStatus() =>
+      setState(() => _printerReady = sl<ReceiptPrinter>().isReady());
 
   @override
   void dispose() {
@@ -184,6 +189,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     _lastCart = null;
     context.read<CashierBloc>().add(InitCashier());
     _refocus();
+    if (mounted) _refreshPrinterStatus();
   }
 
   Future<void> _bukaLaci() async {
@@ -193,6 +199,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
       _flash('Gagal buka laci — printer tidak siap');
     }
     _refocus();
+    if (mounted) _refreshPrinterStatus();
   }
 
   @override
@@ -220,7 +227,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
             title: const Text('Kasir'),
             actions: [
               FutureBuilder<bool>(
-                future: sl<ReceiptPrinter>().isReady(),
+                future: _printerReady,
                 builder: (context, snap) {
                   final ready = snap.data ?? false;
                   return Padding(
