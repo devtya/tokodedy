@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../data/database/app_database.dart';
 
 import 'injection.config.dart';
+import 'printer_module.dart';
 
 final sl = GetIt.instance;
 
@@ -17,6 +18,7 @@ final sl = GetIt.instance;
 )
 Future<void> initDependencies() async {
   await sl.init();
+  registerReceiptPrinter();
 }
 
 @module
