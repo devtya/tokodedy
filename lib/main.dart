@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -182,31 +183,35 @@ Future<void> _initNetworkServices() async {
     if (kDebugMode) debugPrint('[main] Supabase init timed out — offline mode');
   }
 
-  Workmanager().initialize(callbackDispatcher);
-  Workmanager().registerPeriodicTask(
-    "sync_task_1",
-    "syncSupabaseTask",
-    frequency: const Duration(minutes: 15),
-    constraints: Constraints(
-      networkType: NetworkType.connected,
-    ),
-  );
+  // Workmanager & Firebase Messaging are Android/iOS only — skip on desktop
+  // (Windows) where the plugins have no implementation and would throw.
+  if (Platform.isAndroid || Platform.isIOS) {
+    Workmanager().initialize(callbackDispatcher);
+    Workmanager().registerPeriodicTask(
+      "sync_task_1",
+      "syncSupabaseTask",
+      frequency: const Duration(minutes: 15),
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+      ),
+    );
 
-  try {
-    await Firebase.initializeApp();
+    try {
+      await Firebase.initializeApp();
 
-    // Register background FCM handler
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      // Register background FCM handler
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // FCM foreground notification tap (app dari background → foreground)
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleFcmNotificationTap);
+      // FCM foreground notification tap (app dari background → foreground)
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleFcmNotificationTap);
 
-    // FCM notification yang membuka app dari terminated (killed)
-    FirebaseMessaging.instance.getInitialMessage().then(_handleFcmNotificationTap);
+      // FCM notification yang membuka app dari terminated (killed)
+      FirebaseMessaging.instance.getInitialMessage().then(_handleFcmNotificationTap);
 
-    await FcmService.init().timeout(const Duration(seconds: 10));
-  } catch (_) {
-    if (kDebugMode) debugPrint('[main] Firebase/FCM init timed out — offline mode');
+      await FcmService.init().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      if (kDebugMode) debugPrint('[main] Firebase/FCM init timed out — offline mode');
+    }
   }
 
   _checkUpdate();
