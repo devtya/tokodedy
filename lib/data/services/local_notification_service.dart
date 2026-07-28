@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
 
@@ -6,7 +8,14 @@ class LocalNotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   void Function(String? payload)? _onTap;
 
+  // Local notifications are only wired for Android/iOS. On desktop (Windows)
+  // the plugin requires WindowsInitializationSettings; calling initialize()
+  // without it throws and, being awaited before runApp, would prevent the
+  // window from ever appearing. Skip entirely off-mobile.
+  bool get _supported => Platform.isAndroid || Platform.isIOS;
+
   Future<void> initialize({void Function(String? payload)? onNotificationTap}) async {
+    if (!_supported) return;
     _onTap = onNotificationTap;
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
@@ -28,6 +37,7 @@ class LocalNotificationService {
   }
 
   Future<void> showNotification({required int id, required String title, required String body, String? payload}) async {
+    if (!_supported) return;
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'online_orders_channel',
       'Pesanan Online',
