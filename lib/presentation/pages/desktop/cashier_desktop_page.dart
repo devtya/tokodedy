@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/platform/ui_scale.dart';
 import '../../../data/services/printing/receipt_printer.dart';
 import '../../../data/services/receipt_generator.dart';
 import '../../../data/services/printer_settings.dart';
@@ -39,6 +40,9 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
   double _lastBayar = 0;
   double _lastKembali = 0;
   Future<bool>? _printerReady;
+
+  bool _gridView = true;
+  double _splitFraction = 0.6; // share of width given to the product panel
 
   bool get _isKasir {
     final s = context.read<AuthBloc>().state;
@@ -87,36 +91,53 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     });
   }
 
-  Future<void> _onSubmitScan(String raw) async {
-    final code = raw.trim();
+  void _clearSearch() {
     _scanCtrl.clear();
-    _refocus();
+    _filter('');
+  }
+
+  String _outcomeMsg(ScanOutcome o, String name) {
+    switch (o) {
+      case ScanOutcome.archived:
+        return 'Produk diarsipkan, tidak bisa dijual';
+      case ScanOutcome.outOfStock:
+        return 'Stok $name habis';
+      case ScanOutcome.notFound:
+        return 'Produk tidak ditemukan';
+      case ScanOutcome.added:
+        return '';
+    }
+  }
+
+  /// One unified input: a barcode scan (types + Enter) or a manual search.
+  /// On Enter we first try a barcode lookup (scanner path); if that misses
+  /// and the live filter narrowed to exactly one product, we add that.
+  Future<void> _onSubmit(String raw) async {
+    final code = raw.trim();
     if (code.isEmpty) return;
     final produk = await sl<GetProdukByBarcode>()(code);
-    final result = resolveScannedProduct(produk, isKasir: _isKasir);
     if (!mounted) return;
-    switch (result.outcome) {
-      case ScanOutcome.added:
-        context.read<CashierBloc>().add(result.event!);
-        break;
-      case ScanOutcome.notFound:
-        _flash('Barcode "$code" tidak ditemukan');
-        break;
-      case ScanOutcome.archived:
-        _flash('Produk diarsipkan, tidak bisa dijual');
-        break;
-      case ScanOutcome.outOfStock:
-        _flash('Stok habis');
-        break;
+    if (produk != null) {
+      _addProduct(produk);
+      return;
     }
+    if (_filtered.length == 1) {
+      _addProduct(_filtered.first);
+      return;
+    }
+    if (_filtered.isEmpty) {
+      _flash('Tidak ada produk cocok dengan "$code"');
+    }
+    // Multiple matches: let the cashier tap a card/row.
   }
 
   void _addProduct(Produk p) {
     final r = resolveScannedProduct(p, isKasir: _isKasir);
     if (r.outcome == ScanOutcome.added) {
       context.read<CashierBloc>().add(r.event!);
+      _clearSearch();
     } else {
-      _flash('Stok habis');
+      _flash(_outcomeMsg(r.outcome, p.nama));
     }
     _refocus();
   }
@@ -131,8 +152,8 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     );
   }
 
-  void _refocus() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scanFocus.requestFocus());
+  void _refocus() => WidgetsBinding.instance
+      .addPostFrameCallback((_) => _scanFocus.requestFocus());
 
   CashierReady _data(CashierState s) {
     if (s is CashierReady) return s;
@@ -188,6 +209,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     }
     _lastCart = null;
     context.read<CashierBloc>().add(InitCashier());
+    _clearSearch();
     _refocus();
     if (mounted) _refreshPrinterStatus();
   }
@@ -209,7 +231,6 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return BlocConsumer<CashierBloc, CashierState>(
       listener: (context, state) {
         if (state is CashierSuccess) _onSuccess(state.transaksiId);
@@ -224,104 +245,156 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
             },
             const SingleActivator(LogicalKeyboardKey.f2): () =>
                 _scanFocus.requestFocus(),
+            const SingleActivator(LogicalKeyboardKey.equal, control: true):
+                UiScale.instance.zoomIn,
+            const SingleActivator(LogicalKeyboardKey.add, control: true):
+                UiScale.instance.zoomIn,
+            const SingleActivator(LogicalKeyboardKey.minus, control: true):
+                UiScale.instance.zoomOut,
+            const SingleActivator(LogicalKeyboardKey.digit0, control: true):
+                UiScale.instance.reset,
           },
           child: Focus(
             autofocus: true,
             child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Kasir'),
-            actions: [
-              FutureBuilder<bool>(
-                future: _printerReady,
-                builder: (context, snap) {
-                  final ready = snap.data ?? false;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Chip(
-                      avatar: Icon(Icons.print,
-                          size: 16,
-                          color: ready
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.error),
-                      label: Text(ready ? 'Printer siap' : 'Printer putus'),
-                    ),
+              appBar: AppBar(
+                title: const Text('Kasir'),
+                actions: [
+                  _ZoomControls(),
+                  const SizedBox(width: 8),
+                  FutureBuilder<bool>(
+                    future: _printerReady,
+                    builder: (context, snap) {
+                      final ready = snap.data ?? false;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Chip(
+                          avatar: Icon(Icons.print,
+                              size: 16,
+                              color: ready
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.error),
+                          label: Text(ready ? 'Printer siap' : 'Printer putus'),
+                        ),
+                      );
+                    },
+                  ),
+                  TextButton.icon(
+                    onPressed: _bukaLaci,
+                    icon: const Icon(Icons.point_of_sale),
+                    label: const Text('Buka Laci'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+              body: LayoutBuilder(
+                builder: (context, constraints) {
+                  final totalW = constraints.maxWidth;
+                  final leftW = (totalW * _splitFraction)
+                      .clamp(300.0, (totalW - 340.0).clamp(300.0, totalW));
+                  return Row(
+                    children: [
+                      SizedBox(width: leftW, child: _leftPanel(data)),
+                      _SplitHandle(
+                        onDrag: (dx) {
+                          setState(() {
+                            _splitFraction =
+                                ((leftW + dx) / totalW).clamp(0.35, 0.72);
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: CartPanel(
+                          data: data,
+                          onPay: () => _pay(data),
+                          onRemove: (i) => context
+                              .read<CashierBloc>()
+                              .add(RemoveFromCart(i)),
+                          onEditQty: (i, q) {
+                            if (q <= 0) {
+                              context
+                                  .read<CashierBloc>()
+                                  .add(RemoveFromCart(i));
+                            } else {
+                              context
+                                  .read<CashierBloc>()
+                                  .add(UpdateJumlahCart(i, q));
+                            }
+                            _refocus();
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
-              TextButton.icon(
-                onPressed: _bukaLaci,
-                icon: const Icon(Icons.point_of_sale),
-                label: const Text('Buka Laci'),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: Row(
-            children: [
-              Expanded(
-                flex: 6,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: TextField(
-                        controller: _scanCtrl,
-                        focusNode: _scanFocus,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.qr_code_scanner),
-                          hintText: 'Scan / ketik barcode, lalu Enter…',
-                          filled: true,
-                          fillColor: cs.surface,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onSubmitted: _onSubmitScan,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          prefixIcon: Icon(Icons.search),
-                          hintText: 'Cari produk (F2)…',
-                        ),
-                        onChanged: _filter,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(child: _buildGrid()),
-                  ],
-                ),
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(
-                flex: 4,
-                child: CartPanel(
-                  data: data,
-                  onPay: () => _pay(data),
-                  onRemove: (i) =>
-                      context.read<CashierBloc>().add(RemoveFromCart(i)),
-                  onEditQty: (i, q) {
-                    if (q <= 0) {
-                      context.read<CashierBloc>().add(RemoveFromCart(i));
-                    } else {
-                      context
-                          .read<CashierBloc>()
-                          .add(UpdateJumlahCart(i, q));
-                    }
-                    _refocus();
-                  },
-                ),
-              ),
-            ],
-          ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _leftPanel(CashierReady data) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _scanCtrl,
+                  focusNode: _scanFocus,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.qr_code_scanner),
+                    hintText: 'Scan barcode atau ketik nama produk…',
+                    filled: true,
+                    fillColor: cs.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: _scanCtrl.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _clearSearch();
+                              _refocus();
+                            },
+                          ),
+                  ),
+                  onChanged: (_) {
+                    setState(() {}); // refresh clear button
+                    _filter(_scanCtrl.text);
+                  },
+                  onSubmitted: _onSubmit,
+                ),
+              ),
+              const SizedBox(width: 8),
+              SegmentedButton<bool>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                      value: true,
+                      icon: Icon(Icons.grid_view),
+                      tooltip: 'Grid'),
+                  ButtonSegment(
+                      value: false,
+                      icon: Icon(Icons.view_list),
+                      tooltip: 'List'),
+                ],
+                selected: {_gridView},
+                onSelectionChanged: (s) =>
+                    setState(() => _gridView = s.first),
+              ),
+            ],
+          ),
+        ),
+        Expanded(child: _gridView ? _buildGrid() : _buildList()),
+      ],
     );
   }
 
@@ -332,7 +405,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
+        maxCrossAxisExtent: 220,
         childAspectRatio: 1.4,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
@@ -356,8 +429,7 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
                     Text(p.nama,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(fontWeight: FontWeight.w700)),
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                     Text(_rp.format(p.hargaJual),
                         style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
@@ -369,6 +441,92 @@ class _CashierDesktopPageState extends State<CashierDesktopPage> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildList() {
+    if (_filtered.isEmpty) {
+      return const Center(child: Text('Produk tidak ada'));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: _filtered.length,
+      separatorBuilder: (_, _) => const Divider(height: 1),
+      itemBuilder: (context, i) {
+        final p = _filtered[i];
+        final habis = p.stok <= 0;
+        return Opacity(
+          opacity: habis ? 0.5 : 1,
+          child: ListTile(
+            title: Text(p.nama,
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(habis ? 'Stok habis' : 'Stok ${p.stok}'),
+            trailing: Text(_rp.format(p.hargaJual),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w700)),
+            onTap: habis ? null : () => _addProduct(p),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Draggable vertical divider between the product and cart panels.
+class _SplitHandle extends StatelessWidget {
+  final void Function(double dx) onDrag;
+  const _SplitHandle({required this.onDrag});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeLeftRight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragUpdate: (d) => onDrag(d.delta.dx),
+        child: SizedBox(
+          width: 10,
+          child: Center(
+            child: Container(width: 2, color: cs.outlineVariant),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Zoom out / percent / zoom in, bound to the app-wide [UiScale].
+class _ZoomControls extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: UiScale.instance.scale,
+      builder: (context, s, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.zoom_out),
+              tooltip: 'Perkecil (Ctrl -)',
+              onPressed: s > UiScale.min ? UiScale.instance.zoomOut : null,
+            ),
+            InkWell(
+              onTap: UiScale.instance.reset,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text('${(s * 100).round()}%'),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.zoom_in),
+              tooltip: 'Perbesar (Ctrl +)',
+              onPressed: s < UiScale.max ? UiScale.instance.zoomIn : null,
+            ),
+          ],
         );
       },
     );

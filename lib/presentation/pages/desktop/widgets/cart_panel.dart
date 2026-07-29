@@ -58,7 +58,27 @@ class CartPanel extends StatelessWidget {
                               onPressed: () =>
                                   onEditQty(i, item.jumlah - 1),
                             ),
-                            Text('${item.jumlah}'),
+                            InkWell(
+                              onTap: () async {
+                                final v = await _askQty(context, item.jumlah);
+                                if (v != null) onEditQty(i, v);
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                constraints:
+                                    const BoxConstraints(minWidth: 32),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: cs.outlineVariant),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text('${item.jumlah}',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.add, size: 18),
                               onPressed: () =>
@@ -120,4 +140,42 @@ class CartPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Prompt for an exact quantity. Returns the typed value, or null if cancelled.
+Future<int?> _askQty(BuildContext context, int current) {
+  final ctrl = TextEditingController(text: '$current');
+  ctrl.selection =
+      TextSelection(baseOffset: 0, extentOffset: ctrl.text.length);
+  int? parse() {
+    final v = int.tryParse(ctrl.text.trim());
+    return (v == null || v < 0) ? null : v;
+  }
+
+  return showDialog<int>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Jumlah'),
+      content: TextField(
+        controller: ctrl,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Masukkan jumlah',
+          helperText: '0 = hapus item',
+        ),
+        onSubmitted: (_) => Navigator.pop(ctx, parse()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, parse()),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'core/platform/app_platform.dart';
+import 'core/platform/ui_scale.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -144,6 +145,7 @@ void main() async {
 
   // Phase 1 — local-only init (must be fast, no network dependency)
   await initDependencies();
+  await UiScale.instance.load();
 
   await sl<LocalNotificationService>().initialize(
     onNotificationTap: (payload) {
@@ -295,6 +297,16 @@ class _TokodedyAppState extends State<TokodedyApp> with WidgetsBindingObserver {
                     navigatorKey: appNavigatorKey,
                     title: 'Tokodedy',
                     debugShowCheckedModeBanner: false,
+                    builder: (context, child) {
+                      final mq = MediaQuery.of(context);
+                      return ValueListenableBuilder<double>(
+                        valueListenable: UiScale.instance.scale,
+                        builder: (context, s, _) => MediaQuery(
+                          data: mq.copyWith(textScaler: TextScaler.linear(s)),
+                          child: child!,
+                        ),
+                      );
+                    },
                     themeMode: themeMode,
                     theme: AppTheme.lightTheme,
                     darkTheme: AppTheme.darkTheme,
