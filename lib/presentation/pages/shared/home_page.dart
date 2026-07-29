@@ -97,11 +97,15 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
       }
     });
 
-    FirebaseMessaging.instance.getToken().then((token) {
-      if (token != null) {
-        FcmService.saveTokenToSupabase(token);
-      }
-    });
+    // FCM is Android/iOS only; on desktop Firebase isn't initialized so
+    // touching FirebaseMessaging.instance would throw ([core/no-app]).
+    if (Platform.isAndroid || Platform.isIOS) {
+      FirebaseMessaging.instance.getToken().then((token) {
+        if (token != null) {
+          FcmService.saveTokenToSupabase(token);
+        }
+      });
+    }
   }
 
   @override
