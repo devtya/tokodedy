@@ -72,7 +72,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -119,6 +119,13 @@ class AppDatabase extends _$AppDatabase {
         } catch (_) {
           // Tabel sudah ada — aman diabaikan.
         }
+      }
+      if (from < 9) {
+        // Self-heal: DB lama yang dibuat sebelum kolom pin_length/pin_salt
+        // ada di tabel bisa terlewat oleh migrasi from<5/from<6 (jika DB
+        // sudah berada di versi >= itu). Pastikan kolomnya ada.
+        try { await m.addColumn(localAuthTable, localAuthTable.pinLength); } catch (_) {}
+        try { await m.addColumn(localAuthTable, localAuthTable.pinSalt); } catch (_) {}
       }
     },
     beforeOpen: (details) async {
