@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import '../../../core/platform/app_platform.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +99,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
     // FCM is Android/iOS only; on desktop Firebase isn't initialized so
     // touching FirebaseMessaging.instance would throw ([core/no-app]).
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (AppPlatform.isMobile) {
       FirebaseMessaging.instance.getToken().then((token) {
         if (token != null) {
           FcmService.saveTokenToSupabase(token);
@@ -153,7 +153,7 @@ class _HomeMobileViewState extends State<_HomeMobileView> {
 
   Widget _cashierChild() {
     final wide = MediaQuery.of(context).size.width >= 900;
-    return (Platform.isWindows && wide)
+    return (AppPlatform.isDesktop && wide)
         ? const CashierDesktopPage()
         : const CashierPage();
   }

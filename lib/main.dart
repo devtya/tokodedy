@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'core/platform/app_platform.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -185,7 +185,7 @@ Future<void> _initNetworkServices() async {
 
   // Workmanager & Firebase Messaging are Android/iOS only — skip on desktop
   // (Windows) where the plugins have no implementation and would throw.
-  if (Platform.isAndroid || Platform.isIOS) {
+  if (AppPlatform.isMobile) {
     Workmanager().initialize(callbackDispatcher);
     Workmanager().registerPeriodicTask(
       "sync_task_1",

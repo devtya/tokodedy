@@ -1,7 +1,7 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
+
+import '../../core/platform/app_platform.dart';
 
 @lazySingleton
 class LocalNotificationService {
@@ -12,7 +12,7 @@ class LocalNotificationService {
   // the plugin requires WindowsInitializationSettings; calling initialize()
   // without it throws and, being awaited before runApp, would prevent the
   // window from ever appearing. Skip entirely off-mobile.
-  bool get _supported => Platform.isAndroid || Platform.isIOS;
+  bool get _supported => AppPlatform.isMobile;
 
   Future<void> initialize({void Function(String? payload)? onNotificationTap}) async {
     if (!_supported) return;

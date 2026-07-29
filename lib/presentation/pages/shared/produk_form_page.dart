@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/platform/app_platform.dart';
 import '../../widgets/barcode_scanner_widget.dart';
 import '../../../data/services/storage_service.dart';
 import 'package:http/http.dart' as http;
@@ -722,6 +723,8 @@ class _ProdukFormPageState extends State<ProdukFormPage> {
       children: [
         _sectionLabel('INFORMASI PRODUK'),
         const SizedBox(height: 8),
+        // Photo picker uses image_picker (camera/gallery) — mobile only.
+        if (AppPlatform.isMobile)
         Center(
           child: GestureDetector(
             onTap: _pickImage,

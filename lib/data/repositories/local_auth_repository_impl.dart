@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/repositories/local_auth_repository.dart';
+import '../../core/platform/app_platform.dart';
 import '../../core/utils/pin_hash_util.dart';
 import '../database/app_database.dart';
 
@@ -167,6 +168,7 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
 
   @override
   Future<bool> isBiometricAvailable() async {
+    if (AppPlatform.isDesktop) return false; // No biometric on desktop.
     try {
       return await _localAuth.canCheckBiometrics ||
           await _localAuth.isDeviceSupported();
@@ -177,6 +179,7 @@ class LocalAuthRepositoryImpl implements LocalAuthRepository {
 
   @override
   Future<bool> authenticateWithBiometrics() async {
+    if (AppPlatform.isDesktop) return false; // No biometric on desktop.
     try {
       final available = await _localAuth.canCheckBiometrics ||
           await _localAuth.isDeviceSupported();

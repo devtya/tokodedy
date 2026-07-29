@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../core/di/injection.dart';
+import '../../core/platform/app_platform.dart';
 import 'local_notification_service.dart';
 import 'supabase_sync_service.dart';
 
@@ -13,6 +14,7 @@ class FcmService {
   static String? _cachedToken;
 
   static Future<void> init() async {
+    if (AppPlatform.isDesktop) return; // FCM is mobile-only.
     try {
       await Firebase.initializeApp();
     } catch (e) {
